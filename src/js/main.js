@@ -186,8 +186,6 @@ function autoSave() {
     storage.saveWorkouts();
 }
 
-// Add to main.js - Update the renderExercises function to include bodyweight option
-
 function renderExercises() {
     const container = document.getElementById('exerciseList');
     container.innerHTML = '';
@@ -212,10 +210,7 @@ function renderExercises() {
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <div class="exercise-name">${ex.name}</div>
-                    <div style="display: flex; gap: 5px">
-                        <button class="notes-btn" onclick="openNotes(${idx})">Add Notes</button>
-                        <button class="delete-btn" onclick="deleteExercise(${idx})">Delete</button>
-                    </div>
+                    <button class="delete-btn" onclick="deleteExercise(${idx})">Delete</button>
                 </div>
                 <div class="set-controls">
                     <div class="control-item">
@@ -241,24 +236,31 @@ function renderExercises() {
                         <input type="text" class="value-input" value="${ex.weight}" 
                                onchange="updateValue(${idx}, 'weight', this.value)">
                         <div class="arrow-controls">
-                            <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', 0.5)">▲</button>
-                            <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', -0.5)">▼</button>
+                            <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', 2.5)">▲</button>
+                            <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', -2.5)">▼</button>
                         </div>
                     </div>
                     <label style="display: flex; align-items: center; gap: 3px; font-size: 0.7em; color: #6c757d; white-space: nowrap;">
                         <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} 
                                onchange="toggleBodyweight(${idx}, this.checked)"> BW
                     </label>
-
                 </div>
-                
-                ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
+                <textarea class="notes-input" 
+                          placeholder="Notes (optional)" 
+                          onchange="updateNotes(${idx}, this.value)"
+                          rows="1">${ex.notes || ''}</textarea>
             `;
         }
         
         container.appendChild(div);
     });
 }
+
+function updateNotes(exIdx, notes) {
+    storage.currentWorkout.exercises[exIdx].notes = notes;
+    autoSave();
+}
+
 
 function toggleBodyweight(exIdx, isBodyweight) {
     const ex = storage.currentWorkout.exercises[exIdx];
@@ -369,24 +371,24 @@ function addExercise() {
     document.getElementById('exerciseWeight').value = '0';
 }
 
-function openNotes(exIdx) {
-    storage.editingNotesIndex = exIdx;
-    const ex = storage.currentWorkout.exercises[exIdx];
-    document.getElementById('notesText').value = ex.notes || '';
-    document.getElementById('notesModal').classList.add('active');
-}
+// function openNotes(exIdx) {
+//     storage.editingNotesIndex = exIdx;
+//     const ex = storage.currentWorkout.exercises[exIdx];
+//     document.getElementById('notesText').value = ex.notes || '';
+//     document.getElementById('notesModal').classList.add('active');
+// }
 
-function closeNotes() {
-    document.getElementById('notesModal').classList.remove('active');
-}
+// function closeNotes() {
+//     document.getElementById('notesModal').classList.remove('active');
+// }
 
-function saveNotes() {
-    const notes = document.getElementById('notesText').value;
-    storage.currentWorkout.exercises[storage.editingNotesIndex].notes = notes;
-    renderExercises();
-    closeNotes();
-    autoSave();
-}
+// function saveNotes() {
+//     const notes = document.getElementById('notesText').value;
+//     storage.currentWorkout.exercises[storage.editingNotesIndex].notes = notes;
+//     renderExercises();
+//     closeNotes();
+//     autoSave();
+// }
 
 function openSaveTemplate() {
     document.getElementById('saveTemplateModal').classList.add('active');

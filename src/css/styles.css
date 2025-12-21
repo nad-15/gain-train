@@ -212,7 +212,8 @@ body {
 
 .set-controls {
     display: flex;
-    gap: 6px;
+    /* gap: 6px; */
+    justify-content: space-between;
     align-items: center;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -305,7 +306,7 @@ body {
     color: #6c757d;
     margin-left: 4px;
 }
-
+/* 
 .notes-btn {
     background: #b596da;
     color: white;
@@ -315,8 +316,8 @@ body {
     cursor: pointer;
     font-size: 0.75em;
 
-}
-
+} */
+/* 
 
 .notes-display {
     background: #f8f9fa;
@@ -326,6 +327,42 @@ body {
     font-size: 0.8em;
     color: #495057;
     white-space: pre-wrap;
+} */
+
+.notes-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-family: inherit;
+    resize: vertical;
+    margin-top: 8px;
+    color: #495057;
+}
+
+.notes-input:focus {
+    outline: none;
+    border-color: #6c757d;
+}
+
+.notes-input::placeholder {
+    color: #adb5bd;
+}
+
+.notes-display {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+    font-size: 0.8em;
+    color: #495057;
+    white-space: pre-wrap;
+}
+
+/* Remove these if they exist */
+.notes-btn {
+    display: none;
 }
 
 .add-exercise-btn {
