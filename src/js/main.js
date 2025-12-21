@@ -125,6 +125,28 @@ function showTemplateSelector(type) {
     };
     container.appendChild(defaultBtn);
 
+    // Find and add previous workout of same type
+    const previousWorkouts = storage.workouts
+        .filter(w => w.type === type && w.exercises && w.exercises.length > 0)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (previousWorkouts.length > 0) {
+        const lastWorkout = previousWorkouts[0];
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'workout-btn ' + type;
+        const workoutDate = new Date(lastWorkout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        prevBtn.textContent = `📋 Previous (${workoutDate})`;
+        prevBtn.onclick = () => {
+            closeTemplateSelector();
+            const previousTemplate = {
+                name: 'Previous',
+                exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
+            };
+            startWorkout(type, null, previousTemplate);
+        };
+        container.appendChild(prevBtn);
+    }
+
     // Add custom templates
     const userTemplates = storage.templates[type] || [];
     userTemplates.forEach((template, idx) => {
@@ -555,6 +577,7 @@ function renderCalendar() {
 
             showWorkoutDetails(date, workout);
         };
+
 
 
         // Check if this is today
