@@ -558,6 +558,7 @@ function showWorkoutDetails(date, workout) {
     selectedCalendarDate = date;
     const detailsSection = document.getElementById('workoutDetailsSection');
     const detailsContent = document.getElementById('workoutDetailsContent');
+    
     const dateLabel = document.getElementById('selectedDateLabel');
 
     // Format date

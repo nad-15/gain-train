@@ -17,14 +17,14 @@
         </div>
 
         <div class="nav">
-            <button class="nav-btn active" onclick="showScreen('home')">Home</button>
-            <button class="nav-btn" onclick="showScreen('calendar')">Calendar</button>
+            <button class="nav-btn" onclick="showScreen('home')">Home</button>
+            <button class="nav-btn active" onclick="showScreen('calendar')">Calendar</button>
             <button class="nav-btn" onclick="showScreen('stats')">Stats</button>
         </div>
 
         <div class="content">
             <!-- Home Screen -->
-            <div id="home" class="screen active">
+            <div id="home" class="screen">
                 <h2>Select Workout Type</h2>
                 <div class="workout-types">
                     <button class="workout-btn push" onclick="selectWorkoutType('push')">Push</button>
@@ -50,7 +50,7 @@
             </div>
 
             <!-- Calendar Screen -->
-            <div id="calendar" class="screen">
+            <div id="calendar" class="screen active">
                 <div class="calendar-section">
                     <div class="calendar-header">
                         <h2 id="calendarMonth"></h2>
