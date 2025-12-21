@@ -33,6 +33,7 @@
                     <button class="workout-btn upper" onclick="selectWorkoutType('upper')">Upper</button>
                     <button class="workout-btn lower" onclick="selectWorkoutType('lower')">Lower</button>
                     <button class="workout-btn whole" onclick="selectWorkoutType('whole')">Whole Body</button>
+                    <button class="workout-btn rest" onclick="markRest()">Rest Day</button>
                 </div>
             </div>
 
@@ -143,41 +144,41 @@
     </div>
 
     <!-- Template Selector Modal -->
-<div id="templateSelectorModal" class="modal">
-    <div class="modal-content">
-        <h2 id="templateSelectorTitle">Select Template</h2>
-        <div id="templateList" class="workout-types" style="margin-top: 20px;"></div>
-        <div class="modal-buttons">
-            <button class="modal-btn cancel" onclick="closeTemplateSelector()">Cancel</button>
+    <div id="templateSelectorModal" class="modal">
+        <div class="modal-content">
+            <h2 id="templateSelectorTitle">Select Template</h2>
+            <div id="templateList" class="workout-types" style="margin-top: 20px;"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeTemplateSelector()">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Save Template Modal -->
-<div id="saveTemplateModal" class="modal">
-    <div class="modal-content">
-        <h2>Save as Template</h2>
-        <div class="form-group">
-            <label>Template Name (optional)</label>
-            <input type="text" id="templateName" placeholder="e.g., Heavy Push, Volume Pull">
-        </div>
-        <div class="form-group">
-            <label>Category</label>
-            <select id="templateCategory">
-                <option value="push">Push</option>
-                <option value="pull">Pull</option>
-                <option value="legs">Legs</option>
-                <option value="upper">Upper</option>
-                <option value="lower">Lower</option>
-                <option value="whole">Whole Body</option>
-            </select>
-        </div>
-        <div class="modal-buttons">
-            <button class="modal-btn cancel" onclick="closeSaveTemplate()">Cancel</button>
-            <button class="modal-btn save" onclick="saveAsTemplate()">Save Template</button>
+    <!-- Save Template Modal -->
+    <div id="saveTemplateModal" class="modal">
+        <div class="modal-content">
+            <h2>Save as Template</h2>
+            <div class="form-group">
+                <label>Template Name (optional)</label>
+                <input type="text" id="templateName" placeholder="e.g., Heavy Push, Volume Pull">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="templateCategory">
+                    <option value="push">Push</option>
+                    <option value="pull">Pull</option>
+                    <option value="legs">Legs</option>
+                    <option value="upper">Upper</option>
+                    <option value="lower">Lower</option>
+                    <option value="whole">Whole Body</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeSaveTemplate()">Cancel</button>
+                <button class="modal-btn save" onclick="saveAsTemplate()">Save Template</button>
+            </div>
         </div>
     </div>
-</div>
 
 
     <script src="./src/js/main.js"></script>

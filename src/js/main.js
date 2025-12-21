@@ -134,7 +134,7 @@ function showTemplateSelector(type) {
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <span>💪 ${template.name}</span>
                 <button onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})" 
-                        style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">×</button>
+                        style="background: #6bff77ff; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">×</button>
             </div>
         `;
         btn.onclick = () => {
@@ -263,7 +263,8 @@ function renderWorkoutActions() {
         container.innerHTML = `
             <div class="action-buttons">
                 <button class="save-template-btn" onclick="editCurrentWorkout()">Edit Workout</button>
-                <button class="delete-btn" style="flex: 1; padding: 15px 30px; border-radius: 12px; font-size: 1.1em; font-weight: 600;" onclick="deleteWorkout()">🗑️ Delete</button>
+                <button class="delete-btn" onclick="deleteWorkout()">Delete</button>
+
             </div>
         `;
     } else {
