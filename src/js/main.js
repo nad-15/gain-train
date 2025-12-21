@@ -134,7 +134,7 @@ function showTemplateSelector(type) {
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <span>💪 ${template.name}</span>
                 <button onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})" 
-                        style="background: #6bff77ff; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">×</button>
+                        style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">×</button>
             </div>
         `;
         btn.onclick = () => {
@@ -186,6 +186,8 @@ function autoSave() {
     storage.saveWorkouts();
 }
 
+// Add to main.js - Update the renderExercises function to include bodyweight option
+
 function renderExercises() {
     const container = document.getElementById('exerciseList');
     container.innerHTML = '';
@@ -197,20 +199,18 @@ function renderExercises() {
         div.className = 'exercise-item';
         
         if (storage.isViewMode) {
-            // View mode - no controls
+            // View mode - note style
             div.innerHTML = `
-                <div class="exercise-header">
-                    <div class="exercise-name">${ex.name}</div>
-                </div>
-                <div class="sets-container">
-                    <div style="color: #6c757d;">
-                        <strong>${ex.sets}</strong> sets × <strong>${ex.reps}</strong> reps @ <strong>${ex.weight}</strong> kg
+                <div class="exercise-name" style="margin-bottom: 8px;">${ex.name}</div>
+                ${Array(ex.sets).fill(0).map((_, setIdx) => `
+                    <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
+                        Set ${setIdx + 1}: ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
                     </div>
-                    ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
-                </div>
+                `).join('')}
+                ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
             `;
         } else {
-            // Edit mode - with controls
+            // Edit mode - compact single line
             div.innerHTML = `
                 <div class="exercise-header">
                     <div class="exercise-name">${ex.name}</div>
@@ -240,10 +240,14 @@ function renderExercises() {
                             <label>Kg</label>
                             <div class="control-value">
                                 <button class="control-btn" onclick="changeValue(${idx}, 'weight', -2.5)">−</button>
-                                <input type="number" class="value-input" value="${ex.weight}" step="0.5"
-                                       onchange="updateValue(${idx}, 'weight', this.value)" min="0">
+                                <input type="text" class="value-input" value="${ex.weight}" 
+                                       onchange="updateValue(${idx}, 'weight', this.value)">
                                 <button class="control-btn" onclick="changeValue(${idx}, 'weight', 2.5)">+</button>
                             </div>
+                            <label class="bodyweight-option">
+                                <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} 
+                                       onchange="toggleBodyweight(${idx}, this.checked)"> BW
+                            </label>
                         </div>
                         <button class="notes-btn" onclick="openNotes(${idx})">📝</button>
                     </div>
@@ -256,23 +260,53 @@ function renderExercises() {
     });
 }
 
+function toggleBodyweight(exIdx, isBodyweight) {
+    const ex = storage.currentWorkout.exercises[exIdx];
+    ex.weight = isBodyweight ? 'BW' : 0;
+    renderExercises();
+    autoSave();
+}
+
+function changeValue(exIdx, field, delta) {
+    const ex = storage.currentWorkout.exercises[exIdx];
+    if (field === 'sets') {
+        ex.sets = Math.max(1, ex.sets + delta);
+    } else if (field === 'reps') {
+        ex.reps = Math.max(1, ex.reps + delta);
+    } else if (field === 'weight' && ex.weight !== 'BW') {
+        ex.weight = Math.max(0, parseFloat(ex.weight) + delta);
+    }
+    renderExercises();
+    autoSave();
+}
+
+function updateValue(exIdx, field, value) {
+    const ex = storage.currentWorkout.exercises[exIdx];
+    if (field === 'weight') {
+        ex[field] = value === 'BW' ? 'BW' : (parseFloat(value) || 0);
+    } else {
+        ex[field] = parseFloat(value) || 0;
+    }
+    renderExercises();
+    autoSave();
+}
+
 function renderWorkoutActions() {
     const container = document.getElementById('workoutActions');
     
     if (storage.isViewMode) {
         container.innerHTML = `
             <div class="action-buttons">
-                <button class="save-template-btn" onclick="editCurrentWorkout()">Edit Workout</button>
+                <button class="save-template-btn" onclick="editCurrentWorkout()">Edit</button>
                 <button class="delete-btn" onclick="deleteWorkout()">Delete</button>
-
             </div>
         `;
     } else {
         container.innerHTML = `
-            <button class="add-exercise-btn" onclick="openAddExercise()">+ Add Exercise</button>
+            <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
             <div class="action-buttons">
-                <button class="save-template-btn" onclick="openSaveTemplate()">💾 Save as Template</button>
-                <button class="finish-btn" onclick="finishWorkout()">✓ Finish Workout</button>
+                <button class="save-template-btn" onclick="openSaveTemplate()">Save Template</button>
+                <button class="finish-btn" onclick="finishWorkout()">Finish</button>
             </div>
         `;
     }
