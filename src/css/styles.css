@@ -306,6 +306,7 @@ body {
     color: #6c757d;
     margin-left: 4px;
 }
+
 /* 
 .notes-btn {
     background: #b596da;
@@ -516,8 +517,8 @@ body {
 
 .calendar-day:active {
     transform: scale(0.95);
-    
-    
+
+
 }
 
 .calendar-day.active {
@@ -541,7 +542,7 @@ body {
 .calendar-day.today {
     border: 2px solid #3d2be2;
     box-shadow: 0 0 0 2px rgba(45, 52, 54, 0.2);
-    font-size:1.5rem;
+    font-size: 1.5rem;
     font-weight: bolder;
     /* color: white;
     background: #504545; */
@@ -578,8 +579,12 @@ body {
 }
 
 .calendar-day.rest {
-    background: #cfd8d3;
-    border-color: #6c757d;
+    /* background: #cfd8d3;
+    border-color: #6c757d; */
+    background-color: #9be9a8;
+    border-color: #40c463;
+
+
 }
 
 .stats {
