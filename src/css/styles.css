@@ -516,6 +516,16 @@ body {
 
 .calendar-day:active {
     transform: scale(0.95);
+    
+    
+}
+
+.calendar-day.active {
+    transform: scale(1.15);
+    z-index: 5;
+    /* background: rgba(0, 150, 255, 0.15); */
+    border: 2px solid #0096ff !important;
+
 }
 
 .calendar-day.empty {

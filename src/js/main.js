@@ -195,7 +195,7 @@ function renderExercises() {
     storage.currentWorkout.exercises.forEach((ex, idx) => {
         const div = document.createElement('div');
         div.className = 'exercise-item';
-        
+
         if (storage.isViewMode) {
             // View mode - simple format
             div.innerHTML = `
@@ -251,7 +251,7 @@ function renderExercises() {
                           rows="1">${ex.notes || ''}</textarea>
             `;
         }
-        
+
         container.appendChild(div);
     });
 }
@@ -524,16 +524,15 @@ function renderCalendar() {
 
     // Days
     const today = new Date();
+    let activeDay = null;
+
     for (let day = 1; day <= daysInMonth; day++) {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'calendar-day';
 
         const date = new Date(storage.currentYear, storage.currentMonth, day);
 
-        // Check if this is today
-        if (date.toDateString() === today.toDateString()) {
-            dayDiv.classList.add('today');
-        }
+
 
         const workout = storage.workouts.find(w =>
             new Date(w.date).toDateString() === date.toDateString()
@@ -545,8 +544,25 @@ function renderCalendar() {
 
         // Click handler - show details in bottom section
         dayDiv.onclick = () => {
+            // Remove active from previous
+            if (activeDay) {
+                activeDay.classList.remove('active');
+            }
+
+            // Set new active
+            dayDiv.classList.add('active');
+            activeDay = dayDiv;
+
             showWorkoutDetails(date, workout);
         };
+
+
+        // Check if this is today
+        if (date.toDateString() === today.toDateString()) {
+            dayDiv.classList.add('today');
+            dayDiv.click();
+        }
+
         dayDiv.style.cursor = 'pointer';
 
         dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
@@ -558,7 +574,7 @@ function showWorkoutDetails(date, workout) {
     selectedCalendarDate = date;
     const detailsSection = document.getElementById('workoutDetailsSection');
     const detailsContent = document.getElementById('workoutDetailsContent');
-    
+
     const dateLabel = document.getElementById('selectedDateLabel');
 
     // Format date
