@@ -2,39 +2,39 @@
 const storage = {
     _workouts: null,
     _templates: null,
-    
+
     get workouts() {
         if (!this._workouts) {
             this._workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
         }
         return this._workouts;
     },
-    
+
     set workouts(value) {
         this._workouts = value;
         localStorage.setItem('workouts', JSON.stringify(value));
     },
-    
+
     get templates() {
         if (!this._templates) {
             this._templates = JSON.parse(localStorage.getItem('templates') || '{}');
         }
         return this._templates;
     },
-    
+
     set templates(value) {
         this._templates = value;
         localStorage.setItem('templates', JSON.stringify(value));
     },
-    
+
     saveWorkouts() {
         localStorage.setItem('workouts', JSON.stringify(this._workouts));
     },
-    
+
     saveTemplates() {
         localStorage.setItem('templates', JSON.stringify(this._templates));
     },
-    
+
     currentWorkout: null,
     currentMonth: new Date().getMonth(),
     currentYear: new Date().getFullYear(),
@@ -57,7 +57,7 @@ function showScreen(screenName) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(screenName).classList.add('active');
-    
+
     const navBtns = document.querySelectorAll('.nav-btn');
     if (screenName === 'home') navBtns[0].classList.add('active');
     if (screenName === 'calendar') navBtns[1].classList.add('active');
@@ -70,7 +70,7 @@ function showScreen(screenName) {
 function startWorkout(type, date = null, templateData = null) {
     storage.isViewMode = false;
     storage.editingWorkoutId = null;
-    
+
     let exercises;
     if (templateData) {
         // Use custom template
@@ -85,7 +85,7 @@ function startWorkout(type, date = null, templateData = null) {
             notes: ''
         }));
     }
-    
+
     storage.currentWorkout = {
         id: Date.now(),
         type: type,
@@ -109,12 +109,12 @@ function selectWorkoutType(type) {
 function showTemplateSelector(type) {
     const modal = document.getElementById('templateSelectorModal');
     const container = document.getElementById('templateList');
-    
-    document.getElementById('templateSelectorTitle').textContent = 
+
+    document.getElementById('templateSelectorTitle').textContent =
         `Select ${type.charAt(0).toUpperCase() + type.slice(1)} Template`;
-    
+
     container.innerHTML = '';
-    
+
     // Add default template
     const defaultBtn = document.createElement('button');
     defaultBtn.className = 'workout-btn ' + type;
@@ -124,7 +124,7 @@ function showTemplateSelector(type) {
         startWorkout(type);
     };
     container.appendChild(defaultBtn);
-    
+
     // Add custom templates
     const userTemplates = storage.templates[type] || [];
     userTemplates.forEach((template, idx) => {
@@ -143,7 +143,7 @@ function showTemplateSelector(type) {
         };
         container.appendChild(btn);
     });
-    
+
     modal.classList.add('active');
 }
 
@@ -153,7 +153,7 @@ function closeTemplateSelector() {
 
 function deleteTemplate(type, idx) {
     if (!confirm('Delete this template?')) return;
-    
+
     const templates = storage.templates;
     templates[type].splice(idx, 1);
     storage.templates = templates;
@@ -175,13 +175,13 @@ function markRest() {
 
 function autoSave() {
     if (!storage.currentWorkout || storage.isViewMode) return;
-    
+
     const existingIdx = storage.workouts.findIndex(w => w.id === storage.currentWorkout.id);
-    
+
     if (existingIdx >= 0) {
-        storage.workouts[existingIdx] = {...storage.currentWorkout};
+        storage.workouts[existingIdx] = { ...storage.currentWorkout };
     } else {
-        storage.workouts.push({...storage.currentWorkout});
+        storage.workouts.push({ ...storage.currentWorkout });
     }
     storage.saveWorkouts();
 }
@@ -199,60 +199,60 @@ function renderExercises() {
         div.className = 'exercise-item';
         
         if (storage.isViewMode) {
-            // View mode - note style
+            // View mode - simple format
             div.innerHTML = `
                 <div class="exercise-name" style="margin-bottom: 8px;">${ex.name}</div>
-                ${Array(ex.sets).fill(0).map((_, setIdx) => `
-                    <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
-                        Set ${setIdx + 1}: ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
-                    </div>
-                `).join('')}
+                <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
+                    ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
+                </div>
                 ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
             `;
         } else {
-            // Edit mode - compact single line
+            // Edit mode - compact single line with arrows
             div.innerHTML = `
-                <div class="exercise-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <div class="exercise-name">${ex.name}</div>
-                    <button class="delete-btn" onclick="deleteExercise(${idx})">Delete</button>
-                </div>
-                <div class="sets-container">
-                    <div class="set-controls">
-                        <div class="control-item">
-                            <label>Sets</label>
-                            <div class="control-value">
-                                <button class="control-btn" onclick="changeValue(${idx}, 'sets', -1)">−</button>
-                                <input type="number" class="value-input" value="${ex.sets}" 
-                                       onchange="updateValue(${idx}, 'sets', this.value)" min="1">
-                                <button class="control-btn" onclick="changeValue(${idx}, 'sets', 1)">+</button>
-                            </div>
-                        </div>
-                        <div class="control-item">
-                            <label>Reps</label>
-                            <div class="control-value">
-                                <button class="control-btn" onclick="changeValue(${idx}, 'reps', -1)">−</button>
-                                <input type="number" class="value-input" value="${ex.reps}" 
-                                       onchange="updateValue(${idx}, 'reps', this.value)" min="1">
-                                <button class="control-btn" onclick="changeValue(${idx}, 'reps', 1)">+</button>
-                            </div>
-                        </div>
-                        <div class="control-item">
-                            <label>Kg</label>
-                            <div class="control-value">
-                                <button class="control-btn" onclick="changeValue(${idx}, 'weight', -2.5)">−</button>
-                                <input type="text" class="value-input" value="${ex.weight}" 
-                                       onchange="updateValue(${idx}, 'weight', this.value)">
-                                <button class="control-btn" onclick="changeValue(${idx}, 'weight', 2.5)">+</button>
-                            </div>
-                            <label class="bodyweight-option">
-                                <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} 
-                                       onchange="toggleBodyweight(${idx}, this.checked)"> BW
-                            </label>
-                        </div>
-                        <button class="notes-btn" onclick="openNotes(${idx})">📝</button>
+                    <div style="display: flex; gap: 5px">
+                        <button class="notes-btn" onclick="openNotes(${idx})">Add Notes</button>
+                        <button class="delete-btn" onclick="deleteExercise(${idx})">Delete</button>
                     </div>
-                    ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
                 </div>
+                <div class="set-controls">
+                    <div class="control-item">
+                        <label>Sets</label>
+                        <input type="number" class="value-input" value="${ex.sets}" 
+                               onchange="updateValue(${idx}, 'sets', this.value)" min="1">
+                        <div class="arrow-controls">
+                            <button class="arrow-btn" onclick="changeValue(${idx}, 'sets', 1)">▲</button>
+                            <button class="arrow-btn" onclick="changeValue(${idx}, 'sets', -1)">▼</button>
+                        </div>
+                    </div>
+                    <div class="control-item">
+                        <label>Reps</label>
+                        <input type="number" class="value-input" value="${ex.reps}" 
+                               onchange="updateValue(${idx}, 'reps', this.value)" min="1">
+                        <div class="arrow-controls">
+                            <button class="arrow-btn" onclick="changeValue(${idx}, 'reps', 1)">▲</button>
+                            <button class="arrow-btn" onclick="changeValue(${idx}, 'reps', -1)">▼</button>
+                        </div>
+                    </div>
+                    <div class="control-item">
+                        <label>Kg</label>
+                        <input type="text" class="value-input" value="${ex.weight}" 
+                               onchange="updateValue(${idx}, 'weight', this.value)">
+                        <div class="arrow-controls">
+                            <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', 0.5)">▲</button>
+                            <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', -0.5)">▼</button>
+                        </div>
+                    </div>
+                    <label style="display: flex; align-items: center; gap: 3px; font-size: 0.7em; color: #6c757d; white-space: nowrap;">
+                        <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} 
+                               onchange="toggleBodyweight(${idx}, this.checked)"> BW
+                    </label>
+
+                </div>
+                
+                ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
             `;
         }
         
@@ -293,7 +293,7 @@ function updateValue(exIdx, field, value) {
 
 function renderWorkoutActions() {
     const container = document.getElementById('workoutActions');
-    
+
     if (storage.isViewMode) {
         container.innerHTML = `
             <div class="action-buttons">
@@ -401,24 +401,24 @@ function closeSaveTemplate() {
 function saveAsTemplate() {
     const name = document.getElementById('templateName').value;
     const category = document.getElementById('templateCategory').value;
-    
+
     const templates = storage.templates;
     if (!templates[category]) {
         templates[category] = [];
     }
-    
+
     // Generate default name if empty
     const templateName = name || `Template ${templates[category].length + 1}`;
-    
+
     const newTemplate = {
         name: templateName,
         exercises: JSON.parse(JSON.stringify(storage.currentWorkout.exercises))
     };
-    
+
     templates[category].push(newTemplate);
     storage.templates = templates;
     storage.saveTemplates();
-    
+
     closeSaveTemplate();
     alert(`Template "${templateName}" saved! 💾`);
 }
@@ -451,15 +451,15 @@ function deleteWorkout() {
     if (!confirm('Are you sure you want to delete this workout?')) {
         return;
     }
-    
+
     const workoutId = storage.currentWorkout.id;
     const idx = storage.workouts.findIndex(w => w.id === workoutId);
-    
+
     if (idx >= 0) {
         storage.workouts.splice(idx, 1);
         storage.saveWorkouts();
     }
-    
+
     alert('Workout deleted! 🗑️');
     storage.currentWorkout = null;
     storage.isViewMode = false;
@@ -473,11 +473,11 @@ function viewWorkout(workoutId) {
     storage.currentWorkout = JSON.parse(JSON.stringify(workout));
     storage.isViewMode = true;
 
-    document.getElementById('workoutTitle').textContent = 
+    document.getElementById('workoutTitle').textContent =
         workout.type.charAt(0).toUpperCase() + workout.type.slice(1) + ' Workout';
-    document.getElementById('workoutDate').textContent = 
+    document.getElementById('workoutDate').textContent =
         new Date(workout.date).toLocaleDateString();
-    
+
     document.getElementById('viewModeIndicator').innerHTML = `
         <div class="view-mode">
             <div class="view-mode-label">✓ Completed Workout</div>
@@ -489,19 +489,22 @@ function viewWorkout(workoutId) {
     showScreen('workout');
 }
 
+let selectedCalendarDate = null;
+let isDetailsExpanded = false;
+
 function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                      'July', 'August', 'September', 'October', 'November', 'December'];
-    
-    document.getElementById('calendarMonth').textContent = 
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    document.getElementById('calendarMonth').textContent =
         `${monthNames[storage.currentMonth]} ${storage.currentYear}`;
 
     const firstDay = new Date(storage.currentYear, storage.currentMonth, 1).getDay();
     const daysInMonth = new Date(storage.currentYear, storage.currentMonth + 1, 0).getDate();
 
     grid.innerHTML = '';
-    
+
     // Day labels
     ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
         const label = document.createElement('div');
@@ -522,29 +525,25 @@ function renderCalendar() {
     for (let day = 1; day <= daysInMonth; day++) {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'calendar-day';
-        
+
         const date = new Date(storage.currentYear, storage.currentMonth, day);
-        
+
         // Check if this is today
         if (date.toDateString() === today.toDateString()) {
             dayDiv.classList.add('today');
         }
-        
-        const workout = storage.workouts.find(w => 
+
+        const workout = storage.workouts.find(w =>
             new Date(w.date).toDateString() === date.toDateString()
         );
 
         if (workout) {
             dayDiv.classList.add(workout.type);
         }
-        
-        // Make all days clickable
+
+        // Click handler - show details in bottom section
         dayDiv.onclick = () => {
-            if (workout) {
-                viewWorkout(workout.id);
-            } else {
-                selectDateForWorkout(date);
-            }
+            showWorkoutDetails(date, workout);
         };
         dayDiv.style.cursor = 'pointer';
 
@@ -553,6 +552,102 @@ function renderCalendar() {
     }
 }
 
+function showWorkoutDetails(date, workout) {
+    selectedCalendarDate = date;
+    const detailsSection = document.getElementById('workoutDetailsSection');
+    const detailsContent = document.getElementById('workoutDetailsContent');
+    const dateLabel = document.getElementById('selectedDateLabel');
+
+    // Format date
+    const dateStr = date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+    dateLabel.textContent = dateStr;
+
+    // Show the section
+    detailsSection.style.display = 'block';
+
+    if (workout) {
+        // Show workout details
+        if (workout.type === 'rest') {
+            detailsContent.innerHTML = `
+                <div class="no-workout-message">
+                    Rest Day 💤
+                </div>
+                <div style="padding: 0 15px 15px;">
+                    <button class="delete-btn" style="width: 100%; padding: 10px;" onclick="deleteWorkoutFromCalendar('${workout.id}')">Delete Rest Day</button>
+                </div>
+            `;
+        } else {
+            let html = `
+                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                    <button class="save-template-btn" style="flex: 1; padding: 10px;" onclick="viewWorkout(${workout.id})">Expand</button>
+                    <button class="delete-btn" style="flex: 1; padding: 10px;" onclick="deleteWorkoutFromCalendar('${workout.id}')">Delete</button>
+                </div>
+            `;
+
+            workout.exercises.forEach(ex => {
+                html += `
+                    <div class="workout-detail-item">
+                        <div class="workout-detail-title">${ex.name}</div>
+                        <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}</div>
+                        ${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            detailsContent.innerHTML = html;
+        }
+    } else {
+        // No workout - show add workout button
+        detailsContent.innerHTML = `
+            <div class="no-workout-message">
+                No workout logged for this day
+            </div>
+            <div style="padding: 0 15px 15px;">
+                <button class="add-exercise-btn" style="margin: 0;" onclick="selectDateForWorkout(new Date('${date.toISOString()}'))">Log Workout</button>
+            </div>
+        `;
+    }
+}
+
+function toggleExpand() {
+    const section = document.getElementById('workoutDetailsSection');
+    const icon = document.getElementById('expandIcon');
+    isDetailsExpanded = !isDetailsExpanded;
+
+    if (isDetailsExpanded) {
+        section.classList.add('expanded');
+        icon.textContent = '▼';
+    } else {
+        section.classList.remove('expanded');
+        icon.textContent = '▲';
+    }
+}
+
+function deleteWorkoutFromCalendar(workoutId) {
+    if (!confirm('Are you sure you want to delete this workout?')) {
+        return;
+    }
+
+    const idx = storage.workouts.findIndex(w => w.id == workoutId);
+
+    if (idx >= 0) {
+        storage.workouts.splice(idx, 1);
+        storage.saveWorkouts();
+    }
+
+    // Refresh calendar and details
+    renderCalendar();
+    if (selectedCalendarDate) {
+        const workout = storage.workouts.find(w =>
+            new Date(w.date).toDateString() === selectedCalendarDate.toDateString()
+        );
+        showWorkoutDetails(selectedCalendarDate, workout);
+    }
+}
 function changeMonth(delta) {
     storage.currentMonth += delta;
     if (storage.currentMonth > 11) {
@@ -567,11 +662,11 @@ function changeMonth(delta) {
 
 function selectDateForWorkout(date) {
     storage.selectedDate = date;
-    const dateStr = date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    const dateStr = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     });
     document.getElementById('selectedDateDisplay').textContent = dateStr;
     document.getElementById('selectWorkoutModal').classList.add('active');
@@ -598,7 +693,7 @@ function startWorkoutForDate(type) {
         showTemplateSelector(type);
         // Set the date for the selected template
         const originalStartWorkout = startWorkout;
-        startWorkout = function(t, d, td) {
+        startWorkout = function (t, d, td) {
             originalStartWorkout(t, storage.selectedDate.toISOString(), td);
         };
     }
@@ -608,7 +703,7 @@ function renderStats() {
     const container = document.getElementById('statsContainer');
     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
-    
+
     let totalVolume = 0;
     storage.workouts.forEach(w => {
         w.exercises.forEach(ex => {

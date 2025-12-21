@@ -51,14 +51,23 @@
 
             <!-- Calendar Screen -->
             <div id="calendar" class="screen">
-                <div class="calendar-header">
-                    <h2 id="calendarMonth"></h2>
-                    <div class="month-nav">
-                        <button onclick="changeMonth(-1)">←</button>
-                        <button onclick="changeMonth(1)">→</button>
+                <div class="calendar-section">
+                    <div class="calendar-header">
+                        <h2 id="calendarMonth"></h2>
+                        <div class="month-nav">
+                            <button onclick="changeMonth(-1)">←</button>
+                            <button onclick="changeMonth(1)">→</button>
+                        </div>
                     </div>
+                    <div class="calendar" id="calendarGrid"></div>
                 </div>
-                <div class="calendar" id="calendarGrid"></div>
+
+                <div id="workoutDetailsSection" class="workout-details-section" style="display: none;">
+                    <div class="expand-handle" onclick="toggleExpand()">
+                        <span id="expandIcon">▲</span> <span id="selectedDateLabel"></span>
+                    </div>
+                    <div id="workoutDetailsContent" style="padding: 15px;"></div>
+                </div>
             </div>
 
             <!-- Stats Screen -->
