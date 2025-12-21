@@ -430,7 +430,7 @@ function finishWorkout() {
     alert('Workout completed! 💪');
     storage.currentWorkout = null;
     storage.isViewMode = false;
-    showScreen('home');
+    showScreen('calendar');
 }
 
 function goBackFromWorkout() {
