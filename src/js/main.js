@@ -1,1 +1,605 @@
+// localStorage implementation
+const storage = {
+    _workouts: null,
+    _templates: null,
+    
+    get workouts() {
+        if (!this._workouts) {
+            this._workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
+        }
+        return this._workouts;
+    },
+    
+    set workouts(value) {
+        this._workouts = value;
+        localStorage.setItem('workouts', JSON.stringify(value));
+    },
+    
+    get templates() {
+        if (!this._templates) {
+            this._templates = JSON.parse(localStorage.getItem('templates') || '{}');
+        }
+        return this._templates;
+    },
+    
+    set templates(value) {
+        this._templates = value;
+        localStorage.setItem('templates', JSON.stringify(value));
+    },
+    
+    saveWorkouts() {
+        localStorage.setItem('workouts', JSON.stringify(this._workouts));
+    },
+    
+    saveTemplates() {
+        localStorage.setItem('templates', JSON.stringify(this._templates));
+    },
+    
+    currentWorkout: null,
+    currentMonth: new Date().getMonth(),
+    currentYear: new Date().getFullYear(),
+    isViewMode: false,
+    editingWorkoutId: null,
+    selectedDate: null
+};
 
+// Default exercise templates
+const defaultTemplates = {
+    push: ['Bench Press', 'Overhead Press', 'Incline Dumbbell Press', 'Tricep Dips'],
+    pull: ['Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Bicep Curls'],
+    legs: ['Squats', 'Deadlift', 'Leg Press', 'Leg Curls'],
+    upper: ['Bench Press', 'Pull-ups', 'Overhead Press', 'Barbell Row'],
+    lower: ['Squats', 'Romanian Deadlift', 'Leg Press', 'Calf Raises'],
+    whole: ['Squats', 'Bench Press', 'Deadlift', 'Pull-ups', 'Overhead Press']
+};
+
+function showScreen(screenName) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(screenName).classList.add('active');
+    
+    const navBtns = document.querySelectorAll('.nav-btn');
+    if (screenName === 'home') navBtns[0].classList.add('active');
+    if (screenName === 'calendar') navBtns[1].classList.add('active');
+    if (screenName === 'stats') navBtns[2].classList.add('active');
+
+    if (screenName === 'calendar') renderCalendar();
+    if (screenName === 'stats') renderStats();
+}
+
+function startWorkout(type, date = null, templateData = null) {
+    storage.isViewMode = false;
+    storage.editingWorkoutId = null;
+    
+    let exercises;
+    if (templateData) {
+        // Use custom template
+        exercises = JSON.parse(JSON.stringify(templateData.exercises));
+    } else {
+        // Use default template
+        exercises = defaultTemplates[type].map(name => ({
+            name: name,
+            sets: 3,
+            reps: 10,
+            weight: 0,
+            notes: ''
+        }));
+    }
+    
+    storage.currentWorkout = {
+        id: Date.now(),
+        type: type,
+        date: date ? date : new Date().toISOString(),
+        exercises: exercises
+    };
+
+    document.getElementById('workoutTitle').textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' Workout';
+    document.getElementById('workoutDate').textContent = new Date(storage.currentWorkout.date).toLocaleDateString();
+    document.getElementById('viewModeIndicator').innerHTML = '';
+    renderExercises();
+    renderWorkoutActions();
+    showScreen('workout');
+}
+
+function selectWorkoutType(type) {
+    storage.selectedWorkoutType = type;
+    showTemplateSelector(type);
+}
+
+function showTemplateSelector(type) {
+    const modal = document.getElementById('templateSelectorModal');
+    const container = document.getElementById('templateList');
+    
+    document.getElementById('templateSelectorTitle').textContent = 
+        `Select ${type.charAt(0).toUpperCase() + type.slice(1)} Template`;
+    
+    container.innerHTML = '';
+    
+    // Add default template
+    const defaultBtn = document.createElement('button');
+    defaultBtn.className = 'workout-btn ' + type;
+    defaultBtn.textContent = '✨ Default';
+    defaultBtn.onclick = () => {
+        closeTemplateSelector();
+        startWorkout(type);
+    };
+    container.appendChild(defaultBtn);
+    
+    // Add custom templates
+    const userTemplates = storage.templates[type] || [];
+    userTemplates.forEach((template, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'workout-btn ' + type;
+        btn.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span>💪 ${template.name}</span>
+                <button onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})" 
+                        style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">×</button>
+            </div>
+        `;
+        btn.onclick = () => {
+            closeTemplateSelector();
+            startWorkout(type, null, template);
+        };
+        container.appendChild(btn);
+    });
+    
+    modal.classList.add('active');
+}
+
+function closeTemplateSelector() {
+    document.getElementById('templateSelectorModal').classList.remove('active');
+}
+
+function deleteTemplate(type, idx) {
+    if (!confirm('Delete this template?')) return;
+    
+    const templates = storage.templates;
+    templates[type].splice(idx, 1);
+    storage.templates = templates;
+    storage.saveTemplates();
+    showTemplateSelector(type);
+}
+
+function markRest() {
+    storage.workouts.push({
+        id: Date.now(),
+        type: 'rest',
+        date: new Date().toISOString(),
+        exercises: []
+    });
+    storage.saveWorkouts();
+    alert('Rest day marked! 💤');
+    renderCalendar();
+}
+
+function autoSave() {
+    if (!storage.currentWorkout || storage.isViewMode) return;
+    
+    const existingIdx = storage.workouts.findIndex(w => w.id === storage.currentWorkout.id);
+    
+    if (existingIdx >= 0) {
+        storage.workouts[existingIdx] = {...storage.currentWorkout};
+    } else {
+        storage.workouts.push({...storage.currentWorkout});
+    }
+    storage.saveWorkouts();
+}
+
+function renderExercises() {
+    const container = document.getElementById('exerciseList');
+    container.innerHTML = '';
+
+    if (!storage.currentWorkout || !storage.currentWorkout.exercises) return;
+
+    storage.currentWorkout.exercises.forEach((ex, idx) => {
+        const div = document.createElement('div');
+        div.className = 'exercise-item';
+        
+        if (storage.isViewMode) {
+            // View mode - no controls
+            div.innerHTML = `
+                <div class="exercise-header">
+                    <div class="exercise-name">${ex.name}</div>
+                </div>
+                <div class="sets-container">
+                    <div style="color: #6c757d;">
+                        <strong>${ex.sets}</strong> sets × <strong>${ex.reps}</strong> reps @ <strong>${ex.weight}</strong> kg
+                    </div>
+                    ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
+                </div>
+            `;
+        } else {
+            // Edit mode - with controls
+            div.innerHTML = `
+                <div class="exercise-header">
+                    <div class="exercise-name">${ex.name}</div>
+                    <button class="delete-btn" onclick="deleteExercise(${idx})">Delete</button>
+                </div>
+                <div class="sets-container">
+                    <div class="set-controls">
+                        <div class="control-item">
+                            <label>Sets</label>
+                            <div class="control-value">
+                                <button class="control-btn" onclick="changeValue(${idx}, 'sets', -1)">−</button>
+                                <input type="number" class="value-input" value="${ex.sets}" 
+                                       onchange="updateValue(${idx}, 'sets', this.value)" min="1">
+                                <button class="control-btn" onclick="changeValue(${idx}, 'sets', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="control-item">
+                            <label>Reps</label>
+                            <div class="control-value">
+                                <button class="control-btn" onclick="changeValue(${idx}, 'reps', -1)">−</button>
+                                <input type="number" class="value-input" value="${ex.reps}" 
+                                       onchange="updateValue(${idx}, 'reps', this.value)" min="1">
+                                <button class="control-btn" onclick="changeValue(${idx}, 'reps', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="control-item">
+                            <label>Kg</label>
+                            <div class="control-value">
+                                <button class="control-btn" onclick="changeValue(${idx}, 'weight', -2.5)">−</button>
+                                <input type="number" class="value-input" value="${ex.weight}" step="0.5"
+                                       onchange="updateValue(${idx}, 'weight', this.value)" min="0">
+                                <button class="control-btn" onclick="changeValue(${idx}, 'weight', 2.5)">+</button>
+                            </div>
+                        </div>
+                        <button class="notes-btn" onclick="openNotes(${idx})">📝</button>
+                    </div>
+                    ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
+                </div>
+            `;
+        }
+        
+        container.appendChild(div);
+    });
+}
+
+function renderWorkoutActions() {
+    const container = document.getElementById('workoutActions');
+    
+    if (storage.isViewMode) {
+        container.innerHTML = `
+            <div class="action-buttons">
+                <button class="save-template-btn" onclick="editCurrentWorkout()">Edit Workout</button>
+                <button class="delete-btn" style="flex: 1; padding: 15px 30px; border-radius: 12px; font-size: 1.1em; font-weight: 600;" onclick="deleteWorkout()">🗑️ Delete</button>
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <button class="add-exercise-btn" onclick="openAddExercise()">+ Add Exercise</button>
+            <div class="action-buttons">
+                <button class="save-template-btn" onclick="openSaveTemplate()">💾 Save as Template</button>
+                <button class="finish-btn" onclick="finishWorkout()">✓ Finish Workout</button>
+            </div>
+        `;
+    }
+}
+
+function changeValue(exIdx, field, delta) {
+    const ex = storage.currentWorkout.exercises[exIdx];
+    if (field === 'sets') {
+        ex.sets = Math.max(1, ex.sets + delta);
+    } else if (field === 'reps') {
+        ex.reps = Math.max(1, ex.reps + delta);
+    } else {
+        ex.weight = Math.max(0, ex.weight + delta);
+    }
+    renderExercises();
+    autoSave();
+}
+
+function updateValue(exIdx, field, value) {
+    const ex = storage.currentWorkout.exercises[exIdx];
+    ex[field] = parseFloat(value) || 0;
+    renderExercises();
+    autoSave();
+}
+
+function deleteExercise(idx) {
+    storage.currentWorkout.exercises.splice(idx, 1);
+    renderExercises();
+    autoSave();
+}
+
+function openAddExercise() {
+    document.getElementById('exerciseModal').classList.add('active');
+}
+
+function closeAddExercise() {
+    document.getElementById('exerciseModal').classList.remove('active');
+}
+
+function addExercise() {
+    const name = document.getElementById('exerciseName').value;
+    const sets = parseInt(document.getElementById('exerciseSets').value);
+    const reps = parseInt(document.getElementById('exerciseReps').value);
+    const weight = parseFloat(document.getElementById('exerciseWeight').value);
+
+    if (!name) {
+        alert('Please enter exercise name');
+        return;
+    }
+
+    storage.currentWorkout.exercises.push({ name, sets, reps, weight, notes: '' });
+    renderExercises();
+    closeAddExercise();
+    autoSave();
+
+    // Reset form
+    document.getElementById('exerciseName').value = '';
+    document.getElementById('exerciseSets').value = '3';
+    document.getElementById('exerciseReps').value = '10';
+    document.getElementById('exerciseWeight').value = '0';
+}
+
+function openNotes(exIdx) {
+    storage.editingNotesIndex = exIdx;
+    const ex = storage.currentWorkout.exercises[exIdx];
+    document.getElementById('notesText').value = ex.notes || '';
+    document.getElementById('notesModal').classList.add('active');
+}
+
+function closeNotes() {
+    document.getElementById('notesModal').classList.remove('active');
+}
+
+function saveNotes() {
+    const notes = document.getElementById('notesText').value;
+    storage.currentWorkout.exercises[storage.editingNotesIndex].notes = notes;
+    renderExercises();
+    closeNotes();
+    autoSave();
+}
+
+function openSaveTemplate() {
+    document.getElementById('saveTemplateModal').classList.add('active');
+    document.getElementById('templateName').value = '';
+    document.getElementById('templateCategory').value = storage.currentWorkout.type;
+}
+
+function closeSaveTemplate() {
+    document.getElementById('saveTemplateModal').classList.remove('active');
+}
+
+function saveAsTemplate() {
+    const name = document.getElementById('templateName').value;
+    const category = document.getElementById('templateCategory').value;
+    
+    const templates = storage.templates;
+    if (!templates[category]) {
+        templates[category] = [];
+    }
+    
+    // Generate default name if empty
+    const templateName = name || `Template ${templates[category].length + 1}`;
+    
+    const newTemplate = {
+        name: templateName,
+        exercises: JSON.parse(JSON.stringify(storage.currentWorkout.exercises))
+    };
+    
+    templates[category].push(newTemplate);
+    storage.templates = templates;
+    storage.saveTemplates();
+    
+    closeSaveTemplate();
+    alert(`Template "${templateName}" saved! 💾`);
+}
+
+function finishWorkout() {
+    autoSave();
+    alert('Workout completed! 💪');
+    storage.currentWorkout = null;
+    storage.isViewMode = false;
+    showScreen('home');
+}
+
+function goBackFromWorkout() {
+    if (storage.isViewMode) {
+        storage.isViewMode = false;
+        storage.currentWorkout = null;
+        showScreen('calendar');
+    } else {
+        showScreen('home');
+    }
+}
+
+function editCurrentWorkout() {
+    storage.isViewMode = false;
+    renderExercises();
+    renderWorkoutActions();
+}
+
+function deleteWorkout() {
+    if (!confirm('Are you sure you want to delete this workout?')) {
+        return;
+    }
+    
+    const workoutId = storage.currentWorkout.id;
+    const idx = storage.workouts.findIndex(w => w.id === workoutId);
+    
+    if (idx >= 0) {
+        storage.workouts.splice(idx, 1);
+        storage.saveWorkouts();
+    }
+    
+    alert('Workout deleted! 🗑️');
+    storage.currentWorkout = null;
+    storage.isViewMode = false;
+    showScreen('calendar');
+}
+
+function viewWorkout(workoutId) {
+    const workout = storage.workouts.find(w => w.id === workoutId);
+    if (!workout) return;
+
+    storage.currentWorkout = JSON.parse(JSON.stringify(workout));
+    storage.isViewMode = true;
+
+    document.getElementById('workoutTitle').textContent = 
+        workout.type.charAt(0).toUpperCase() + workout.type.slice(1) + ' Workout';
+    document.getElementById('workoutDate').textContent = 
+        new Date(workout.date).toLocaleDateString();
+    
+    document.getElementById('viewModeIndicator').innerHTML = `
+        <div class="view-mode">
+            <div class="view-mode-label">✓ Completed Workout</div>
+        </div>
+    `;
+
+    renderExercises();
+    renderWorkoutActions();
+    showScreen('workout');
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    document.getElementById('calendarMonth').textContent = 
+        `${monthNames[storage.currentMonth]} ${storage.currentYear}`;
+
+    const firstDay = new Date(storage.currentYear, storage.currentMonth, 1).getDay();
+    const daysInMonth = new Date(storage.currentYear, storage.currentMonth + 1, 0).getDate();
+
+    grid.innerHTML = '';
+    
+    // Day labels
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+        const label = document.createElement('div');
+        label.className = 'day-label';
+        label.textContent = day;
+        grid.appendChild(label);
+    });
+
+    // Empty cells
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-day empty';
+        grid.appendChild(empty);
+    }
+
+    // Days
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+        
+        const date = new Date(storage.currentYear, storage.currentMonth, day);
+        
+        // Check if this is today
+        if (date.toDateString() === today.toDateString()) {
+            dayDiv.classList.add('today');
+        }
+        
+        const workout = storage.workouts.find(w => 
+            new Date(w.date).toDateString() === date.toDateString()
+        );
+
+        if (workout) {
+            dayDiv.classList.add(workout.type);
+        }
+        
+        // Make all days clickable
+        dayDiv.onclick = () => {
+            if (workout) {
+                viewWorkout(workout.id);
+            } else {
+                selectDateForWorkout(date);
+            }
+        };
+        dayDiv.style.cursor = 'pointer';
+
+        dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
+        grid.appendChild(dayDiv);
+    }
+}
+
+function changeMonth(delta) {
+    storage.currentMonth += delta;
+    if (storage.currentMonth > 11) {
+        storage.currentMonth = 0;
+        storage.currentYear++;
+    } else if (storage.currentMonth < 0) {
+        storage.currentMonth = 11;
+        storage.currentYear--;
+    }
+    renderCalendar();
+}
+
+function selectDateForWorkout(date) {
+    storage.selectedDate = date;
+    const dateStr = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    document.getElementById('selectedDateDisplay').textContent = dateStr;
+    document.getElementById('selectWorkoutModal').classList.add('active');
+}
+
+function closeSelectWorkout() {
+    document.getElementById('selectWorkoutModal').classList.remove('active');
+}
+
+function startWorkoutForDate(type) {
+    closeSelectWorkout();
+    if (type === 'rest') {
+        storage.workouts.push({
+            id: Date.now(),
+            type: 'rest',
+            date: storage.selectedDate.toISOString(),
+            exercises: []
+        });
+        storage.saveWorkouts();
+        alert('Rest day marked! 💤');
+        renderCalendar();
+    } else {
+        storage.selectedWorkoutType = type;
+        showTemplateSelector(type);
+        // Set the date for the selected template
+        const originalStartWorkout = startWorkout;
+        startWorkout = function(t, d, td) {
+            originalStartWorkout(t, storage.selectedDate.toISOString(), td);
+        };
+    }
+}
+
+function renderStats() {
+    const container = document.getElementById('statsContainer');
+    const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
+    const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
+    
+    let totalVolume = 0;
+    storage.workouts.forEach(w => {
+        w.exercises.forEach(ex => {
+            totalVolume += ex.sets * ex.reps * ex.weight;
+        });
+    });
+
+    container.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value">${totalWorkouts}</div>
+            <div class="stat-label">Total Workouts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${totalRestDays}</div>
+            <div class="stat-label">Rest Days</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${Math.round(totalVolume)}</div>
+            <div class="stat-label">Total Volume (kg)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${storage.workouts.length}</div>
+            <div class="stat-label">Days Tracked</div>
+        </div>
+    `;
+}
+
+// Initialize
+renderCalendar();
