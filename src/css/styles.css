@@ -75,7 +75,7 @@ body {
 #calendar.screen.active {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 140px);
+    /* height: calc(100vh - 140px); */
 }
 
 .calendar-section {
@@ -86,11 +86,11 @@ body {
 
 .workout-details-section {
     display: flex;
-    max-height: 50vh;
+    /* max-height: 50vh; */
     background: #fafafa;
     border-top: 2px solid #e9ecef;
     overflow-y: auto;
-    transition: max-height 0.3s ease;
+    /* transition: max-height 0.3s ease; */
 }
 
 .workout-details-section.expanded {
@@ -468,6 +468,7 @@ body {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
+    /* background: red; */
 }
 
 
@@ -743,11 +744,11 @@ body {
     border-top: 2px solid #e9ecef;
     overflow-y: auto;
     transition: all 0.3s ease;
-    max-height: 40vh;
+    /* max-height: 40vh; */
 }
 
 .workout-details-section.expanded {
-    max-height: 70vh;
+    /* max-height: 70vh; */
 }
 
 .expand-handle {
