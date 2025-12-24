@@ -521,6 +521,8 @@ function renderCalendar() {
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'];
 
+    const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
     document.getElementById('calendarMonth').textContent =
         `${monthNames[storage.currentMonth]} ${storage.currentYear}`;
 
@@ -529,22 +531,22 @@ function renderCalendar() {
 
     grid.innerHTML = '';
 
-    // Day labels
-    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+    // ===== HEADER DAY LABELS (NORMAL MODE) =====
+    weekdayNames.forEach(day => {
         const label = document.createElement('div');
         label.className = 'day-label';
         label.textContent = day;
         grid.appendChild(label);
     });
 
-    // Empty cells
+    // ===== EMPTY OFFSET CELLS =====
     for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.className = 'calendar-day empty';
         grid.appendChild(empty);
     }
 
-    // Days
+    // ===== DAYS =====
     const today = new Date();
     let activeDay = null;
 
@@ -554,8 +556,6 @@ function renderCalendar() {
 
         const date = new Date(storage.currentYear, storage.currentMonth, day);
 
-
-
         const workout = storage.workouts.find(w =>
             new Date(w.date).toDateString() === date.toDateString()
         );
@@ -564,23 +564,20 @@ function renderCalendar() {
             dayDiv.classList.add(workout.type);
         }
 
-        // Click handler - show details in bottom section
-        dayDiv.onclick = () => {
-            // Remove active from previous
-            if (activeDay) {
-                activeDay.classList.remove('active');
-            }
+dayDiv.onclick = () => {
+    if (activeDay) activeDay.classList.remove('active');
 
-            // Set new active
-            dayDiv.classList.add('active');
-            activeDay = dayDiv;
+    dayDiv.classList.add('active');
+    activeDay = dayDiv;
 
-            showWorkoutDetails(date, workout);
-        };
+    showWorkoutDetails(date, workout);
 
+    if (grid.classList.contains('one-line')) {
+        requestAnimationFrame(scrollToActiveDay);
+    }
+};
 
 
-        // Check if this is today
         if (date.toDateString() === today.toDateString()) {
             dayDiv.classList.add('today');
             dayDiv.click();
@@ -588,9 +585,19 @@ function renderCalendar() {
 
         dayDiv.style.cursor = 'pointer';
 
-        dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
+        // ===== 🔥 KEY CHANGE: CYCLING WEEKDAY INSIDE DAY =====
+        dayDiv.innerHTML = `
+            <div class="weekday">${weekdayNames[date.getDay()]}</div>
+            <div class="day-number">${day}</div>
+        `;
+
         grid.appendChild(dayDiv);
     }
+
+    if (grid.classList.contains('one-line')) {
+    requestAnimationFrame(scrollToToday);
+}
+
 }
 
 function showWorkoutDetails(date, workout) {
@@ -663,10 +670,30 @@ function toggleExpand() {
     if (isDetailsExpanded) {
         section.classList.add('expanded');
         icon.textContent = '▼';
+//         document.querySelector(".calendar").classList.add("flex");
+//                                 document.querySelectorAll(".day-label").forEach(el => {
+//     el.classList.add("flex");
+// });
+
+
     } else {
         section.classList.remove('expanded');
         icon.textContent = '▲';
+//                 document.querySelector(".calendar").classList.remove("flex");
+//                                document.querySelectorAll(".day-label").forEach(el => {
+//     el.classList.remove("flex");
+// });
+
     }
+
+    const grid = document.getElementById('calendarGrid');
+    grid.classList.toggle('one-line');
+
+    if (grid.classList.contains('one-line')) {
+        requestAnimationFrame(scrollToActiveDay);
+    }
+
+
 }
 
 function deleteWorkoutFromCalendar(workoutId) {
@@ -775,3 +802,26 @@ function renderStats() {
 
 // Initialize
 renderCalendar();
+
+
+function scrollToActiveDay() {
+    const grid = document.getElementById('calendarGrid');
+    const activeEl =
+        grid.querySelector('.calendar-day.active') ||
+        grid.querySelector('.calendar-day.today');
+
+    if (!activeEl) return;
+
+    const gridWidth = grid.clientWidth;
+    const dayWidth = activeEl.offsetWidth;
+
+    const scrollLeft =
+        activeEl.offsetLeft -
+        gridWidth / 2 +
+        dayWidth / 2;
+
+    grid.scrollTo({
+        left: scrollLeft,
+        behavior: 'smooth'
+    });
+}
