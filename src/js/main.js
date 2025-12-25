@@ -54,6 +54,7 @@ const defaultTemplates = {
 };
 
 function showScreen(screenName) {
+    document.getElementById('workoutDetailsSection').style.display = 'none'; // ADD THIS LINE
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(screenName).classList.add('active');
@@ -606,7 +607,12 @@ function showWorkoutDetails(date, workout) {
 
     const detailsContent = document.getElementById('workoutDetailsContent');
     detailsContent.onclick = (e) => {
-        if (!e.target.classList.contains('delete-btn')) {
+        // Check if click is on delete button or its children (Material Icons span)
+        if (e.target.classList.contains('delete-btn') ||
+            e.target.closest('.delete-btn')) {
+            return; // Stop here, don't view workout
+        }
+        if (workout) {
             viewWorkout(workout.id);
         }
     };
@@ -622,14 +628,14 @@ function showWorkoutDetails(date, workout) {
     const deleteContainer = document.querySelector(".delete-container");
     deleteContainer.innerHTML = `${workout ? `
     <button
-      class="delete-btn"
-      style="margin-left: auto; background: none; border: none; cursor: pointer;"
-      onclick="deleteWorkoutFromCalendar('${workout.id}')">
-      <span class="material-icons" style="font-size: 20px; color: #dc3545;">delete</span>
+    class="delete-btn"
+    style="margin-left: auto; background: none; border: none; cursor: pointer;"
+    onclick="event.stopPropagation(); deleteWorkoutFromCalendar('${workout.id}')">
+    <span class="material-icons" style="font-size: 20px; color: #dc3545;">delete</span>
     </button>
-  ` : ''}
-`;
-dateLabel.innerHTML = `
+    ` : ''}
+    `;
+    dateLabel.innerHTML = `
   <span>${dateStr}</span>
 `;
 
@@ -791,9 +797,14 @@ function renderStats() {
 
     let totalVolume = 0;
     storage.workouts.forEach(w => {
-        w.exercises.forEach(ex => {
-            totalVolume += ex.sets * ex.reps * ex.weight;
-        });
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                // Only add to volume if weight is a number (not 'BW')
+                if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
+                    totalVolume += ex.sets * ex.reps * parseFloat(ex.weight);
+                }
+            });
+        }
     });
 
     container.innerHTML = `
