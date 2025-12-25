@@ -79,7 +79,7 @@ body {
     display: flex;
     flex-direction: column;
     /* height: calc(100vh - 140px); */
-    height: 100vh;
+    /* height: 100vh; */
 }
 
 .calendar-section {
