@@ -79,6 +79,7 @@ body {
     display: flex;
     flex-direction: column;
     /* height: calc(100vh - 140px); */
+    height: 100vh;
 }
 
 .calendar-section {
@@ -101,18 +102,44 @@ body {
     display: flex;
 }
 
-#workoutDetailsContent {
+
+
+.workout-section-header {
+    background: #e9ecef;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    /* needed for absolute positioning of delete-container */
 
 }
 
+/* delete-container on the far right */
+.delete-container {
+    position: absolute;
+    right: 10px;
+    /* margin from right edge */
+    top: 50%;
+    transform: translateY(-50%);
+    /* vertical center */
+}
+
 .expand-handle {
-    background: #e9ecef;
+
     text-align: center;
     padding: 8px;
     cursor: pointer;
     font-size: 0.8em;
     color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    /* take all available space */
+    cursor: pointer;
 }
+
 
 .workout-types {
     display: grid;
@@ -478,51 +505,54 @@ body {
 
 /* ===== NORMAL MODE ===== */
 .weekday {
-  display: none;
+    display: none;
 }
 
 /* ===== ONE-LINER (CYCLING) MODE ===== */
 .calendar.one-line {
-  grid-template-columns: none;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(50px, 1fr);
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(50px, 1fr);
 
     overflow-x: auto;
-  scrollbar-width: none;        /* Firefox */
-  -ms-overflow-style: none;     /* IE / Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE / Edge */
 }
 
 
 .calendar.one-line::-webkit-scrollbar {
-  display: none;                /* Chrome / Safari */
+    display: none;
+    /* Chrome / Safari */
 }
 
 /* Hide static header labels */
 .calendar.one-line .day-label {
-  display: none;
+    display: none;
 }
 
 /* Each date becomes 2-row column */
 .calendar.one-line .calendar-day {
-  display: grid;
-  grid-template-rows: auto auto;
-  align-items: center;
-  /* background-color: red; */
-  
+    display: grid;
+    grid-template-rows: auto auto;
+    align-items: center;
+    /* background-color: red; */
+
 }
 
 /* Show cycling weekday */
 .calendar.one-line .weekday {
-  display: block;
-  text-align: center;
-  font-size: 0.75rem;
-  font-weight: 600;
-  opacity: 0.7;
+    display: block;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.7;
 }
 
 /* Remove empty fillers */
 .calendar.one-line .calendar-day.empty {
-  display: none;
+    display: none;
 }
 
 .calendar-header {
@@ -602,11 +632,12 @@ body {
 }
 
 .calendar-day.today {
-    border: 2px solid  #dee2e6;
-      /* border: 1px solid currentColor; */
+    border: 2px solid #dee2e6;
+    /* border: 1px solid currentColor; */
     /* box-shadow: 0 0 0 2px rgba(45, 52, 54, 0.2); */
     font-size: 1.5rem;
-    font-weight: 1000;    /* color: white;
+    font-weight: 1000;
+    /* color: white;
     background: #504545; */
     border-radius: 50%;
 }

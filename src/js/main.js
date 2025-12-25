@@ -564,18 +564,18 @@ function renderCalendar() {
             dayDiv.classList.add(workout.type);
         }
 
-dayDiv.onclick = () => {
-    if (activeDay) activeDay.classList.remove('active');
+        dayDiv.onclick = () => {
+            if (activeDay) activeDay.classList.remove('active');
 
-    dayDiv.classList.add('active');
-    activeDay = dayDiv;
+            dayDiv.classList.add('active');
+            activeDay = dayDiv;
 
-    showWorkoutDetails(date, workout);
+            showWorkoutDetails(date, workout);
 
-    if (grid.classList.contains('one-line')) {
-        requestAnimationFrame(scrollToActiveDay);
-    }
-};
+            if (grid.classList.contains('one-line')) {
+                requestAnimationFrame(scrollToActiveDay);
+            }
+        };
 
 
         if (date.toDateString() === today.toDateString()) {
@@ -595,16 +595,21 @@ dayDiv.onclick = () => {
     }
 
     if (grid.classList.contains('one-line')) {
-    requestAnimationFrame(scrollToToday);
-}
+        requestAnimationFrame(scrollToActiveDay);
+    }
 
 }
 
 function showWorkoutDetails(date, workout) {
     selectedCalendarDate = date;
     const detailsSection = document.getElementById('workoutDetailsSection');
-    const detailsContent = document.getElementById('workoutDetailsContent');
 
+    const detailsContent = document.getElementById('workoutDetailsContent');
+    detailsContent.onclick = (e) => {
+        if (!e.target.classList.contains('delete-btn')) {
+            viewWorkout(workout.id);
+        }
+    };
     const dateLabel = document.getElementById('selectedDateLabel');
 
     // Format date
@@ -613,7 +618,21 @@ function showWorkoutDetails(date, workout) {
         day: 'numeric',
         year: 'numeric'
     });
-    dateLabel.textContent = dateStr;
+
+    const deleteContainer = document.querySelector(".delete-container");
+    deleteContainer.innerHTML = `${workout ? `
+    <button
+      class="delete-btn"
+      style="margin-left: auto; background: none; border: none; cursor: pointer;"
+      onclick="deleteWorkoutFromCalendar('${workout.id}')">
+      <span class="material-icons" style="font-size: 20px; color: #dc3545;">delete</span>
+    </button>
+  ` : ''}
+`;
+dateLabel.innerHTML = `
+  <span>${dateStr}</span>
+`;
+
 
     // Show the section
     detailsSection.style.display = 'block';
@@ -625,16 +644,13 @@ function showWorkoutDetails(date, workout) {
                 <div class="no-workout-message">
                     Rest Day 💤
                 </div>
-                <div style="padding: 0 15px 15px;">
-                    <button class="delete-btn" style="width: 100%; padding: 10px;" onclick="deleteWorkoutFromCalendar('${workout.id}')">Delete Rest Day</button>
-                </div>
+
             `;
         } else {
+
+            // <button class="save-template-btn" style="flex: 1; padding: 10px;" onclick="viewWorkout(${workout.id})">Expand</button>
             let html = `
-                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-                    <button class="save-template-btn" style="flex: 1; padding: 10px;" onclick="viewWorkout(${workout.id})">Expand</button>
-                    <button class="delete-btn" style="flex: 1; padding: 10px;" onclick="deleteWorkoutFromCalendar('${workout.id}')">Delete</button>
-                </div>
+
             `;
 
             workout.exercises.forEach(ex => {
@@ -670,19 +686,19 @@ function toggleExpand() {
     if (isDetailsExpanded) {
         section.classList.add('expanded');
         icon.textContent = '▼';
-//         document.querySelector(".calendar").classList.add("flex");
-//                                 document.querySelectorAll(".day-label").forEach(el => {
-//     el.classList.add("flex");
-// });
+        //         document.querySelector(".calendar").classList.add("flex");
+        //                                 document.querySelectorAll(".day-label").forEach(el => {
+        //     el.classList.add("flex");
+        // });
 
 
     } else {
         section.classList.remove('expanded');
         icon.textContent = '▲';
-//                 document.querySelector(".calendar").classList.remove("flex");
-//                                document.querySelectorAll(".day-label").forEach(el => {
-//     el.classList.remove("flex");
-// });
+        //                 document.querySelector(".calendar").classList.remove("flex");
+        //                                document.querySelectorAll(".day-label").forEach(el => {
+        //     el.classList.remove("flex");
+        // });
 
     }
 

@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./src/css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <title>Workout Tracker</title>
 
 </head>
@@ -61,14 +63,21 @@
                     </div>
                     <div class="calendar" id="calendarGrid"></div>
                 </div>
+
+
+                <div id="workoutDetailsSection" class="workout-details-section">
+
+                    <div class="workout-section-header" onclick="toggleExpand()">
+                        <div class="expand-handle" >
+                            <span id="expandIcon">▲</span> <span id="selectedDateLabel"></span>
+                        </div>
+                        <div class="delete-container"></div>
+                    </div>
+
+                    <div id="workoutDetailsContent" style="padding: 15px;"></div>
+                </div>
             </div>
 
-            <div id="workoutDetailsSection" class="workout-details-section">
-                <div class="expand-handle" onclick="toggleExpand()">
-                    <span id="expandIcon">▲</span> <span id="selectedDateLabel"></span>
-                </div>
-                <div id="workoutDetailsContent" style="padding: 15px;"></div>
-            </div>
 
             <!-- Stats Screen -->
             <div id="stats" class="screen">
