@@ -40,7 +40,8 @@ const storage = {
     currentYear: new Date().getFullYear(),
     isViewMode: false,
     editingWorkoutId: null,
-    selectedDate: null
+    selectedDate: null,
+    activeCalendarDay: null  // ADD THIS LINE
 };
 
 // Default exercise templates
@@ -549,7 +550,7 @@ function renderCalendar() {
 
     // ===== DAYS =====
     const today = new Date();
-    let activeDay = null;
+    // let activeDay = null;
 
     for (let day = 1; day <= daysInMonth; day++) {
         const dayDiv = document.createElement('div');
@@ -566,10 +567,13 @@ function renderCalendar() {
         }
 
         dayDiv.onclick = () => {
-            if (activeDay) activeDay.classList.remove('active');
+            // if (activeDay) activeDay.classList.remove('active');
+            if (storage.activeCalendarDay) storage.activeCalendarDay.classList.remove('active');  // CHANGE THIS
+
 
             dayDiv.classList.add('active');
-            activeDay = dayDiv;
+            // activeDay = dayDiv;
+            storage.activeCalendarDay = dayDiv;  // CHANGE THIS
 
             showWorkoutDetails(date, workout);
 
@@ -579,9 +583,22 @@ function renderCalendar() {
         };
 
 
+        // if (date.toDateString() === today.toDateString()) {
+        //     dayDiv.classList.add('today');
+        //     dayDiv.click();
+        // }
+
+        // Check if this is the previously selected date
+        if (selectedCalendarDate && date.toDateString() === selectedCalendarDate.toDateString()) {
+            dayDiv.click();  // Restore the previously selected date
+        } else if (!selectedCalendarDate && date.toDateString() === today.toDateString()) {
+            dayDiv.classList.add('today');
+            dayDiv.click();  // Default to today if nothing was selected
+        }
+
+        // Always mark today with the 'today' class
         if (date.toDateString() === today.toDateString()) {
             dayDiv.classList.add('today');
-            dayDiv.click();
         }
 
         dayDiv.style.cursor = 'pointer';
@@ -631,7 +648,7 @@ function showWorkoutDetails(date, workout) {
     class="delete-btn"
     style="margin-left: auto; background: none; border: none; cursor: pointer;"
     onclick="event.stopPropagation(); deleteWorkoutFromCalendar('${workout.id}')">
-    <span class="material-icons" style="font-size: 20px; color: #dc3545;">delete</span>
+    <span class="material-icons" style="font-size: 20px; color: #4e4b4bff;">delete</span>
     </button>
     ` : ''}
     `;
