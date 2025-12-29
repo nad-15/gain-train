@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./src/css/styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
 
     <title>Workout Tracker</title>
 
@@ -37,15 +39,28 @@
                     <button class="workout-btn whole" onclick="selectWorkoutType('whole')">Whole Body</button>
                     <button class="workout-btn rest" onclick="markRest()">Rest Day</button>
                 </div>
+
+                <div id="customWorkoutsSection" style="display: none;">
+                    <h2 style="padding: 0 15px; margin-top: 10px; color: #6c757d; font-size: 1em;">Custom</h2>
+                    <div class="workout-types" id="customWorkoutTypesList"></div>
+                </div>
+
+                <button class="add-exercise-btn" onclick="openCreateCustomWorkout()" style="margin: 15px;">
+                    ➕ Create Custom Workout Type
+                </button>
             </div>
 
             <!-- Workout Screen -->
             <div id="workout" class="screen">
 
                 <div class="workout-header">
-                    <div style="display: flex; justify-content: center; align-items: center;" >
-                    <button class="back-btn" onclick="goBackFromWorkout()">← </button>
-                    <h2 id="workoutTitle">Workout</h2>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <button class="back-btn" onclick="goBackFromWorkout()">
+                            <span class="material-symbols-outlined arrow-back-icon">
+                                arrow_back
+                            </span>
+                        </button>
+                        <h2 id="workoutTitle">Workout</h2>
                     </div>
 
                     <div class="workout-date" id="workoutDate"></div>
@@ -133,7 +148,7 @@
 
     <!-- Select Workout Type Modal -->
     <div id="selectWorkoutModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
             <h2>Log Workout for <span id="selectedDateDisplay"></span></h2>
             <div class="workout-types" style="margin-top: 20px;">
                 <button class="workout-btn push" onclick="startWorkoutForDate('push')">Push</button>
@@ -144,6 +159,12 @@
                 <button class="workout-btn whole" onclick="startWorkoutForDate('whole')">Whole Body</button>
                 <button class="workout-btn rest" onclick="startWorkoutForDate('rest')">Rest Day</button>
             </div>
+
+            <div id="customWorkoutsModalSection" style="display: none;">
+                <h3 style="margin: 15px 0 10px 0; color: #6c757d; font-size: 0.9em;">Custom</h3>
+                <div class="workout-types" id="customWorkoutTypesModalList" style="margin-top: 0;"></div>
+            </div>
+
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeSelectWorkout()">Cancel</button>
             </div>
@@ -199,6 +220,49 @@
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeSaveTemplate()">Cancel</button>
                 <button class="modal-btn save" onclick="saveAsTemplate()">Save Template</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Create Custom Workout Type Modal -->
+    <div id="customWorkoutModal" class="modal">
+        <div class="modal-content" style="max-height: 85vh;">
+            <h2>Create Custom Workout Type</h2>
+            <div class="form-group">
+                <label>Workout Type Name *</label>
+                <input type="text" id="customWorkoutName" placeholder="e.g., Cardio, Arms, Core">
+            </div>
+            <div class="form-group">
+                <label>Choose Color</label>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                    <button class="color-option" data-color="#ff6b6b" style="background: #ff6b6b;"
+                        onclick="selectColor('#ff6b6b')"></button>
+                    <button class="color-option" data-color="#099268" style="background: #099268;"
+                        onclick="selectColor('#099268')"></button>
+                    <button class="color-option" data-color="#d4a017" style="background: #d4a017;"
+                        onclick="selectColor('#d4a017')"></button>
+                    <button class="color-option" data-color="#4c6ef5" style="background: #4c6ef5;"
+                        onclick="selectColor('#4c6ef5')"></button>
+                    <button class="color-option" data-color="#e8590c" style="background: #e8590c;"
+                        onclick="selectColor('#e8590c')"></button>
+                    <button class="color-option" data-color="#845ef7" style="background: #845ef7;"
+                        onclick="selectColor('#845ef7')"></button>
+                    <button class="color-option" data-color="#e91e63" style="background: #e91e63;"
+                        onclick="selectColor('#e91e63')"></button>
+                    <button class="color-option" data-color="#00acc1" style="background: #00acc1;"
+                        onclick="selectColor('#00acc1')"></button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Default Exercises (Optional)</label>
+                <div id="customExercisesList" style="margin-bottom: 10px;"></div>
+                <button class="modal-btn save" style="width: 100%; margin-bottom: 10px;" onclick="addCustomExercise()">+
+                    Add Exercise</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeCustomWorkout()">Cancel</button>
+                <button class="modal-btn save" onclick="saveCustomWorkout()">Create Workout Type</button>
             </div>
         </div>
     </div>

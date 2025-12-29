@@ -2,6 +2,7 @@
 const storage = {
     _workouts: null,
     _templates: null,
+    _customWorkoutTypes: null,
 
     get workouts() {
         if (!this._workouts) {
@@ -27,6 +28,18 @@ const storage = {
         localStorage.setItem('templates', JSON.stringify(value));
     },
 
+    get customWorkoutTypes() {
+        if (!this._customWorkoutTypes) {
+            this._customWorkoutTypes = JSON.parse(localStorage.getItem('customWorkoutTypes') || '[]');
+        }
+        return this._customWorkoutTypes;
+    },
+
+    set customWorkoutTypes(value) {
+        this._customWorkoutTypes = value;
+        localStorage.setItem('customWorkoutTypes', JSON.stringify(value));
+    },
+
     saveWorkouts() {
         localStorage.setItem('workouts', JSON.stringify(this._workouts));
     },
@@ -35,15 +48,20 @@ const storage = {
         localStorage.setItem('templates', JSON.stringify(this._templates));
     },
 
+    saveCustomWorkoutTypes() {
+        localStorage.setItem('customWorkoutTypes', JSON.stringify(this._customWorkoutTypes));
+    },
+
     currentWorkout: null,
     currentMonth: new Date().getMonth(),
     currentYear: new Date().getFullYear(),
     isViewMode: false,
     editingWorkoutId: null,
     selectedDate: null,
-    activeCalendarDay: null  // ADD THIS LINE
+    activeCalendarDay: null,
+    customWorkoutColor: '#4c6ef5',
+    customExercises: []
 };
-
 // Default exercise templates
 const defaultTemplates = {
     push: ['Bench Press', 'Overhead Press', 'Incline Dumbbell Press', 'Tricep Dips'],
@@ -55,13 +73,16 @@ const defaultTemplates = {
 };
 
 function showScreen(screenName) {
-    document.getElementById('workoutDetailsSection').style.display = 'none'; // ADD THIS LINE
+    document.getElementById('workoutDetailsSection').style.display = 'none';
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(screenName).classList.add('active');
 
     const navBtns = document.querySelectorAll('.nav-btn');
-    if (screenName === 'home') navBtns[0].classList.add('active');
+    if (screenName === 'home') {
+        navBtns[0].classList.add('active');
+        renderHomeScreen();
+    }
     if (screenName === 'calendar') navBtns[1].classList.add('active');
     if (screenName === 'stats') navBtns[2].classList.add('active');
 
@@ -78,14 +99,20 @@ function startWorkout(type, date = null, templateData = null) {
         // Use custom template
         exercises = JSON.parse(JSON.stringify(templateData.exercises));
     } else {
-        // Use default template
-        exercises = defaultTemplates[type].map(name => ({
-            name: name,
-            sets: 3,
-            reps: 10,
-            weight: 0,
-            notes: ''
-        }));
+        // Check if it's a custom workout type
+        const customType = storage.customWorkoutTypes.find(t => t.id === type);
+        if (customType) {
+            exercises = JSON.parse(JSON.stringify(customType.exercises));
+        } else {
+            // Use default template
+            exercises = defaultTemplates[type].map(name => ({
+                name: name,
+                sets: 3,
+                reps: 10,
+                weight: 0,
+                notes: ''
+            }));
+        }
     }
 
     storage.currentWorkout = {
@@ -95,7 +122,16 @@ function startWorkout(type, date = null, templateData = null) {
         exercises: exercises
     };
 
-    document.getElementById('workoutTitle').textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' Workout';
+    // Get display name
+    let displayName;
+    const customType = storage.customWorkoutTypes.find(t => t.id === type);
+    if (customType) {
+        displayName = customType.name;
+    } else {
+        displayName = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+
+    document.getElementById('workoutTitle').textContent = displayName + ' Workout';
     document.getElementById('workoutDate').textContent = new Date(storage.currentWorkout.date).toLocaleDateString();
     document.getElementById('viewModeIndicator').innerHTML = '';
     renderExercises();
@@ -512,8 +548,16 @@ function viewWorkout(workoutId) {
     storage.currentWorkout = JSON.parse(JSON.stringify(workout));
     storage.isViewMode = true;
 
-    document.getElementById('workoutTitle').textContent =
-        workout.type.charAt(0).toUpperCase() + workout.type.slice(1) + ' Workout';
+    // Get display name
+    let displayName;
+    const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
+    if (customType) {
+        displayName = customType.name;
+    } else {
+        displayName = workout.type.charAt(0).toUpperCase() + workout.type.slice(1);
+    }
+
+    document.getElementById('workoutTitle').textContent = displayName + ' Workout';
     document.getElementById('workoutDate').textContent =
         new Date(workout.date).toLocaleDateString();
 
@@ -571,13 +615,22 @@ function renderCalendar() {
 
         const date = new Date(storage.currentYear, storage.currentMonth, day);
 
-        const workout = storage.workouts.find(w =>
+
+const workout = storage.workouts.find(w =>
             new Date(w.date).toDateString() === date.toDateString()
         );
 
         if (workout) {
-            dayDiv.classList.add(workout.type);
+            // Check if it's a custom workout type
+            const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
+            if (customType) {
+                dayDiv.style.backgroundColor = customType.color + '33'; // 20% opacity
+                dayDiv.style.borderColor = customType.color;
+            } else {
+                dayDiv.classList.add(workout.type);
+            }
         }
+
 
         dayDiv.onclick = () => {
             // if (activeDay) activeDay.classList.remove('active');
@@ -790,7 +843,38 @@ function selectDateForWorkout(date) {
         day: 'numeric'
     });
     document.getElementById('selectedDateDisplay').textContent = dateStr;
+    
+    // Render custom workouts in the modal
+    renderCustomWorkoutsInModal();
+    
     document.getElementById('selectWorkoutModal').classList.add('active');
+}
+
+function renderCustomWorkoutsInModal() {
+    const customContainer = document.getElementById('customWorkoutTypesModalList');
+    const customSection = document.getElementById('customWorkoutsModalSection');
+    const customTypes = storage.customWorkoutTypes;
+    
+    // Clear custom container
+    customContainer.innerHTML = '';
+    
+    // Show/hide custom section based on whether there are custom types
+    if (customTypes.length > 0) {
+        customSection.style.display = 'block';
+        
+        // Add custom workout types
+        customTypes.forEach((custom) => {
+            const btn = document.createElement('button');
+            btn.className = 'workout-btn';
+            btn.style.borderColor = custom.color;
+            btn.style.color = custom.color;
+            btn.textContent = custom.name;
+            btn.onclick = () => startWorkoutForDate(custom.id);
+            customContainer.appendChild(btn);
+        });
+    } else {
+        customSection.style.display = 'none';
+    }
 }
 
 function closeSelectWorkout() {
@@ -901,8 +985,121 @@ function startWorkoutForDate(type) {
 
 
 
+// function renderStats() {
+//     const container = document.getElementById('statsContainer');
+//     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
+//     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
+
+//     let totalVolume = 0;
+//     storage.workouts.forEach(w => {
+//         if (w.exercises) {
+//             w.exercises.forEach(ex => {
+//                 if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
+//                     totalVolume += ex.sets * ex.reps * parseFloat(ex.weight);
+//                 }
+//             });
+//         }
+//     });
+
+//     // Build debug log
+//     let debugLog = '=== WORKOUTS ===\n';
+//     storage.workouts.filter(w => w.type !== 'rest').forEach(w => {
+//         debugLog += `${new Date(w.date).toDateString()} - ${w.type}\n`;
+//     });
+
+//     debugLog += '\n=== REST DAYS ===\n';
+//     storage.workouts.filter(w => w.type === 'rest').forEach(w => {
+//         debugLog += `${new Date(w.date).toDateString()}\n`;
+//     });
+
+//     // Check duplicates
+//     const dates = {};
+//     storage.workouts.forEach(w => {
+//         const dateStr = new Date(w.date).toDateString();
+//         dates[dateStr] = (dates[dateStr] || 0) + 1;
+//     });
+
+//     debugLog += '\n=== DUPLICATES ===\n';
+//     Object.entries(dates).forEach(([date, count]) => {
+//         if (count > 1) {
+//             debugLog += `⚠️ ${date}: ${count} entries\n`;
+//         }
+//     });
+
+//     container.innerHTML = `
+//         <div class="stat-card">
+//             <div class="stat-value">${totalWorkouts}</div>
+//             <div class="stat-label">Total Workouts</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${totalRestDays}</div>
+//             <div class="stat-label">Rest Days</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${Math.round(totalVolume)}</div>
+//             <div class="stat-label">Total Volume (kg)</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${storage.workouts.length}</div>
+//             <div class="stat-label">Days Tracked</div>
+//         </div>
+        
+//         <button class="add-exercise-btn debug-btns" style="margin: 20px;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
+//             🔍 Show Debug Log
+//         </button>
+//         <button class="delete-duplicate-btn debug-btns" style="margin: 20px;" onclick="cleanupDuplicates()">
+//             🧹 Clean Up Duplicates
+//         </button>
+
+//     `;
+//     let debugClickCount = 0;
+
+//     container.addEventListener('click', () => {
+//         debugClickCount++;
+
+//         if (debugClickCount === 7) {
+//             document.querySelectorAll('.debug-btns').forEach(btn => {
+//                 btn.style.display = 'inline-block'; // or 'block'
+//             });
+
+//             // optional: prevent triggering again
+//             debugClickCount = 0;
+//         }
+//     });
+
+// }
+
 function renderStats() {
     const container = document.getElementById('statsContainer');
+    
+    // Get current month/year
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    // Filter workouts for this month
+    const thisMonthWorkouts = storage.workouts.filter(w => {
+        const workoutDate = new Date(w.date);
+        return workoutDate.getMonth() === currentMonth && 
+               workoutDate.getFullYear() === currentYear;
+    });
+    
+    // This month stats
+    const monthWorkouts = thisMonthWorkouts.filter(w => w.type !== 'rest').length;
+    const monthRestDays = thisMonthWorkouts.filter(w => w.type === 'rest').length;
+    
+    let monthVolume = 0;
+    thisMonthWorkouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
+                    monthVolume += ex.sets * ex.reps * parseFloat(ex.weight);
+                }
+            });
+        }
+    });
+    
+    // Overall stats
     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
 
@@ -942,14 +1139,42 @@ function renderStats() {
         }
     });
 
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+
     container.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 5px;">
+            <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📅 ${monthNames[currentMonth]} ${currentYear}</h3>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value">${monthWorkouts}</div>
+            <div class="stat-label">Workouts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${monthRestDays}</div>
+            <div class="stat-label">Rest Days</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${Math.round(monthVolume)}</div>
+            <div class="stat-label">Volume (kg)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${thisMonthWorkouts.length}</div>
+            <div class="stat-label">Days Tracked</div>
+        </div>
+        
+        <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; margin-bottom: 5px;">
+            <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📊 Overall</h3>
+        </div>
+        
         <div class="stat-card">
             <div class="stat-value">${totalWorkouts}</div>
             <div class="stat-label">Total Workouts</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">${totalRestDays}</div>
-            <div class="stat-label">Rest Days</div>
+            <div class="stat-label">Total Rest Days</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">${Math.round(totalVolume)}</div>
@@ -957,36 +1182,174 @@ function renderStats() {
         </div>
         <div class="stat-card">
             <div class="stat-value">${storage.workouts.length}</div>
-            <div class="stat-label">Days Tracked</div>
+            <div class="stat-label">Total Days Tracked</div>
         </div>
         
-        <button class="add-exercise-btn debug-btns" style="margin: 20px;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
+        <button class="debug-log-btn debug-btns" style="grid-column: 1 / -1;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
             🔍 Show Debug Log
         </button>
-        <button class="delete-duplicate-btn debug-btns" style="margin: 20px;" onclick="cleanupDuplicates()">
+        <button class="delete-duplicate-btn debug-btns" style="grid-column: 1 / -1;" onclick="cleanupDuplicates()">
             🧹 Clean Up Duplicates
         </button>
-
     `;
+    
     let debugClickCount = 0;
-
     container.addEventListener('click', () => {
         debugClickCount++;
-
         if (debugClickCount === 7) {
             document.querySelectorAll('.debug-btns').forEach(btn => {
-                btn.style.display = 'inline-block'; // or 'block'
+                btn.style.display = 'inline-block';
             });
-
-            // optional: prevent triggering again
             debugClickCount = 0;
         }
     });
-
-
 }
+
 renderCalendar();
 
+// ===== CUSTOM WORKOUT TYPE FUNCTIONS =====
+
+function renderHomeScreen() {
+    const customContainer = document.getElementById('customWorkoutTypesList');
+    const customSection = document.getElementById('customWorkoutsSection');
+    const customTypes = storage.customWorkoutTypes;
+    
+    // Clear custom container
+    customContainer.innerHTML = '';
+    
+    // Show/hide custom section based on whether there are custom types
+    if (customTypes.length > 0) {
+        customSection.style.display = 'block';
+        
+        // Add custom workout types
+        customTypes.forEach((custom, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'workout-btn';
+            btn.style.borderColor = custom.color;
+            btn.style.color = custom.color;
+            btn.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span>${custom.name}</span>
+                    <button onclick="event.stopPropagation(); deleteCustomWorkoutType(${idx})" 
+                            style="background: #ff6b6b; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75em;">×</button>
+                </div>
+            `;
+            btn.onclick = () => selectWorkoutType(custom.id);
+            customContainer.appendChild(btn);
+        });
+    } else {
+        customSection.style.display = 'none';
+    }
+}
+
+function openCreateCustomWorkout() {
+    storage.customWorkoutColor = '#4c6ef5';
+    storage.customExercises = [];
+    document.getElementById('customWorkoutName').value = '';
+    document.getElementById('customExercisesList').innerHTML = '';
+    
+    // Reset color selection
+    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+    document.querySelector(`.color-option[data-color="${storage.customWorkoutColor}"]`)?.classList.add('selected');
+    
+    document.getElementById('customWorkoutModal').classList.add('active');
+}
+
+function closeCustomWorkout() {
+    document.getElementById('customWorkoutModal').classList.remove('active');
+}
+
+function selectColor(color) {
+    storage.customWorkoutColor = color;
+    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+    document.querySelector(`.color-option[data-color="${color}"]`).classList.add('selected');
+}
+
+function addCustomExercise() {
+    const exerciseName = prompt('Enter exercise name:');
+    if (!exerciseName) return;
+    
+    storage.customExercises.push(exerciseName);
+    renderCustomExercises();
+}
+
+function renderCustomExercises() {
+    const container = document.getElementById('customExercisesList');
+    container.innerHTML = '';
+    
+    storage.customExercises.forEach((ex, idx) => {
+        const div = document.createElement('div');
+        div.className = 'custom-exercise-item';
+        div.innerHTML = `
+            <input type="text" value="${ex}" onchange="updateCustomExercise(${idx}, this.value)" />
+            <button onclick="removeCustomExercise(${idx})">×</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function updateCustomExercise(idx, value) {
+    storage.customExercises[idx] = value;
+}
+
+function removeCustomExercise(idx) {
+    storage.customExercises.splice(idx, 1);
+    renderCustomExercises();
+}
+
+function saveCustomWorkout() {
+    const name = document.getElementById('customWorkoutName').value.trim();
+    
+    if (!name) {
+        alert('Please enter a workout type name!');
+        return;
+    }
+    
+    const customTypes = storage.customWorkoutTypes;
+    const id = 'custom_' + Date.now();
+    
+    const newType = {
+        id: id,
+        name: name,
+        color: storage.customWorkoutColor,
+        exercises: storage.customExercises.map(ex => ({
+            name: ex,
+            sets: 3,
+            reps: 10,
+            weight: 0,
+            notes: ''
+        }))
+    };
+    
+    customTypes.push(newType);
+    storage.customWorkoutTypes = customTypes;
+    storage.saveCustomWorkoutTypes();
+    
+    // Add to defaultTemplates dynamically
+    defaultTemplates[id] = storage.customExercises;
+    
+    closeCustomWorkout();
+    alert(`Custom workout type "${name}" created! 🎉`);
+    renderHomeScreen();
+}
+
+function deleteCustomWorkoutType(idx) {
+    if (!confirm('Delete this custom workout type?')) return;
+    
+    const customTypes = storage.customWorkoutTypes;
+    const deletedId = customTypes[idx].id;
+    
+    // Remove from storage
+    customTypes.splice(idx, 1);
+    storage.customWorkoutTypes = customTypes;
+    storage.saveCustomWorkoutTypes();
+    
+    // Remove from defaultTemplates
+    delete defaultTemplates[deletedId];
+    
+    alert('Custom workout type deleted! 🗑️');
+    renderHomeScreen();
+}
 
 function scrollToActiveDay() {
     const grid = document.getElementById('calendarGrid');

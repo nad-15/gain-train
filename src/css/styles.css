@@ -141,6 +141,10 @@ body {
 }
 
 
+#home h2 {
+    margin-left: 10px;
+}
+
 .workout-types {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -416,6 +420,8 @@ body {
     font-weight: 600;
     cursor: pointer;
 }
+
+
 
 .modal {
     display: none;
@@ -693,6 +699,59 @@ body {
 
 .debug-btns {
     display: none;
+
+    width: calc(100% - 30px);
+    margin: 15px;
+    padding: 12px;
+    background: #2d3436;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+
+}
+
+.color-option {
+    width: 100%;
+    height: 40px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.color-option.selected {
+    border: 3px solid #2d3436;
+    transform: scale(1.1);
+}
+
+.custom-exercise-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.custom-exercise-item input {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.custom-exercise-item button {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
 }
 
 .stats {
@@ -721,17 +780,22 @@ body {
     font-size: 0.85em;
     opacity: 0.9;
 }
-
 .back-btn {
-    background: #6c757d;
-    color: white;
+    background: none;
     border: none;
-    padding: 8px 15px;
-    border-radius: 6px;
     cursor: pointer;
-    margin: 15px;
-    font-size: 0.9em;
+    padding-right: 4px;
+    padding-top: 4px;
 }
+
+
+
+.material-symbols-outlined.arrow-back-icon {
+    font-size: 24px;
+    color: #2d3436;
+    font-weight: 500;
+}
+
 
 .workout-header {
     display: flex;
