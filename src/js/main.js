@@ -807,6 +807,44 @@ function startWorkoutForDate(type) {
     }
 }
 
+// function renderStats() {
+//     const container = document.getElementById('statsContainer');
+//     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
+//     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
+
+//     let totalVolume = 0;
+//     storage.workouts.forEach(w => {
+//         if (w.exercises) {
+//             w.exercises.forEach(ex => {
+//                 // Only add to volume if weight is a number (not 'BW')
+//                 if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
+//                     totalVolume += ex.sets * ex.reps * parseFloat(ex.weight);
+//                 }
+//             });
+//         }
+//     });
+
+//     container.innerHTML = `
+//         <div class="stat-card">
+//             <div class="stat-value">${totalWorkouts}</div>
+//             <div class="stat-label">Total Workouts</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${totalRestDays}</div>
+//             <div class="stat-label">Rest Days</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${Math.round(totalVolume)}</div>
+//             <div class="stat-label">Total Volume (kg)</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${storage.workouts.length}</div>
+//             <div class="stat-label">Days Tracked</div>
+//         </div>
+//     `;
+// }
+
+// Initialize
 function renderStats() {
     const container = document.getElementById('statsContainer');
     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
@@ -816,11 +854,35 @@ function renderStats() {
     storage.workouts.forEach(w => {
         if (w.exercises) {
             w.exercises.forEach(ex => {
-                // Only add to volume if weight is a number (not 'BW')
                 if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
                     totalVolume += ex.sets * ex.reps * parseFloat(ex.weight);
                 }
             });
+        }
+    });
+
+    // Build debug log
+    let debugLog = '=== WORKOUTS ===\n';
+    storage.workouts.filter(w => w.type !== 'rest').forEach(w => {
+        debugLog += `${new Date(w.date).toDateString()} - ${w.type}\n`;
+    });
+    
+    debugLog += '\n=== REST DAYS ===\n';
+    storage.workouts.filter(w => w.type === 'rest').forEach(w => {
+        debugLog += `${new Date(w.date).toDateString()}\n`;
+    });
+    
+    // Check duplicates
+    const dates = {};
+    storage.workouts.forEach(w => {
+        const dateStr = new Date(w.date).toDateString();
+        dates[dateStr] = (dates[dateStr] || 0) + 1;
+    });
+    
+    debugLog += '\n=== DUPLICATES ===\n';
+    Object.entries(dates).forEach(([date, count]) => {
+        if (count > 1) {
+            debugLog += `⚠️ ${date}: ${count} entries\n`;
         }
     });
 
@@ -841,10 +903,12 @@ function renderStats() {
             <div class="stat-value">${storage.workouts.length}</div>
             <div class="stat-label">Days Tracked</div>
         </div>
+        
+        <button class="add-exercise-btn" style="margin: 20px;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
+            🔍 Show Debug Log
+        </button>
     `;
 }
-
-// Initialize
 renderCalendar();
 
 
