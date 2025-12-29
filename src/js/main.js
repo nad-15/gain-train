@@ -186,6 +186,19 @@ function deleteTemplate(type, idx) {
 }
 
 function markRest() {
+    const today = new Date();
+    const todayStr = today.toDateString();
+
+    // Check if ANY workout/rest already exists for today
+    const existingEntry = storage.workouts.find(w =>
+        new Date(w.date).toDateString() === todayStr
+    );
+
+    if (existingEntry) {
+        alert('Already logged for today! Check calendar 📅');
+        return;
+    }
+
     storage.workouts.push({
         id: Date.now(),
         type: 'rest',
@@ -784,8 +797,49 @@ function closeSelectWorkout() {
     document.getElementById('selectWorkoutModal').classList.remove('active');
 }
 
+
+function cleanupDuplicates() {
+    const seen = new Map();
+    const duplicates = [];
+
+    storage.workouts = storage.workouts.filter(w => {
+        const dateStr = new Date(w.date).toDateString();
+
+        if (seen.has(dateStr)) {
+            duplicates.push(dateStr);
+            return false; // Remove duplicate
+        }
+
+        seen.set(dateStr, true);
+        return true; // Keep first occurrence
+    });
+
+    if (duplicates.length > 0) {
+        storage.saveWorkouts();
+        alert(`Removed ${duplicates.length} duplicate entries! ✨`);
+        renderCalendar();
+        renderStats();
+    } else {
+        alert('No duplicates found! 👍');
+    }
+}
+
+
 function startWorkoutForDate(type) {
     closeSelectWorkout();
+
+    const selectedDateStr = storage.selectedDate.toDateString();
+
+    // Check for existing entry on selected date
+    const existingEntry = storage.workouts.find(w =>
+        new Date(w.date).toDateString() === selectedDateStr
+    );
+
+    if (existingEntry) {
+        alert('Already logged for this day! Delete it first if you want to replace it.');
+        return;
+    }
+
     if (type === 'rest') {
         storage.workouts.push({
             id: Date.now(),
@@ -799,7 +853,6 @@ function startWorkoutForDate(type) {
     } else {
         storage.selectedWorkoutType = type;
         showTemplateSelector(type);
-        // Set the date for the selected template
         const originalStartWorkout = startWorkout;
         startWorkout = function (t, d, td) {
             originalStartWorkout(t, storage.selectedDate.toISOString(), td);
@@ -845,6 +898,9 @@ function startWorkoutForDate(type) {
 // }
 
 // Initialize
+
+
+
 function renderStats() {
     const container = document.getElementById('statsContainer');
     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
@@ -866,19 +922,19 @@ function renderStats() {
     storage.workouts.filter(w => w.type !== 'rest').forEach(w => {
         debugLog += `${new Date(w.date).toDateString()} - ${w.type}\n`;
     });
-    
+
     debugLog += '\n=== REST DAYS ===\n';
     storage.workouts.filter(w => w.type === 'rest').forEach(w => {
         debugLog += `${new Date(w.date).toDateString()}\n`;
     });
-    
+
     // Check duplicates
     const dates = {};
     storage.workouts.forEach(w => {
         const dateStr = new Date(w.date).toDateString();
         dates[dateStr] = (dates[dateStr] || 0) + 1;
     });
-    
+
     debugLog += '\n=== DUPLICATES ===\n';
     Object.entries(dates).forEach(([date, count]) => {
         if (count > 1) {
@@ -904,10 +960,30 @@ function renderStats() {
             <div class="stat-label">Days Tracked</div>
         </div>
         
-        <button class="add-exercise-btn" style="margin: 20px;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
+        <button class="add-exercise-btn debug-btns" style="margin: 20px;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
             🔍 Show Debug Log
         </button>
+        <button class="delete-duplicate-btn debug-btns" style="margin: 20px;" onclick="cleanupDuplicates()">
+            🧹 Clean Up Duplicates
+        </button>
+
     `;
+    let debugClickCount = 0;
+
+    container.addEventListener('click', () => {
+        debugClickCount++;
+
+        if (debugClickCount === 7) {
+            document.querySelectorAll('.debug-btns').forEach(btn => {
+                btn.style.display = 'inline-block'; // or 'block'
+            });
+
+            // optional: prevent triggering again
+            debugClickCount = 0;
+        }
+    });
+
+
 }
 renderCalendar();
 
