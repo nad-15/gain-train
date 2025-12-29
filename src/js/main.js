@@ -1208,7 +1208,7 @@ function renderStats() {
             <div class="stat-label">Total Rest Days</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">${avgWorkoutsPerWeek} / week</div>
+            <div class="stat-value">${avgWorkoutsPerWeek} / 7d</div>
             <div class="stat-label">Avg Workouts</div>
         </div>
         <div class="stat-card">
