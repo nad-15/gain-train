@@ -944,49 +944,38 @@ function startWorkoutForDate(type) {
     }
 }
 
+
 // function renderStats() {
 //     const container = document.getElementById('statsContainer');
-//     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
-//     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
-
-//     let totalVolume = 0;
-//     storage.workouts.forEach(w => {
+    
+//     // Get current month/year
+//     const now = new Date();
+//     const currentMonth = now.getMonth();
+//     const currentYear = now.getFullYear();
+    
+//     // Filter workouts for this month
+//     const thisMonthWorkouts = storage.workouts.filter(w => {
+//         const workoutDate = new Date(w.date);
+//         return workoutDate.getMonth() === currentMonth && 
+//                workoutDate.getFullYear() === currentYear;
+//     });
+    
+//     // This month stats
+//     const monthWorkouts = thisMonthWorkouts.filter(w => w.type !== 'rest').length;
+//     const monthRestDays = thisMonthWorkouts.filter(w => w.type === 'rest').length;
+    
+//     let monthVolume = 0;
+//     thisMonthWorkouts.forEach(w => {
 //         if (w.exercises) {
 //             w.exercises.forEach(ex => {
-//                 // Only add to volume if weight is a number (not 'BW')
 //                 if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
-//                     totalVolume += ex.sets * ex.reps * parseFloat(ex.weight);
+//                     monthVolume += ex.sets * ex.reps * parseFloat(ex.weight);
 //                 }
 //             });
 //         }
 //     });
-
-//     container.innerHTML = `
-//         <div class="stat-card">
-//             <div class="stat-value">${totalWorkouts}</div>
-//             <div class="stat-label">Total Workouts</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${totalRestDays}</div>
-//             <div class="stat-label">Rest Days</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${Math.round(totalVolume)}</div>
-//             <div class="stat-label">Total Volume (kg)</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${storage.workouts.length}</div>
-//             <div class="stat-label">Days Tracked</div>
-//         </div>
-//     `;
-// }
-
-// Initialize
-
-
-
-// function renderStats() {
-//     const container = document.getElementById('statsContainer');
+    
+//     // Overall stats
 //     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
 //     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
 
@@ -1026,14 +1015,42 @@ function startWorkoutForDate(type) {
 //         }
 //     });
 
+//     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+//         'July', 'August', 'September', 'October', 'November', 'December'];
+
 //     container.innerHTML = `
+//         <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 5px;">
+//             <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📅 ${monthNames[currentMonth]} ${currentYear}</h3>
+//         </div>
+        
+//         <div class="stat-card">
+//             <div class="stat-value">${monthWorkouts}</div>
+//             <div class="stat-label">Workouts</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${monthRestDays}</div>
+//             <div class="stat-label">Rest Days</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${Math.round(monthVolume)}</div>
+//             <div class="stat-label">Volume (kg)</div>
+//         </div>
+//         <div class="stat-card">
+//             <div class="stat-value">${thisMonthWorkouts.length}</div>
+//             <div class="stat-label">Days Tracked</div>
+//         </div>
+        
+//         <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; margin-bottom: 5px;">
+//             <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📊 Overall</h3>
+//         </div>
+        
 //         <div class="stat-card">
 //             <div class="stat-value">${totalWorkouts}</div>
 //             <div class="stat-label">Total Workouts</div>
 //         </div>
 //         <div class="stat-card">
 //             <div class="stat-value">${totalRestDays}</div>
-//             <div class="stat-label">Rest Days</div>
+//             <div class="stat-label">Total Rest Days</div>
 //         </div>
 //         <div class="stat-card">
 //             <div class="stat-value">${Math.round(totalVolume)}</div>
@@ -1041,80 +1058,90 @@ function startWorkoutForDate(type) {
 //         </div>
 //         <div class="stat-card">
 //             <div class="stat-value">${storage.workouts.length}</div>
-//             <div class="stat-label">Days Tracked</div>
+//             <div class="stat-label">Total Days Tracked</div>
 //         </div>
         
-//         <button class="add-exercise-btn debug-btns" style="margin: 20px;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
+//         <button class="debug-log-btn debug-btns" style="grid-column: 1 / -1;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
 //             🔍 Show Debug Log
 //         </button>
-//         <button class="delete-duplicate-btn debug-btns" style="margin: 20px;" onclick="cleanupDuplicates()">
+//         <button class="delete-duplicate-btn debug-btns" style="grid-column: 1 / -1;" onclick="cleanupDuplicates()">
 //             🧹 Clean Up Duplicates
 //         </button>
-
 //     `;
+    
 //     let debugClickCount = 0;
-
 //     container.addEventListener('click', () => {
 //         debugClickCount++;
-
 //         if (debugClickCount === 7) {
 //             document.querySelectorAll('.debug-btns').forEach(btn => {
-//                 btn.style.display = 'inline-block'; // or 'block'
+//                 btn.style.display = 'inline-block';
 //             });
-
-//             // optional: prevent triggering again
 //             debugClickCount = 0;
 //         }
 //     });
-
 // }
+// HELPER FUNCTIONS (keep these outside renderStats)
+function getWeekKey(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    const weekNum = 1 + Math.round(
+        ((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7
+    );
+    return `${d.getFullYear()}-W${weekNum}`;
+}
 
+function calculateAvgWorkoutsPerWeek(workouts) {
+    const weeks = {};
+
+    workouts.forEach(w => {
+        const weekKey = getWeekKey(w.date);
+        if (!weeks[weekKey]) {
+            weeks[weekKey] = { workouts: 0 };
+        }
+        if (w.type !== 'rest') {
+            weeks[weekKey].workouts++;
+        }
+    });
+
+    const weeklyValues = Object.values(weeks);
+    if (weeklyValues.length === 0) return 0;
+
+    const total = weeklyValues.reduce((sum, w) => sum + w.workouts, 0);
+    return Math.round(total / weeklyValues.length);
+}
+
+// MAIN FUNCTION
 function renderStats() {
     const container = document.getElementById('statsContainer');
-    
-    // Get current month/year
+
+    // Current month/year
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
-    
+
     // Filter workouts for this month
     const thisMonthWorkouts = storage.workouts.filter(w => {
-        const workoutDate = new Date(w.date);
-        return workoutDate.getMonth() === currentMonth && 
-               workoutDate.getFullYear() === currentYear;
+        const d = new Date(w.date);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
-    
-    // This month stats
+
+    // Monthly stats
     const monthWorkouts = thisMonthWorkouts.filter(w => w.type !== 'rest').length;
     const monthRestDays = thisMonthWorkouts.filter(w => w.type === 'rest').length;
-    
-    let monthVolume = 0;
-    thisMonthWorkouts.forEach(w => {
-        if (w.exercises) {
-            w.exercises.forEach(ex => {
-                if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
-                    monthVolume += ex.sets * ex.reps * parseFloat(ex.weight);
-                }
-            });
-        }
-    });
-    
+
+    // Monthly avg / week
+    const monthAvgPerWeek = calculateAvgWorkoutsPerWeek(thisMonthWorkouts);
+
     // Overall stats
     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
 
-    let totalVolume = 0;
-    storage.workouts.forEach(w => {
-        if (w.exercises) {
-            w.exercises.forEach(ex => {
-                if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
-                    totalVolume += ex.sets * ex.reps * parseFloat(ex.weight);
-                }
-            });
-        }
-    });
+    // Overall avg / week
+    const avgWorkoutsPerWeek = calculateAvgWorkoutsPerWeek(storage.workouts);
 
-    // Build debug log
+    // Debug log
     let debugLog = '=== WORKOUTS ===\n';
     storage.workouts.filter(w => w.type !== 'rest').forEach(w => {
         debugLog += `${new Date(w.date).toDateString()} - ${w.type}\n`;
@@ -1125,28 +1152,30 @@ function renderStats() {
         debugLog += `${new Date(w.date).toDateString()}\n`;
     });
 
-    // Check duplicates
     const dates = {};
     storage.workouts.forEach(w => {
-        const dateStr = new Date(w.date).toDateString();
-        dates[dateStr] = (dates[dateStr] || 0) + 1;
+        const d = new Date(w.date).toDateString();
+        dates[d] = (dates[d] || 0) + 1;
     });
 
     debugLog += '\n=== DUPLICATES ===\n';
     Object.entries(dates).forEach(([date, count]) => {
-        if (count > 1) {
-            debugLog += `⚠️ ${date}: ${count} entries\n`;
-        }
+        if (count > 1) debugLog += `⚠️ ${date}: ${count} entries\n`;
     });
 
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthNames = [
+        'January','February','March','April','May','June',
+        'July','August','September','October','November','December'
+    ];
 
+    // Render UI
     container.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 5px;">
-            <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📅 ${monthNames[currentMonth]} ${currentYear}</h3>
+        <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px;">
+            <h3 style="font-size: 0.95em; font-weight: 600;">
+                📅 ${monthNames[currentMonth]} ${currentYear}
+            </h3>
         </div>
-        
+
         <div class="stat-card">
             <div class="stat-value">${monthWorkouts}</div>
             <div class="stat-label">Workouts</div>
@@ -1156,18 +1185,20 @@ function renderStats() {
             <div class="stat-label">Rest Days</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">${Math.round(monthVolume)}</div>
-            <div class="stat-label">Volume (kg)</div>
+            <div class="stat-value">${monthAvgPerWeek} / week</div>
+            <div class="stat-label">Avg Workouts</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">${thisMonthWorkouts.length}</div>
             <div class="stat-label">Days Tracked</div>
         </div>
-        
-        <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; margin-bottom: 5px;">
-            <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📊 Overall</h3>
+
+        <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px;">
+            <h3 style="font-size: 0.95em; font-weight: 600;">
+                📊 Overall
+            </h3>
         </div>
-        
+
         <div class="stat-card">
             <div class="stat-value">${totalWorkouts}</div>
             <div class="stat-label">Total Workouts</div>
@@ -1177,22 +1208,25 @@ function renderStats() {
             <div class="stat-label">Total Rest Days</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">${Math.round(totalVolume)}</div>
-            <div class="stat-label">Total Volume (kg)</div>
+            <div class="stat-value">${avgWorkoutsPerWeek} / week</div>
+            <div class="stat-label">Avg Workouts</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">${storage.workouts.length}</div>
             <div class="stat-label">Total Days Tracked</div>
         </div>
-        
-        <button class="debug-log-btn debug-btns" style="grid-column: 1 / -1;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
+
+        <button class="debug-log-btn debug-btns" style="grid-column: 1 / -1; display:none;"
+            onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
             🔍 Show Debug Log
         </button>
-        <button class="delete-duplicate-btn debug-btns" style="grid-column: 1 / -1;" onclick="cleanupDuplicates()">
+        <button class="delete-duplicate-btn debug-btns" style="grid-column: 1 / -1; display:none;"
+            onclick="cleanupDuplicates()">
             🧹 Clean Up Duplicates
         </button>
     `;
-    
+
+    // Hidden debug unlock
     let debugClickCount = 0;
     container.addEventListener('click', () => {
         debugClickCount++;
@@ -1204,6 +1238,7 @@ function renderStats() {
         }
     });
 }
+
 
 renderCalendar();
 
