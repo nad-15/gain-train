@@ -67,6 +67,8 @@ const storage = {
 };
 // Default exercise templates
 const defaultTemplates = {
+    warmup: [],  // ADD
+    cooldown: [],  // ADD
     push: ['Bench Press', 'Overhead Press', 'Incline Dumbbell Press', 'Tricep Dips'],
     pull: ['Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Bicep Curls'],
     legs: ['Squats', 'Deadlift', 'Leg Press', 'Leg Curls'],
@@ -227,28 +229,34 @@ function showTemplateSelector(type) {
     document.getElementById('templateSelectorTitle').textContent =
         `Select ${type.charAt(0).toUpperCase() + type.slice(1)} Template`;
 
-    container.innerHTML = '';
-    // Add default template
+container.innerHTML = '';
+
+// Check if this is a custom workout type
+const isCustomType = storage.customWorkoutTypes.find(t => t.id === type);
+
+// Only add default template for built-in workout types (not custom)
+if (!isCustomType) {
     const defaultBtn = document.createElement('button');
     defaultBtn.className = 'workout-btn ' + type;
     defaultBtn.textContent = '✨ Default';
     defaultBtn.onclick = () => {
         closeTemplateSelector();
         if (storage.isFromCalendar) {
-            startWorkout(type);  // Go directly to edit
-            storage.isFromCalendar = false;  // Reset flag
+            startWorkout(type);
+            storage.isFromCalendar = false;
         } else {
-            showWorkoutTypePreview(type, null);  // Go to preview
+            showWorkoutTypePreview(type, null);
         }
     };
     container.appendChild(defaultBtn);
+}
 
     // Find and add previous workout of same type
     const previousWorkouts = storage.workouts
         .filter(w => w.type === type && w.exercises && w.exercises.length > 0)
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    if (previousWorkouts.length > 0) {
+    if (previousWorkouts.length > 0&& type !== 'warmup' && type !== 'cooldown') {
         const lastWorkout = previousWorkouts[0];
         const prevBtn = document.createElement('button');
         prevBtn.className = 'workout-btn ' + type;
@@ -489,7 +497,7 @@ function renderExercises() {
     <label style="display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 0.6em; color: #6c757d;">
         <input 
             type="checkbox"
-            style="transform: scale(0.8);"
+            style="zoom: 0.7;"
             ${ex.weight === 'BW' ? 'checked' : ''} 
             onchange="toggleBodyweight(${idx}, this.checked)"
         >
@@ -723,9 +731,8 @@ function openSaveTemplate() {
 function closeSaveTemplate() {
     document.getElementById('saveTemplateModal').classList.remove('active');
 }
-
 function saveAsTemplate() {
-    const name = document.getElementById('templateName').value;
+    const name = document.getElementById('templateName').value.trim();
     const category = document.getElementById('templateCategory').value;
 
     const templates = storage.templates;
@@ -733,8 +740,18 @@ function saveAsTemplate() {
         templates[category] = [];
     }
 
-    // Generate default name if empty
-    const templateName = name || `Template ${templates[category].length + 1}`;
+    // Generate template name based on existing count
+    let templateName;
+    if (name) {
+        templateName = name;
+    } else {
+        // Find the next available template number
+        let templateNum = 1;
+        while (templates[category].some(t => t.name === `Template ${templateNum}`)) {
+            templateNum++;
+        }
+        templateName = `Template ${templateNum}`;
+    }
 
     const newTemplate = {
         name: templateName,
@@ -1132,13 +1149,20 @@ function closeSelectWorkout() {
     document.getElementById('selectWorkoutModal').classList.remove('active');
 }
 
-
 function cleanupDuplicates() {
     const seen = new Map();
     const duplicates = [];
+    const invalidDates = [];
 
     storage.workouts = storage.workouts.filter(w => {
-        const dateStr = new Date(w.date).toDateString();
+        // Check for invalid date
+        const date = new Date(w.date);
+        if (isNaN(date.getTime()) || w.date === 'Invalid Date' || !w.date) {
+            invalidDates.push(w);
+            return false; // Remove invalid date entry
+        }
+
+        const dateStr = date.toDateString();
 
         if (seen.has(dateStr)) {
             duplicates.push(dateStr);
@@ -1149,13 +1173,21 @@ function cleanupDuplicates() {
         return true; // Keep first occurrence
     });
 
+    let message = '';
     if (duplicates.length > 0) {
+        message += `Removed ${duplicates.length} duplicate entries! ✨\n`;
+    }
+    if (invalidDates.length > 0) {
+        message += `Removed ${invalidDates.length} invalid date entries! 🗑️`;
+    }
+
+    if (duplicates.length > 0 || invalidDates.length > 0) {
         storage.saveWorkouts();
-        alert(`Removed ${duplicates.length} duplicate entries! ✨`);
+        alert(message || 'Cleaned up successfully!');
         renderCalendar();
         renderStats();
     } else {
-        alert('No duplicates found! 👍');
+        alert('No duplicates or invalid dates found! 👍');
     }
 }
 
@@ -1533,6 +1565,7 @@ function openCreateCustomWorkout() {
     storage.customWorkoutColor = '#4c6ef5';
     storage.customExercises = [];
     document.getElementById('customWorkoutName').value = '';
+    document.getElementById('customTemplateName').value = '';  // ADD THIS
     document.getElementById('customExercisesList').innerHTML = '';
 
     // Reset color selection
@@ -1586,6 +1619,7 @@ function removeCustomExercise(idx) {
 
 function saveCustomWorkout() {
     const name = document.getElementById('customWorkoutName').value.trim();
+    const templateName = document.getElementById('customTemplateName').value.trim();
 
     if (!name) {
         alert('Please enter a workout type name!');
@@ -1612,11 +1646,32 @@ function saveCustomWorkout() {
     storage.customWorkoutTypes = customTypes;
     storage.saveCustomWorkoutTypes();
 
+    // Create initial template for this custom workout type
+    const templates = storage.templates;
+    if (!templates[id]) {
+        templates[id] = [];
+    }
+
+    const initialTemplate = {
+        name: templateName || 'Template 1',
+        exercises: storage.customExercises.map(ex => ({
+            name: ex,
+            sets: 3,
+            reps: 10,
+            weight: 0,
+            notes: ''
+        }))
+    };
+
+    templates[id].push(initialTemplate);
+    storage.templates = templates;
+    storage.saveTemplates();
+
     // Add to defaultTemplates dynamically
     defaultTemplates[id] = storage.customExercises;
 
     closeCustomWorkout();
-    alert(`Custom workout type "${name}" created! 🎉`);
+    alert(`Custom workout type "${name}" with template "${initialTemplate.name}" created! 🎉`);
     renderHomeScreen();
 }
 

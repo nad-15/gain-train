@@ -29,6 +29,15 @@
         <div class="content">
             <!-- Home Screen -->
             <div id="home" class="screen">
+
+                <h2>Warm-up & Cool-down</h2>
+                <div class="workout-types">
+                    <button class="workout-btn" style="border-color: #ff9800; color: #ff9800;"
+                        onclick="selectWorkoutType('warmup')">🔥 Warm-up</button>
+                    <button class="workout-btn" style="border-color: #2196f3; color: #2196f3;"
+                        onclick="selectWorkoutType('cooldown')">❄️ Cool-down</button>
+                </div>
+
                 <h2>Select Workout Type</h2>
                 <div class="workout-types">
                     <button class="workout-btn push" onclick="selectWorkoutType('push')">Push</button>
@@ -234,6 +243,10 @@
             <div class="form-group">
                 <label>Workout Type Name *</label>
                 <input type="text" id="customWorkoutName" placeholder="e.g., Cardio, Arms, Core">
+            </div>
+            <div class="form-group">
+                <label>Initial Template Name (optional)</label>
+                <input type="text" id="customTemplateName" placeholder="Leave empty for 'Template 1'">
             </div>
             <div class="form-group">
                 <label>Choose Color</label>

@@ -392,6 +392,7 @@ body {
     resize: vertical;
     margin-top: 8px;
     color: #495057;
+    font-style: italic;
 }
 
 .notes-input:focus {
