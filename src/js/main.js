@@ -191,11 +191,11 @@ function showWorkoutTypePreview(type, templateData = null) {
 
     document.getElementById('workoutTitle').textContent = displayName + ' Workout';
     document.getElementById('workoutDate').textContent = 'Preview';
-    document.getElementById('viewModeIndicator').innerHTML = `
-        <div class="view-mode">
-            <div class="view-mode-label">📋 Workout Preview</div>
-        </div>
-    `;
+    // document.getElementById('viewModeIndicator').innerHTML = `
+    //     <div class="view-mode">
+    //         <div class="view-mode-label">📋 Workout Preview</div>
+    //     </div>
+    // `;
 
     renderExercises();
     renderPreviewActions();
