@@ -202,7 +202,7 @@ body {
     /* border-color: #6c757d; */
     /* color: #6c757d; */
     color: #9be9a8;
-        border-color: #40c463;
+    border-color: #40c463;
 }
 
 .exercise-list {
@@ -232,6 +232,16 @@ body {
 
 .delete-btn {
     background: #d46a74;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75em;
+}
+
+.delete-exercise {
+    background: none;
     color: white;
     border: none;
     padding: 4px 8px;
@@ -283,7 +293,6 @@ body {
 }
 
 .control-btn {
-    background: #6c757d;
     color: white;
     border: none;
     width: 20px;
@@ -297,6 +306,16 @@ body {
     padding: 0;
     line-height: 1;
 }
+
+.control-btn.minus {
+    background: #ca4b2b;
+}
+
+.control-btn.plus {
+    background: #0e6e28;
+
+}
+
 
 
 .arrow-controls {
@@ -323,15 +342,6 @@ body {
 
 .arrow-btn:active {
     background: #495057;
-}
-
-.value-input {
-    width: 40px;
-    padding: 4px 2px;
-    border: 1px solid #dee2e6;
-    border-radius: 3px;
-    text-align: center;
-    font-size: 0.85em;
 }
 
 .value-input {
@@ -695,6 +705,25 @@ body {
     border-color: #40c463;
 
 
+
+
+}
+
+.exercise-name-input {
+    flex: 1;
+    margin-right: 10px;
+    padding: 8px;
+    border: 2px solid #dee2e6;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #2d3436;
+}
+
+.exercise-name-input:focus {
+    outline: none;
+    border-color: #6c757d;
 }
 
 .debug-btns {
@@ -780,6 +809,7 @@ body {
     font-size: 0.85em;
     opacity: 0.9;
 }
+
 .back-btn {
     background: none;
     border: none;

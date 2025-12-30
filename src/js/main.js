@@ -60,7 +60,10 @@ const storage = {
     selectedDate: null,
     activeCalendarDay: null,
     customWorkoutColor: '#4c6ef5',
-    customExercises: []
+    customExercises: [],
+    isEditingWorkoutType: false,
+    isFromCalendar: false,
+    selectedTemplate: null  // ADD THIS
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -93,27 +96,28 @@ function showScreen(screenName) {
 function startWorkout(type, date = null, templateData = null) {
     storage.isViewMode = false;
     storage.editingWorkoutId = null;
+    storage.isEditingWorkoutType = false;  // ADD THIS LINE
 
     let exercises;
     if (templateData) {
         // Use custom template
         exercises = JSON.parse(JSON.stringify(templateData.exercises));
+} else {
+    // Check if it's a custom workout type
+    const customType = storage.customWorkoutTypes.find(t => t.id === type);
+    if (customType) {
+        exercises = JSON.parse(JSON.stringify(customType.exercises));
     } else {
-        // Check if it's a custom workout type
-        const customType = storage.customWorkoutTypes.find(t => t.id === type);
-        if (customType) {
-            exercises = JSON.parse(JSON.stringify(customType.exercises));
-        } else {
-            // Use default template
-            exercises = defaultTemplates[type].map(name => ({
-                name: name,
-                sets: 3,
-                reps: 10,
-                weight: 0,
-                notes: ''
-            }));
-        }
+        // Use default template
+        exercises = defaultTemplates[type].map(name => ({
+            name: name,
+            sets: 3,
+            reps: 10,
+            weight: 0,
+            notes: ''
+        }));
     }
+}
 
     storage.currentWorkout = {
         id: Date.now(),
@@ -138,10 +142,82 @@ function startWorkout(type, date = null, templateData = null) {
     renderWorkoutActions();
     showScreen('workout');
 }
-
 function selectWorkoutType(type) {
     storage.selectedWorkoutType = type;
     showTemplateSelector(type);
+}
+
+function showWorkoutTypePreview(type, templateData = null) {
+    storage.isViewMode = true;
+    storage.isEditingWorkoutType = true;
+    storage.selectedTemplate = templateData;  // ADD THIS LINE to track which template
+
+    // Get exercises for this type
+    let exercises;
+    if (templateData) {
+        exercises = JSON.parse(JSON.stringify(templateData.exercises));
+    } else {
+    const customType = storage.customWorkoutTypes.find(t => t.id === type);
+    if (customType) {
+        // Custom workout types use their own exercises (can be empty)
+        exercises = JSON.parse(JSON.stringify(customType.exercises));
+    } else {
+        // Default workout types use predefined templates
+        exercises = defaultTemplates[type].map(name => ({
+            name: name,
+            sets: 3,
+            reps: 10,
+            weight: 0,
+            notes: ''
+        }));
+    }
+}
+
+    storage.currentWorkout = {
+        type: type,
+        exercises: exercises
+    };
+
+    // Get display name - DECLARE customType AGAIN HERE
+    let displayName;
+    const customType = storage.customWorkoutTypes.find(t => t.id === type);  // DECLARE IT AGAIN
+    if (customType) {
+        displayName = customType.name;
+    } else {
+        displayName = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+
+    document.getElementById('workoutTitle').textContent = displayName + ' Workout';
+    document.getElementById('workoutDate').textContent = 'Preview';
+    document.getElementById('viewModeIndicator').innerHTML = `
+        <div class="view-mode">
+            <div class="view-mode-label">📋 Workout Preview</div>
+        </div>
+    `;
+
+    renderExercises();
+    renderPreviewActions();
+    showScreen('workout');
+}
+
+function renderPreviewActions() {
+    const container = document.getElementById('workoutActions');
+    container.innerHTML = `
+        <div class="action-buttons">
+            <button class="save-template-btn" onclick="editFromPreview()">Edit & Start Workout</button>
+        </div>
+    `;
+}
+
+function editFromPreview() {
+    storage.isViewMode = false;
+    // isEditingWorkoutType stays true (don't change it)
+
+    document.getElementById('workoutDate').textContent = 'Editing';
+    document.getElementById('viewModeIndicator').innerHTML = '';
+
+    renderExercises();
+    renderWorkoutActions();
 }
 
 function showTemplateSelector(type) {
@@ -152,14 +228,18 @@ function showTemplateSelector(type) {
         `Select ${type.charAt(0).toUpperCase() + type.slice(1)} Template`;
 
     container.innerHTML = '';
-
     // Add default template
     const defaultBtn = document.createElement('button');
     defaultBtn.className = 'workout-btn ' + type;
     defaultBtn.textContent = '✨ Default';
     defaultBtn.onclick = () => {
         closeTemplateSelector();
-        startWorkout(type);
+        if (storage.isFromCalendar) {
+            startWorkout(type);  // Go directly to edit
+            storage.isFromCalendar = false;  // Reset flag
+        } else {
+            showWorkoutTypePreview(type, null);  // Go to preview
+        }
     };
     container.appendChild(defaultBtn);
 
@@ -174,14 +254,21 @@ function showTemplateSelector(type) {
         prevBtn.className = 'workout-btn ' + type;
         const workoutDate = new Date(lastWorkout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         prevBtn.textContent = `📋 Previous (${workoutDate})`;
+
         prevBtn.onclick = () => {
             closeTemplateSelector();
             const previousTemplate = {
                 name: 'Previous',
                 exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
             };
-            startWorkout(type, null, previousTemplate);
+            if (storage.isFromCalendar) {
+                startWorkout(type, null, previousTemplate);  // Go directly to edit
+                storage.isFromCalendar = false;  // Reset flag
+            } else {
+                showWorkoutTypePreview(type, previousTemplate);  // Go to preview
+            }
         };
+
         container.appendChild(prevBtn);
     }
 
@@ -191,15 +278,20 @@ function showTemplateSelector(type) {
         const btn = document.createElement('button');
         btn.className = 'workout-btn ' + type;
         btn.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span>💪 ${template.name}</span>
-                <button onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})" 
-                        style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">×</button>
-            </div>
-        `;
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span>💪 ${template.name}</span>
+            <button onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})" 
+                    style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">×</button>
+        </div>
+    `;
         btn.onclick = () => {
             closeTemplateSelector();
-            startWorkout(type, null, template);
+            if (storage.isFromCalendar) {
+                startWorkout(type, null, template);  // Go directly to edit
+                storage.isFromCalendar = false;  // Reset flag
+            } else {
+                showWorkoutTypePreview(type, template);  // Go to preview
+            }
         };
         container.appendChild(btn);
     });
@@ -259,6 +351,76 @@ function autoSave() {
     storage.saveWorkouts();
 }
 
+// function renderExercises() {
+//     const container = document.getElementById('exerciseList');
+//     container.innerHTML = '';
+
+//     if (!storage.currentWorkout || !storage.currentWorkout.exercises) return;
+
+//     storage.currentWorkout.exercises.forEach((ex, idx) => {
+//         const div = document.createElement('div');
+//         div.className = 'exercise-item';
+
+//         if (storage.isViewMode) {
+//             // View mode - simple format
+//             div.innerHTML = `
+//                 <div class="exercise-name" style="margin-bottom: 8px;">${ex.name}</div>
+//                 <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
+//                     ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
+//                 </div>
+//                 ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
+//             `;
+//         } else {
+//             // Edit mode - compact single line with arrows
+//             div.innerHTML = `
+//                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+//                     <div class="exercise-name">${ex.name}</div>
+//                     <button class="delete-btn" onclick="deleteExercise(${idx})">Delete</button>
+//                 </div>
+//                 <div class="set-controls">
+//                     <div class="control-item">
+//                         <label>Sets</label>
+//                         <input type="number" class="value-input" value="${ex.sets}" 
+//                                onchange="updateValue(${idx}, 'sets', this.value)" min="1">
+//                         <div class="arrow-controls">
+//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'sets', 1)">▲</button>
+//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'sets', -1)">▼</button>
+//                         </div>
+//                     </div>
+//                     <div class="control-item">
+//                         <label>Reps</label>
+//                         <input type="number" class="value-input" value="${ex.reps}" 
+//                                onchange="updateValue(${idx}, 'reps', this.value)" min="1">
+//                         <div class="arrow-controls">
+//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'reps', 1)">▲</button>
+//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'reps', -1)">▼</button>
+//                         </div>
+//                     </div>
+//                     <div class="control-item">
+//                         <label>Kg</label>
+//                         <input type="text" class="value-input" value="${ex.weight}" 
+//                                onchange="updateValue(${idx}, 'weight', this.value)">
+//                         <div class="arrow-controls">
+//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', 2.5)">▲</button>
+//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', -2.5)">▼</button>
+//                         </div>
+//                     </div>
+//                     <label style="display: flex; align-items: center; gap: 3px; font-size: 0.7em; color: #6c757d; white-space: nowrap;">
+//                         <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} 
+//                                onchange="toggleBodyweight(${idx}, this.checked)"> BW
+//                     </label>
+//                 </div>
+//                 <textarea class="notes-input" 
+//                           placeholder="Notes (optional)" 
+//                           onchange="updateNotes(${idx}, this.value)"
+//                           rows="1">${ex.notes || ''}</textarea>
+//             `;
+//         }
+
+//         container.appendChild(div);
+//     });
+// }
+
 function renderExercises() {
     const container = document.getElementById('exerciseList');
     container.innerHTML = '';
@@ -279,45 +441,76 @@ function renderExercises() {
                 ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
             `;
         } else {
-            // Edit mode - compact single line with arrows
+            // Edit mode - new redesigned layout
             div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div class="exercise-name">${ex.name}</div>
-                    <button class="delete-btn" onclick="deleteExercise(${idx})">Delete</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <input type="text" class="exercise-name-input" value="${ex.name}" 
+                           onchange="updateExerciseName(${idx}, this.value)"
+                           style="flex: 1; margin-right: 10px; padding: 6px; border-radius: 6px; font-weight: 600; font-size: 0.95em;">
+                    <button class="delete-exercise" onclick="deleteExercise(${idx})">
+                    
+                        <span class="material-icons" style="font-size: 20px; color: #4e4b4bff;">delete</span>
+ 
+
+
+                    </button>
                 </div>
-                <div class="set-controls">
-                    <div class="control-item">
-                        <label>Sets</label>
-                        <input type="number" class="value-input" value="${ex.sets}" 
-                               onchange="updateValue(${idx}, 'sets', this.value)" min="1">
-                        <div class="arrow-controls">
-                            <button class="arrow-btn" onclick="changeValue(${idx}, 'sets', 1)">▲</button>
-                            <button class="arrow-btn" onclick="changeValue(${idx}, 'sets', -1)">▼</button>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px;">
+                    <!-- SETS -->
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">SETS</div>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <button class="control-btn minus" onclick="changeValue(${idx}, 'sets', -1)">−</button>
+                            <input type="number" class="value-input" value="${ex.sets}" 
+                                   onchange="updateValue(${idx}, 'sets', this.value)" min="1"
+                                   style="width: 45px;">
+                            <button class="control-btn plus" onclick="changeValue(${idx}, 'sets', 1)">+</button>
                         </div>
                     </div>
-                    <div class="control-item">
-                        <label>Reps</label>
-                        <input type="number" class="value-input" value="${ex.reps}" 
-                               onchange="updateValue(${idx}, 'reps', this.value)" min="1">
-                        <div class="arrow-controls">
-                            <button class="arrow-btn" onclick="changeValue(${idx}, 'reps', 1)">▲</button>
-                            <button class="arrow-btn" onclick="changeValue(${idx}, 'reps', -1)">▼</button>
+                    
+                    <!-- REPS -->
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">REPS</div>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <button class="control-btn minus" onclick="changeValue(${idx}, 'reps', -1)">−</button>
+                            <input type="number" class="value-input" value="${ex.reps}" 
+                                   onchange="updateValue(${idx}, 'reps', this.value)" min="1"
+                                   style="width: 45px;">
+                            <button class="control-btn plus" onclick="changeValue(${idx}, 'reps', 1)">+</button>
                         </div>
                     </div>
-                    <div class="control-item">
-                        <label>Kg</label>
-                        <input type="text" class="value-input" value="${ex.weight}" 
-                               onchange="updateValue(${idx}, 'weight', this.value)">
-                        <div class="arrow-controls">
-                            <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', 2.5)">▲</button>
-                            <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', -2.5)">▼</button>
+                    
+                    <!-- KG -->
+                    <div style="text-align: center;">
+<div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;"> 
+    <div style="font-size: 0.75em; font-weight: 600; color: #6c757d;">KG</div>
+
+    <label style="display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 0.6em; color: #6c757d;">
+        <input 
+            type="checkbox"
+            style="transform: scale(0.8);"
+            ${ex.weight === 'BW' ? 'checked' : ''} 
+            onchange="toggleBodyweight(${idx}, this.checked)"
+        >
+        BW
+    </label>
+</div>
+
+
+
+
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
+                            <input type="text" class="value-input" value="${ex.weight}" 
+                                   onchange="updateValue(${idx}, 'weight', this.value)" 
+                                   ${ex.weight === 'BW' ? 'disabled' : ''}
+                                   style="width: 45px;">
+                            <button class="control-btn plus" onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>+</button>
                         </div>
                     </div>
-                    <label style="display: flex; align-items: center; gap: 3px; font-size: 0.7em; color: #6c757d; white-space: nowrap;">
-                        <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} 
-                               onchange="toggleBodyweight(${idx}, this.checked)"> BW
-                    </label>
                 </div>
+                
                 <textarea class="notes-input" 
                           placeholder="Notes (optional)" 
                           onchange="updateNotes(${idx}, this.value)"
@@ -327,6 +520,11 @@ function renderExercises() {
 
         container.appendChild(div);
     });
+}
+
+function updateExerciseName(exIdx, newName) {
+    storage.currentWorkout.exercises[exIdx].name = newName;
+    autoSave();
 }
 
 function updateNotes(exIdx, notes) {
@@ -376,6 +574,14 @@ function renderWorkoutActions() {
                 <button class="delete-btn" onclick="deleteWorkout()">Delete</button>
             </div>
         `;
+    } else if (storage.isEditingWorkoutType) {  // ADD THIS CONDITION
+        container.innerHTML = `
+            <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
+            <div class="action-buttons">
+                <button class="save-template-btn" onclick="openSaveTemplate()">Save Template</button>
+                <button class="finish-btn" onclick="saveWorkoutTypeEdit()">Save</button>
+            </div>
+        `;
     } else {
         container.innerHTML = `
             <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
@@ -385,6 +591,34 @@ function renderWorkoutActions() {
             </div>
         `;
     }
+}
+
+function saveWorkoutTypeEdit() {
+    const type = storage.currentWorkout.type;
+    
+    // If editing a user-saved template, update it
+    if (storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous') {
+        const templates = storage.templates;
+        const categoryTemplates = templates[type] || [];
+        
+        // Find and update the template
+        const templateIndex = categoryTemplates.findIndex(t => t.name === storage.selectedTemplate.name);
+        if (templateIndex >= 0) {
+            categoryTemplates[templateIndex].exercises = JSON.parse(JSON.stringify(storage.currentWorkout.exercises));
+            storage.templates = templates;
+            storage.saveTemplates();
+            alert(`Template "${storage.selectedTemplate.name}" updated! 💾`);
+        }
+    } else {
+        // If editing default or previous workout, just close without saving
+        alert('Changes not saved (Default/Previous templates cannot be updated) 💡');
+    }
+    
+    storage.isEditingWorkoutType = false;
+    storage.currentWorkout = null;
+    storage.isViewMode = false;
+    storage.selectedTemplate = null;  // Clear the selected template
+    showScreen('home');
 }
 
 function changeValue(exIdx, field, delta) {
@@ -467,6 +701,23 @@ function openSaveTemplate() {
     document.getElementById('saveTemplateModal').classList.add('active');
     document.getElementById('templateName').value = '';
     document.getElementById('templateCategory').value = storage.currentWorkout.type;
+    
+    // Populate custom workout types in the dropdown
+    const customOptionsGroup = document.getElementById('customCategoryOptions');
+    customOptionsGroup.innerHTML = '';
+    
+    storage.customWorkoutTypes.forEach((custom) => {
+        const option = document.createElement('option');
+        option.value = custom.id;
+        option.textContent = custom.name;
+        customOptionsGroup.appendChild(option);
+    });
+    
+    // If current workout is a custom type, select it
+    const isCustomType = storage.customWorkoutTypes.find(t => t.id === storage.currentWorkout.type);
+    if (isCustomType) {
+        document.getElementById('templateCategory').value = storage.currentWorkout.type;
+    }
 }
 
 function closeSaveTemplate() {
@@ -561,11 +812,11 @@ function viewWorkout(workoutId) {
     document.getElementById('workoutDate').textContent =
         new Date(workout.date).toLocaleDateString();
 
-    document.getElementById('viewModeIndicator').innerHTML = `
-        <div class="view-mode">
-            <div class="view-mode-label">✓ Completed Workout</div>
-        </div>
-    `;
+    // document.getElementById('viewModeIndicator').innerHTML = `
+    //     <div class="view-mode">
+    //         <div class="view-mode-label">✓ Completed Workout</div>
+    //     </div>
+    // `;
 
     renderExercises();
     renderWorkoutActions();
@@ -616,7 +867,7 @@ function renderCalendar() {
         const date = new Date(storage.currentYear, storage.currentMonth, day);
 
 
-const workout = storage.workouts.find(w =>
+        const workout = storage.workouts.find(w =>
             new Date(w.date).toDateString() === date.toDateString()
         );
 
@@ -843,10 +1094,10 @@ function selectDateForWorkout(date) {
         day: 'numeric'
     });
     document.getElementById('selectedDateDisplay').textContent = dateStr;
-    
+
     // Render custom workouts in the modal
     renderCustomWorkoutsInModal();
-    
+
     document.getElementById('selectWorkoutModal').classList.add('active');
 }
 
@@ -854,14 +1105,14 @@ function renderCustomWorkoutsInModal() {
     const customContainer = document.getElementById('customWorkoutTypesModalList');
     const customSection = document.getElementById('customWorkoutsModalSection');
     const customTypes = storage.customWorkoutTypes;
-    
+
     // Clear custom container
     customContainer.innerHTML = '';
-    
+
     // Show/hide custom section based on whether there are custom types
     if (customTypes.length > 0) {
         customSection.style.display = 'block';
-        
+
         // Add custom workout types
         customTypes.forEach((custom) => {
             const btn = document.createElement('button');
@@ -936,6 +1187,7 @@ function startWorkoutForDate(type) {
         renderCalendar();
     } else {
         storage.selectedWorkoutType = type;
+        storage.isFromCalendar = true;  // ADD THIS FLAG
         showTemplateSelector(type);
         const originalStartWorkout = startWorkout;
         startWorkout = function (t, d, td) {
@@ -947,23 +1199,23 @@ function startWorkoutForDate(type) {
 
 // function renderStats() {
 //     const container = document.getElementById('statsContainer');
-    
+
 //     // Get current month/year
 //     const now = new Date();
 //     const currentMonth = now.getMonth();
 //     const currentYear = now.getFullYear();
-    
+
 //     // Filter workouts for this month
 //     const thisMonthWorkouts = storage.workouts.filter(w => {
 //         const workoutDate = new Date(w.date);
 //         return workoutDate.getMonth() === currentMonth && 
 //                workoutDate.getFullYear() === currentYear;
 //     });
-    
+
 //     // This month stats
 //     const monthWorkouts = thisMonthWorkouts.filter(w => w.type !== 'rest').length;
 //     const monthRestDays = thisMonthWorkouts.filter(w => w.type === 'rest').length;
-    
+
 //     let monthVolume = 0;
 //     thisMonthWorkouts.forEach(w => {
 //         if (w.exercises) {
@@ -974,7 +1226,7 @@ function startWorkoutForDate(type) {
 //             });
 //         }
 //     });
-    
+
 //     // Overall stats
 //     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
 //     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
@@ -1022,7 +1274,7 @@ function startWorkoutForDate(type) {
 //         <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 5px;">
 //             <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📅 ${monthNames[currentMonth]} ${currentYear}</h3>
 //         </div>
-        
+
 //         <div class="stat-card">
 //             <div class="stat-value">${monthWorkouts}</div>
 //             <div class="stat-label">Workouts</div>
@@ -1039,11 +1291,11 @@ function startWorkoutForDate(type) {
 //             <div class="stat-value">${thisMonthWorkouts.length}</div>
 //             <div class="stat-label">Days Tracked</div>
 //         </div>
-        
+
 //         <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; margin-bottom: 5px;">
 //             <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📊 Overall</h3>
 //         </div>
-        
+
 //         <div class="stat-card">
 //             <div class="stat-value">${totalWorkouts}</div>
 //             <div class="stat-label">Total Workouts</div>
@@ -1060,7 +1312,7 @@ function startWorkoutForDate(type) {
 //             <div class="stat-value">${storage.workouts.length}</div>
 //             <div class="stat-label">Total Days Tracked</div>
 //         </div>
-        
+
 //         <button class="debug-log-btn debug-btns" style="grid-column: 1 / -1;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
 //             🔍 Show Debug Log
 //         </button>
@@ -1068,7 +1320,7 @@ function startWorkoutForDate(type) {
 //             🧹 Clean Up Duplicates
 //         </button>
 //     `;
-    
+
 //     let debugClickCount = 0;
 //     container.addEventListener('click', () => {
 //         debugClickCount++;
@@ -1164,8 +1416,8 @@ function renderStats() {
     });
 
     const monthNames = [
-        'January','February','March','April','May','June',
-        'July','August','September','October','November','December'
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
     // Render UI
@@ -1248,14 +1500,14 @@ function renderHomeScreen() {
     const customContainer = document.getElementById('customWorkoutTypesList');
     const customSection = document.getElementById('customWorkoutsSection');
     const customTypes = storage.customWorkoutTypes;
-    
+
     // Clear custom container
     customContainer.innerHTML = '';
-    
+
     // Show/hide custom section based on whether there are custom types
     if (customTypes.length > 0) {
         customSection.style.display = 'block';
-        
+
         // Add custom workout types
         customTypes.forEach((custom, idx) => {
             const btn = document.createElement('button');
@@ -1282,11 +1534,11 @@ function openCreateCustomWorkout() {
     storage.customExercises = [];
     document.getElementById('customWorkoutName').value = '';
     document.getElementById('customExercisesList').innerHTML = '';
-    
+
     // Reset color selection
     document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
     document.querySelector(`.color-option[data-color="${storage.customWorkoutColor}"]`)?.classList.add('selected');
-    
+
     document.getElementById('customWorkoutModal').classList.add('active');
 }
 
@@ -1303,7 +1555,7 @@ function selectColor(color) {
 function addCustomExercise() {
     const exerciseName = prompt('Enter exercise name:');
     if (!exerciseName) return;
-    
+
     storage.customExercises.push(exerciseName);
     renderCustomExercises();
 }
@@ -1311,7 +1563,7 @@ function addCustomExercise() {
 function renderCustomExercises() {
     const container = document.getElementById('customExercisesList');
     container.innerHTML = '';
-    
+
     storage.customExercises.forEach((ex, idx) => {
         const div = document.createElement('div');
         div.className = 'custom-exercise-item';
@@ -1334,15 +1586,15 @@ function removeCustomExercise(idx) {
 
 function saveCustomWorkout() {
     const name = document.getElementById('customWorkoutName').value.trim();
-    
+
     if (!name) {
         alert('Please enter a workout type name!');
         return;
     }
-    
+
     const customTypes = storage.customWorkoutTypes;
     const id = 'custom_' + Date.now();
-    
+
     const newType = {
         id: id,
         name: name,
@@ -1355,14 +1607,14 @@ function saveCustomWorkout() {
             notes: ''
         }))
     };
-    
+
     customTypes.push(newType);
     storage.customWorkoutTypes = customTypes;
     storage.saveCustomWorkoutTypes();
-    
+
     // Add to defaultTemplates dynamically
     defaultTemplates[id] = storage.customExercises;
-    
+
     closeCustomWorkout();
     alert(`Custom workout type "${name}" created! 🎉`);
     renderHomeScreen();
@@ -1370,18 +1622,18 @@ function saveCustomWorkout() {
 
 function deleteCustomWorkoutType(idx) {
     if (!confirm('Delete this custom workout type?')) return;
-    
+
     const customTypes = storage.customWorkoutTypes;
     const deletedId = customTypes[idx].id;
-    
+
     // Remove from storage
     customTypes.splice(idx, 1);
     storage.customWorkoutTypes = customTypes;
     storage.saveCustomWorkoutTypes();
-    
+
     // Remove from defaultTemplates
     delete defaultTemplates[deletedId];
-    
+
     alert('Custom workout type deleted! 🗑️');
     renderHomeScreen();
 }
