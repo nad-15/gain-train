@@ -33,20 +33,38 @@
                 <h2>Warm-up & Cool-down</h2>
                 <div class="workout-types">
                     <button class="workout-btn" style="border-color: #ff9800; color: #ff9800;"
-                        onclick="selectWorkoutType('warmup')">🔥 Warm-up</button>
+                        onclick="selectWorkoutType('warmup')"><span class="material-symbols-outlined">
+                            directions_walk
+                        </span> Warm-up</button>
                     <button class="workout-btn" style="border-color: #2196f3; color: #2196f3;"
-                        onclick="selectWorkoutType('cooldown')">❄️ Cool-down</button>
+                        onclick="selectWorkoutType('cooldown')"><span class="material-symbols-outlined">
+                            self_improvement
+                        </span> Cool-down</button>
                 </div>
 
                 <h2>Select Workout Type</h2>
                 <div class="workout-types">
-                    <button class="workout-btn push" onclick="selectWorkoutType('push')">Push</button>
-                    <button class="workout-btn pull" onclick="selectWorkoutType('pull')">Pull</button>
-                    <button class="workout-btn legs" onclick="selectWorkoutType('legs')">Legs</button>
-                    <button class="workout-btn upper" onclick="selectWorkoutType('upper')">Upper</button>
-                    <button class="workout-btn lower" onclick="selectWorkoutType('lower')">Lower</button>
-                    <button class="workout-btn whole" onclick="selectWorkoutType('whole')">Whole Body</button>
-                    <button class="workout-btn rest" onclick="markRest()">Rest Day</button>
+                    <button class="workout-btn push" onclick="selectWorkoutType('push')"><span class="material-symbols-outlined">
+fitness_center
+</span>Push</button>
+                    <button class="workout-btn pull" onclick="selectWorkoutType('pull')"><span class="material-symbols-outlined">
+fitness_center
+</span>Pull</button>
+                    <button class="workout-btn legs" onclick="selectWorkoutType('legs')"><span class="material-symbols-outlined">
+fitness_center
+</span>Legs</button>
+                    <button class="workout-btn upper" onclick="selectWorkoutType('upper')"><span class="material-symbols-outlined">
+fitness_center
+</span>Upper Body</button>
+                    <button class="workout-btn lower" onclick="selectWorkoutType('lower')"><span class="material-symbols-outlined">
+fitness_center
+</span>Lower Body</button>
+                    <button class="workout-btn whole" onclick="selectWorkoutType('whole')"><span class="material-symbols-outlined">
+fitness_center
+</span>Whole Body</button>
+                    <button class="workout-btn rest" onclick="markRest()"><span class="material-symbols-outlined filled">
+airline_seat_flat_angled
+</span>Rest Day</button>
                 </div>
 
                 <div id="customWorkoutsSection" style="display: none;">
@@ -86,8 +104,12 @@
                     <div class="calendar-header">
                         <h2 id="calendarMonth"></h2>
                         <div class="month-nav">
-                            <button id="prevBtn" onclick="changeMonth(-1)">←</button>
-                            <button id="nextBtn" onclick="changeMonth(1)">→</button>
+                            <button id="prevBtn" onclick="changeMonth(-1)"><span class="material-symbols-outlined">
+arrow_left
+</span></button>
+                            <button id="nextBtn" onclick="changeMonth(1)"><span class="material-symbols-outlined">
+arrow_right
+</span></button>
                         </div>
                     </div>
                     <div class="calendar" id="calendarGrid"></div>
@@ -99,7 +121,9 @@
 
                 <div class="workout-section-header" onclick="toggleExpand()">
                     <div class="expand-handle">
-                        <span id="expandIcon">▲</span> <span id="selectedDateLabel"></span>
+                        <span id="expandIcon" class="material-symbols-outlined">
+arrow_circle_up
+</span> <span id="selectedDateLabel"></span>
                     </div>
                     <div class="delete-container"></div>
                 </div>

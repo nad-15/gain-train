@@ -140,6 +140,10 @@ body {
     cursor: pointer;
 }
 
+.material-symbols-outlined.filled {
+    font-variation-settings: 'FILL' 1;
+}
+
 
 #home h2 {
     margin-left: 10px;
@@ -153,6 +157,9 @@ body {
 }
 
 .workout-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 15px;
     border: 1px solid #dee2e6;
     border-radius: 8px;
@@ -162,6 +169,7 @@ body {
     font-weight: 600;
     transition: all 0.2s;
     text-align: center;
+    gap: 10px;
 }
 
 .workout-btn:active {
@@ -530,12 +538,14 @@ body {
 
 /* ===== ONE-LINER (CYCLING) MODE ===== */
 .calendar.one-line {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
 
-  overflow-x: auto;
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE / Edge */
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE / Edge */
 }
 
 
@@ -590,17 +600,24 @@ body {
 
 .month-nav {
     display: flex;
-    gap: 8px;
+    /* gap: 8px; */
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+
 }
 
 .month-nav button {
-    padding: 6px 12px;
-    background: #6c757d;
+    /* padding: 6px 12px; */
+    /* background: #6c757d; */
     color: white;
+    color: #6c757d;
     border: none;
-    border-radius: 6px;
+    /* border-radius: 6px; */
     cursor: pointer;
-    font-size: 0.9em;
+    /* font-size: 0.9em; */
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .day-label {

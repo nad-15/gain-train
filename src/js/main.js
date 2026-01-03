@@ -418,75 +418,6 @@ function autoSave() {
     storage.saveWorkouts();
 }
 
-// function renderExercises() {
-//     const container = document.getElementById('exerciseList');
-//     container.innerHTML = '';
-
-//     if (!storage.currentWorkout || !storage.currentWorkout.exercises) return;
-
-//     storage.currentWorkout.exercises.forEach((ex, idx) => {
-//         const div = document.createElement('div');
-//         div.className = 'exercise-item';
-
-//         if (storage.isViewMode) {
-//             // View mode - simple format
-//             div.innerHTML = `
-//                 <div class="exercise-name" style="margin-bottom: 8px;">${ex.name}</div>
-//                 <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
-//                     ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
-//                 </div>
-//                 ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
-//             `;
-//         } else {
-//             // Edit mode - compact single line with arrows
-//             div.innerHTML = `
-//                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-//                     <div class="exercise-name">${ex.name}</div>
-//                     <button class="delete-btn" onclick="deleteExercise(${idx})">Delete</button>
-//                 </div>
-//                 <div class="set-controls">
-//                     <div class="control-item">
-//                         <label>Sets</label>
-//                         <input type="number" class="value-input" value="${ex.sets}" 
-//                                onchange="updateValue(${idx}, 'sets', this.value)" min="1">
-//                         <div class="arrow-controls">
-//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'sets', 1)">▲</button>
-//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'sets', -1)">▼</button>
-//                         </div>
-//                     </div>
-//                     <div class="control-item">
-//                         <label>Reps</label>
-//                         <input type="number" class="value-input" value="${ex.reps}" 
-//                                onchange="updateValue(${idx}, 'reps', this.value)" min="1">
-//                         <div class="arrow-controls">
-//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'reps', 1)">▲</button>
-//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'reps', -1)">▼</button>
-//                         </div>
-//                     </div>
-//                     <div class="control-item">
-//                         <label>Kg</label>
-//                         <input type="text" class="value-input" value="${ex.weight}" 
-//                                onchange="updateValue(${idx}, 'weight', this.value)">
-//                         <div class="arrow-controls">
-//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', 2.5)">▲</button>
-//                             <button class="arrow-btn" onclick="changeValue(${idx}, 'weight', -2.5)">▼</button>
-//                         </div>
-//                     </div>
-//                     <label style="display: flex; align-items: center; gap: 3px; font-size: 0.7em; color: #6c757d; white-space: nowrap;">
-//                         <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} 
-//                                onchange="toggleBodyweight(${idx}, this.checked)"> BW
-//                     </label>
-//                 </div>
-//                 <textarea class="notes-input" 
-//                           placeholder="Notes (optional)" 
-//                           onchange="updateNotes(${idx}, this.value)"
-//                           rows="1">${ex.notes || ''}</textarea>
-//             `;
-//         }
-
-//         container.appendChild(div);
-//     });
-// }
 
 function renderExercises() {
     const container = document.getElementById('exerciseList');
@@ -1111,13 +1042,13 @@ function toggleExpand() {
 
     if (isDetailsExpanded) {
         section.classList.add('expanded');
-        icon.textContent = '▼';
+        icon.textContent = 'arrow_circle_down';
         // Initialize to current week
         storage.currentWeekOffset = 0;
         renderWeekView();
     } else {
         section.classList.remove('expanded');
-        icon.textContent = '▲';
+        icon.textContent = 'arrow_circle_up';
         renderCalendar();
     }
 }
