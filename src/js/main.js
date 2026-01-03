@@ -63,7 +63,8 @@ const storage = {
     customExercises: [],
     isEditingWorkoutType: false,
     isFromCalendar: false,
-    selectedTemplate: null  // ADD THIS
+    selectedTemplate: null,
+    currentWeekOffset: 0  // ADD THIS for week navigation
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -104,22 +105,22 @@ function startWorkout(type, date = null, templateData = null) {
     if (templateData) {
         // Use custom template
         exercises = JSON.parse(JSON.stringify(templateData.exercises));
-} else {
-    // Check if it's a custom workout type
-    const customType = storage.customWorkoutTypes.find(t => t.id === type);
-    if (customType) {
-        exercises = JSON.parse(JSON.stringify(customType.exercises));
     } else {
-        // Use default template
-        exercises = defaultTemplates[type].map(name => ({
-            name: name,
-            sets: 3,
-            reps: 10,
-            weight: 0,
-            notes: ''
-        }));
+        // Check if it's a custom workout type
+        const customType = storage.customWorkoutTypes.find(t => t.id === type);
+        if (customType) {
+            exercises = JSON.parse(JSON.stringify(customType.exercises));
+        } else {
+            // Use default template
+            exercises = defaultTemplates[type].map(name => ({
+                name: name,
+                sets: 3,
+                reps: 10,
+                weight: 0,
+                notes: ''
+            }));
+        }
     }
-}
 
     storage.currentWorkout = {
         id: Date.now(),
@@ -159,21 +160,21 @@ function showWorkoutTypePreview(type, templateData = null) {
     if (templateData) {
         exercises = JSON.parse(JSON.stringify(templateData.exercises));
     } else {
-    const customType = storage.customWorkoutTypes.find(t => t.id === type);
-    if (customType) {
-        // Custom workout types use their own exercises (can be empty)
-        exercises = JSON.parse(JSON.stringify(customType.exercises));
-    } else {
-        // Default workout types use predefined templates
-        exercises = defaultTemplates[type].map(name => ({
-            name: name,
-            sets: 3,
-            reps: 10,
-            weight: 0,
-            notes: ''
-        }));
+        const customType = storage.customWorkoutTypes.find(t => t.id === type);
+        if (customType) {
+            // Custom workout types use their own exercises (can be empty)
+            exercises = JSON.parse(JSON.stringify(customType.exercises));
+        } else {
+            // Default workout types use predefined templates
+            exercises = defaultTemplates[type].map(name => ({
+                name: name,
+                sets: 3,
+                reps: 10,
+                weight: 0,
+                notes: ''
+            }));
+        }
     }
-}
 
     storage.currentWorkout = {
         type: type,
@@ -229,34 +230,34 @@ function showTemplateSelector(type) {
     document.getElementById('templateSelectorTitle').textContent =
         `Select ${type.charAt(0).toUpperCase() + type.slice(1)} Template`;
 
-container.innerHTML = '';
+    container.innerHTML = '';
 
-// Check if this is a custom workout type
-const isCustomType = storage.customWorkoutTypes.find(t => t.id === type);
+    // Check if this is a custom workout type
+    const isCustomType = storage.customWorkoutTypes.find(t => t.id === type);
 
-// Only add default template for built-in workout types (not custom)
-if (!isCustomType) {
-    const defaultBtn = document.createElement('button');
-    defaultBtn.className = 'workout-btn ' + type;
-    defaultBtn.textContent = '✨ Default';
-    defaultBtn.onclick = () => {
-        closeTemplateSelector();
-        if (storage.isFromCalendar) {
-            startWorkout(type);
-            storage.isFromCalendar = false;
-        } else {
-            showWorkoutTypePreview(type, null);
-        }
-    };
-    container.appendChild(defaultBtn);
-}
+    // Only add default template for built-in workout types (not custom)
+    if (!isCustomType) {
+        const defaultBtn = document.createElement('button');
+        defaultBtn.className = 'workout-btn ' + type;
+        defaultBtn.textContent = '✨ Default';
+        defaultBtn.onclick = () => {
+            closeTemplateSelector();
+            if (storage.isFromCalendar) {
+                startWorkout(type);
+                storage.isFromCalendar = false;
+            } else {
+                showWorkoutTypePreview(type, null);
+            }
+        };
+        container.appendChild(defaultBtn);
+    }
 
     // Find and add previous workout of same type
     const previousWorkouts = storage.workouts
         .filter(w => w.type === type && w.exercises && w.exercises.length > 0)
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    if (previousWorkouts.length > 0&& type !== 'warmup' && type !== 'cooldown') {
+    if (previousWorkouts.length > 0 && type !== 'warmup' && type !== 'cooldown') {
         const lastWorkout = previousWorkouts[0];
         const prevBtn = document.createElement('button');
         prevBtn.className = 'workout-btn ' + type;
@@ -603,12 +604,12 @@ function renderWorkoutActions() {
 
 function saveWorkoutTypeEdit() {
     const type = storage.currentWorkout.type;
-    
+
     // If editing a user-saved template, update it
     if (storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous') {
         const templates = storage.templates;
         const categoryTemplates = templates[type] || [];
-        
+
         // Find and update the template
         const templateIndex = categoryTemplates.findIndex(t => t.name === storage.selectedTemplate.name);
         if (templateIndex >= 0) {
@@ -621,7 +622,7 @@ function saveWorkoutTypeEdit() {
         // If editing default or previous workout, just close without saving
         alert('Changes not saved (Default/Previous templates cannot be updated) 💡');
     }
-    
+
     storage.isEditingWorkoutType = false;
     storage.currentWorkout = null;
     storage.isViewMode = false;
@@ -709,18 +710,18 @@ function openSaveTemplate() {
     document.getElementById('saveTemplateModal').classList.add('active');
     document.getElementById('templateName').value = '';
     document.getElementById('templateCategory').value = storage.currentWorkout.type;
-    
+
     // Populate custom workout types in the dropdown
     const customOptionsGroup = document.getElementById('customCategoryOptions');
     customOptionsGroup.innerHTML = '';
-    
+
     storage.customWorkoutTypes.forEach((custom) => {
         const option = document.createElement('option');
         option.value = custom.id;
         option.textContent = custom.name;
         customOptionsGroup.appendChild(option);
     });
-    
+
     // If current workout is a custom type, select it
     const isCustomType = storage.customWorkoutTypes.find(t => t.id === storage.currentWorkout.type);
     if (isCustomType) {
@@ -855,10 +856,12 @@ function renderCalendar() {
 
     const firstDay = new Date(storage.currentYear, storage.currentMonth, 1).getDay();
     const daysInMonth = new Date(storage.currentYear, storage.currentMonth + 1, 0).getDate();
+    const prevMonthDays = new Date(storage.currentYear, storage.currentMonth, 0).getDate();
 
     grid.innerHTML = '';
+    grid.classList.remove('one-line');
 
-    // ===== HEADER DAY LABELS (NORMAL MODE) =====
+    // ===== HEADER DAY LABELS =====
     weekdayNames.forEach(day => {
         const label = document.createElement('div');
         label.className = 'day-label';
@@ -866,90 +869,87 @@ function renderCalendar() {
         grid.appendChild(label);
     });
 
-    // ===== EMPTY OFFSET CELLS =====
-    for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement('div');
-        empty.className = 'calendar-day empty';
-        grid.appendChild(empty);
+    // ===== PREVIOUS MONTH DAYS (grayed out) =====
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const day = prevMonthDays - i;
+        const prevMonth = storage.currentMonth === 0 ? 11 : storage.currentMonth - 1;
+        const prevYear = storage.currentMonth === 0 ? storage.currentYear - 1 : storage.currentYear;
+        
+        createCalendarDay(day, new Date(prevYear, prevMonth, day), true);
     }
 
-    // ===== DAYS =====
+    // ===== CURRENT MONTH DAYS =====
     const today = new Date();
-    // let activeDay = null;
-
     for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'calendar-day';
-
         const date = new Date(storage.currentYear, storage.currentMonth, day);
-
-
-        const workout = storage.workouts.find(w =>
-            new Date(w.date).toDateString() === date.toDateString()
-        );
-
-        if (workout) {
-            // Check if it's a custom workout type
-            const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
-            if (customType) {
-                dayDiv.style.backgroundColor = customType.color + '33'; // 20% opacity
-                dayDiv.style.borderColor = customType.color;
-            } else {
-                dayDiv.classList.add(workout.type);
-            }
-        }
-
-
-        dayDiv.onclick = () => {
-            // if (activeDay) activeDay.classList.remove('active');
-            if (storage.activeCalendarDay) storage.activeCalendarDay.classList.remove('active');  // CHANGE THIS
-
-
-            dayDiv.classList.add('active');
-            // activeDay = dayDiv;
-            storage.activeCalendarDay = dayDiv;  // CHANGE THIS
-
-            showWorkoutDetails(date, workout);
-
-            if (grid.classList.contains('one-line')) {
-                requestAnimationFrame(scrollToActiveDay);
-            }
-        };
-
-
-        // if (date.toDateString() === today.toDateString()) {
-        //     dayDiv.classList.add('today');
-        //     dayDiv.click();
-        // }
-
-        // Check if this is the previously selected date
-        if (selectedCalendarDate && date.toDateString() === selectedCalendarDate.toDateString()) {
-            dayDiv.click();  // Restore the previously selected date
-        } else if (!selectedCalendarDate && date.toDateString() === today.toDateString()) {
-            dayDiv.classList.add('today');
-            dayDiv.click();  // Default to today if nothing was selected
-        }
-
-        // Always mark today with the 'today' class
-        if (date.toDateString() === today.toDateString()) {
-            dayDiv.classList.add('today');
-        }
-
-        dayDiv.style.cursor = 'pointer';
-
-        // ===== 🔥 KEY CHANGE: CYCLING WEEKDAY INSIDE DAY =====
-        dayDiv.innerHTML = `
-            <div class="weekday">${weekdayNames[date.getDay()]}</div>
-            <div class="day-number">${day}</div>
-        `;
-
-        grid.appendChild(dayDiv);
+        createCalendarDay(day, date, false);
     }
 
-    if (grid.classList.contains('one-line')) {
-        requestAnimationFrame(scrollToActiveDay);
+    // ===== NEXT MONTH DAYS (grayed out) to fill the grid =====
+    const totalCells = firstDay + daysInMonth;
+    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    
+    for (let day = 1; day <= remainingCells; day++) {
+        const nextMonth = storage.currentMonth === 11 ? 0 : storage.currentMonth + 1;
+        const nextYear = storage.currentMonth === 11 ? storage.currentYear + 1 : storage.currentYear;
+        
+        createCalendarDay(day, new Date(nextYear, nextMonth, day), true);
+    }
+}
+
+function createCalendarDay(day, date, isOtherMonth) {
+    const grid = document.getElementById('calendarGrid');
+    const today = new Date();
+    const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'calendar-day';
+    
+    if (isOtherMonth) {
+        dayDiv.classList.add('other-month');
     }
 
+    const workout = storage.workouts.find(w =>
+        new Date(w.date).toDateString() === date.toDateString()
+    );
+
+    if (workout) {
+        const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
+        if (customType) {
+            dayDiv.style.backgroundColor = customType.color + '33';
+            dayDiv.style.borderColor = customType.color;
+        } else {
+            dayDiv.classList.add(workout.type);
+        }
+    }
+
+    dayDiv.onclick = () => {
+        if (storage.activeCalendarDay) storage.activeCalendarDay.classList.remove('active');
+        dayDiv.classList.add('active');
+        storage.activeCalendarDay = dayDiv;
+        showWorkoutDetails(date, workout);
+    };
+
+    // Check if this is the previously selected date
+    if (selectedCalendarDate && date.toDateString() === selectedCalendarDate.toDateString()) {
+        dayDiv.click();
+    } else if (!selectedCalendarDate && date.toDateString() === today.toDateString()) {
+        dayDiv.classList.add('today');
+        dayDiv.click();
+    }
+
+    // Always mark today
+    if (date.toDateString() === today.toDateString()) {
+        dayDiv.classList.add('today');
+    }
+
+    dayDiv.style.cursor = 'pointer';
+    dayDiv.innerHTML = `
+        <div class="weekday">${weekdayNames[date.getDay()]}</div>
+        <div class="day-number">${day}</div>
+    `;
+
+    grid.appendChild(dayDiv);
 }
 
 function showWorkoutDetails(date, workout) {
@@ -1043,30 +1043,14 @@ function toggleExpand() {
     if (isDetailsExpanded) {
         section.classList.add('expanded');
         icon.textContent = '▼';
-        //         document.querySelector(".calendar").classList.add("flex");
-        //                                 document.querySelectorAll(".day-label").forEach(el => {
-        //     el.classList.add("flex");
-        // });
-
-
+        // Initialize to current week
+        storage.currentWeekOffset = 0;
+        renderWeekView();
     } else {
         section.classList.remove('expanded');
         icon.textContent = '▲';
-        //                 document.querySelector(".calendar").classList.remove("flex");
-        //                                document.querySelectorAll(".day-label").forEach(el => {
-        //     el.classList.remove("flex");
-        // });
-
+        renderCalendar();
     }
-
-    const grid = document.getElementById('calendarGrid');
-    grid.classList.toggle('one-line');
-
-    if (grid.classList.contains('one-line')) {
-        requestAnimationFrame(scrollToActiveDay);
-    }
-
-
 }
 
 function deleteWorkoutFromCalendar(workoutId) {
@@ -1091,15 +1075,21 @@ function deleteWorkoutFromCalendar(workoutId) {
     }
 }
 function changeMonth(delta) {
-    storage.currentMonth += delta;
-    if (storage.currentMonth > 11) {
-        storage.currentMonth = 0;
-        storage.currentYear++;
-    } else if (storage.currentMonth < 0) {
-        storage.currentMonth = 11;
-        storage.currentYear--;
+    if (isDetailsExpanded) {
+        // In week view mode
+        changeWeek(delta);
+    } else {
+        // In month view mode
+        storage.currentMonth += delta;
+        if (storage.currentMonth > 11) {
+            storage.currentMonth = 0;
+            storage.currentYear++;
+        } else if (storage.currentMonth < 0) {
+            storage.currentMonth = 11;
+            storage.currentYear--;
+        }
+        renderCalendar();
     }
-    renderCalendar();
 }
 
 function selectDateForWorkout(date) {
@@ -1521,6 +1511,101 @@ function renderStats() {
             debugClickCount = 0;
         }
     });
+}
+
+
+// ===== WEEK VIEW FUNCTIONS =====
+function renderWeekView() {
+    const grid = document.getElementById('calendarGrid');
+    const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    // Calculate the week to display
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + (storage.currentWeekOffset * 7));
+    
+    grid.innerHTML = '';
+    grid.classList.add('one-line');
+    
+    // Render 7 days (Sun - Sat)
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+        
+        const workout = storage.workouts.find(w =>
+            new Date(w.date).toDateString() === date.toDateString()
+        );
+        
+        if (workout) {
+            const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
+            if (customType) {
+                dayDiv.style.backgroundColor = customType.color + '33';
+                dayDiv.style.borderColor = customType.color;
+            } else {
+                dayDiv.classList.add(workout.type);
+            }
+        }
+        
+        dayDiv.onclick = () => {
+            if (storage.activeCalendarDay) storage.activeCalendarDay.classList.remove('active');
+            dayDiv.classList.add('active');
+            storage.activeCalendarDay = dayDiv;
+            showWorkoutDetails(date, workout);
+        };
+        
+        // Check if this is today
+        if (date.toDateString() === today.toDateString()) {
+            dayDiv.classList.add('today');
+        }
+        
+        // Check if this is the previously selected date
+        if (selectedCalendarDate && date.toDateString() === selectedCalendarDate.toDateString()) {
+            dayDiv.click();
+        } else if (!selectedCalendarDate && date.toDateString() === today.toDateString()) {
+            dayDiv.click();
+        }
+        
+        dayDiv.style.cursor = 'pointer';
+        dayDiv.innerHTML = `
+            <div class="weekday">${weekdayNames[date.getDay()]}</div>
+            <div class="day-number">${date.getDate()}</div>
+        `;
+        
+        grid.appendChild(dayDiv);
+    }
+    
+    // Update month display to show week range
+    updateWeekHeader(startOfWeek);
+}
+
+function updateWeekHeader(startOfWeek) {
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const startMonth = monthNames[startOfWeek.getMonth()];
+    const endMonth = monthNames[endOfWeek.getMonth()];
+    const startDay = startOfWeek.getDate();
+    const endDay = endOfWeek.getDate();
+    
+    let headerText;
+    if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
+        headerText = `${startMonth} ${startDay}-${endDay}, ${startOfWeek.getFullYear()}`;
+    } else {
+        headerText = `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${startOfWeek.getFullYear()}`;
+    }
+    
+    document.getElementById('calendarMonth').textContent = headerText;
+}
+
+function changeWeek(delta) {
+    storage.currentWeekOffset += delta;
+    renderWeekView();
 }
 
 

@@ -525,6 +525,7 @@ body {
 /* ===== NORMAL MODE ===== */
 .weekday {
     display: none;
+    text-align: center;
 }
 
 /* ===== ONE-LINER (CYCLING) MODE ===== */
@@ -549,13 +550,14 @@ body {
 /* Hide static header labels */
 .calendar.one-line .day-label {
     display: none;
+    align-items: center;
 }
 
 /* Each date becomes 2-row column */
 .calendar.one-line .calendar-day {
     display: grid;
     grid-template-rows: auto auto;
-    align-items: center;
+    text-align: center;
     /* background-color: red; */
 
 }
@@ -647,8 +649,20 @@ body {
     background: transparent;
 }
 
+.calendar-day.other-month {
+    opacity: 0.8;
+}
+
+.calendar-day.other-month .day-number {
+    color: #adb5bd;
+}
+
 .day-number {
+    display: flex;
     font-weight: 600;
+    /* text-align: center; */
+    justify-content: center;
+    align-items: center;
 }
 
 .calendar-day.today {
