@@ -68,8 +68,6 @@ const storage = {
 };
 // Default exercise templates
 const defaultTemplates = {
-    warmup: [],  // ADD
-    cooldown: [],  // ADD
     push: ['Bench Press', 'Overhead Press', 'Incline Dumbbell Press', 'Tricep Dips'],
     pull: ['Pull-ups', 'Barbell Row', 'Lat Pulldown', 'Bicep Curls'],
     legs: ['Squats', 'Deadlift', 'Leg Press', 'Leg Curls'],
@@ -99,19 +97,19 @@ function showScreen(screenName) {
 function startWorkout(type, date = null, templateData = null) {
     storage.isViewMode = false;
     storage.editingWorkoutId = null;
-    storage.isEditingWorkoutType = false;  // ADD THIS LINE
+    storage.isEditingWorkoutType = false;
 
     let exercises;
     if (templateData) {
         // Use custom template
         exercises = JSON.parse(JSON.stringify(templateData.exercises));
     } else {
-        // Check if it's a custom workout type
+        // Check if it's a custom workout type (including warmup/cooldown)
         const customType = storage.customWorkoutTypes.find(t => t.id === type);
         if (customType) {
             exercises = JSON.parse(JSON.stringify(customType.exercises));
-        } else {
-            // Use default template
+        } else if (defaultTemplates[type]) {
+            // Use default template ONLY if it exists
             exercises = defaultTemplates[type].map(name => ({
                 name: name,
                 sets: 3,
@@ -119,6 +117,9 @@ function startWorkout(type, date = null, templateData = null) {
                 weight: 0,
                 notes: ''
             }));
+        } else {
+            // No template found - start with empty exercises
+            exercises = [];
         }
     }
 
@@ -134,6 +135,10 @@ function startWorkout(type, date = null, templateData = null) {
     const customType = storage.customWorkoutTypes.find(t => t.id === type);
     if (customType) {
         displayName = customType.name;
+    } else if (type === 'warmup') {
+        displayName = 'Warm-up';
+    } else if (type === 'cooldown') {
+        displayName = 'Cool-down';
     } else {
         displayName = type.charAt(0).toUpperCase() + type.slice(1);
     }
@@ -153,7 +158,7 @@ function selectWorkoutType(type) {
 function showWorkoutTypePreview(type, templateData = null) {
     storage.isViewMode = true;
     storage.isEditingWorkoutType = true;
-    storage.selectedTemplate = templateData;  // ADD THIS LINE to track which template
+    storage.selectedTemplate = templateData;
 
     // Get exercises for this type
     let exercises;
@@ -164,8 +169,8 @@ function showWorkoutTypePreview(type, templateData = null) {
         if (customType) {
             // Custom workout types use their own exercises (can be empty)
             exercises = JSON.parse(JSON.stringify(customType.exercises));
-        } else {
-            // Default workout types use predefined templates
+        } else if (defaultTemplates[type]) {
+            // Default workout types use predefined templates ONLY if they exist
             exercises = defaultTemplates[type].map(name => ({
                 name: name,
                 sets: 3,
@@ -173,6 +178,9 @@ function showWorkoutTypePreview(type, templateData = null) {
                 weight: 0,
                 notes: ''
             }));
+        } else {
+            // No template - start empty (warmup/cooldown)
+            exercises = [];
         }
     }
 
@@ -181,28 +189,26 @@ function showWorkoutTypePreview(type, templateData = null) {
         exercises: exercises
     };
 
-    // Get display name - DECLARE customType AGAIN HERE
+    // Get display name
     let displayName;
-    const customType = storage.customWorkoutTypes.find(t => t.id === type);  // DECLARE IT AGAIN
+    const customType = storage.customWorkoutTypes.find(t => t.id === type);
     if (customType) {
         displayName = customType.name;
+    } else if (type === 'warmup') {
+        displayName = 'Warm-up';
+    } else if (type === 'cooldown') {
+        displayName = 'Cool-down';
     } else {
         displayName = type.charAt(0).toUpperCase() + type.slice(1);
     }
 
     document.getElementById('workoutTitle').textContent = displayName + ' Workout';
     document.getElementById('workoutDate').textContent = 'Preview';
-    // document.getElementById('viewModeIndicator').innerHTML = `
-    //     <div class="view-mode">
-    //         <div class="view-mode-label">📋 Workout Preview</div>
-    //     </div>
-    // `;
 
     renderExercises();
     renderPreviewActions();
     showScreen('workout');
 }
-
 function renderPreviewActions() {
     const container = document.getElementById('workoutActions');
     container.innerHTML = `
@@ -227,61 +233,79 @@ function showTemplateSelector(type) {
     const modal = document.getElementById('templateSelectorModal');
     const container = document.getElementById('templateList');
 
-    document.getElementById('templateSelectorTitle').textContent =
-        `Select ${type.charAt(0).toUpperCase() + type.slice(1)} Template`;
+    // Get display name
+    let displayName;
+    const customType = storage.customWorkoutTypes.find(t => t.id === type);
+    if (customType) {
+        displayName = customType.name;
+    } else if (type === 'warmup') {
+        displayName = 'Warm-up';
+    } else if (type === 'cooldown') {
+        displayName = 'Cool-down';
+    } else {
+        displayName = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+
+    document.getElementById('templateSelectorTitle').textContent = `Select ${displayName} Template`;
 
     container.innerHTML = '';
 
-    // Check if this is a custom workout type
-    const isCustomType = storage.customWorkoutTypes.find(t => t.id === type);
+    // Check if this is warmup or cooldown - special handling
+    const isWarmupOrCooldown = (type === 'warmup' || type === 'cooldown');
+    
+    if (!isWarmupOrCooldown) {
+        // For regular workout types, show default and previous
+        const isCustomType = storage.customWorkoutTypes.find(t => t.id === type);
+        const hasDefaultTemplate = defaultTemplates[type] !== undefined;
 
-    // Only add default template for built-in workout types (not custom)
-    if (!isCustomType) {
-        const defaultBtn = document.createElement('button');
-        defaultBtn.className = 'workout-btn ' + type;
-        defaultBtn.textContent = '✨ Default';
-        defaultBtn.onclick = () => {
-            closeTemplateSelector();
-            if (storage.isFromCalendar) {
-                startWorkout(type);
-                storage.isFromCalendar = false;
-            } else {
-                showWorkoutTypePreview(type, null);
-            }
-        };
-        container.appendChild(defaultBtn);
-    }
+        // Only add default template button if it exists in defaultTemplates
+        if (hasDefaultTemplate && !isCustomType) {
+            const defaultBtn = document.createElement('button');
+            defaultBtn.className = 'workout-btn ' + type;
+            defaultBtn.textContent = '✨ Default';
 
-    // Find and add previous workout of same type
-    const previousWorkouts = storage.workouts
-        .filter(w => w.type === type && w.exercises && w.exercises.length > 0)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (previousWorkouts.length > 0 && type !== 'warmup' && type !== 'cooldown') {
-        const lastWorkout = previousWorkouts[0];
-        const prevBtn = document.createElement('button');
-        prevBtn.className = 'workout-btn ' + type;
-        const workoutDate = new Date(lastWorkout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        prevBtn.textContent = `📋 Previous (${workoutDate})`;
-
-        prevBtn.onclick = () => {
-            closeTemplateSelector();
-            const previousTemplate = {
-                name: 'Previous',
-                exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
+            defaultBtn.onclick = () => {
+                closeTemplateSelector();
+                if (storage.isFromCalendar) {
+                    startWorkout(type, storage.selectedDate.toISOString(), null);
+                    storage.isFromCalendar = false;
+                } else {
+                    showWorkoutTypePreview(type, null);
+                }
             };
-            if (storage.isFromCalendar) {
-                startWorkout(type, null, previousTemplate);  // Go directly to edit
-                storage.isFromCalendar = false;  // Reset flag
-            } else {
-                showWorkoutTypePreview(type, previousTemplate);  // Go to preview
-            }
-        };
+            container.appendChild(defaultBtn);
+        }
 
-        container.appendChild(prevBtn);
+        // Find and add previous workout of same type (with actual exercises)
+        const previousWorkouts = storage.workouts
+            .filter(w => w.type === type && w.exercises && w.exercises.length > 0)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (previousWorkouts.length > 0) {
+            const lastWorkout = previousWorkouts[0];
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'workout-btn ' + type;
+            const workoutDate = new Date(lastWorkout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            prevBtn.textContent = `📋 Previous (${workoutDate})`;
+            prevBtn.onclick = () => {
+                closeTemplateSelector();
+                const previousTemplate = {
+                    name: 'Previous',
+                    exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
+                };
+                if (storage.isFromCalendar) {
+                    startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
+                    storage.isFromCalendar = false;
+                } else {
+                    showWorkoutTypePreview(type, previousTemplate);
+                }
+            };
+
+            container.appendChild(prevBtn);
+        }
     }
 
-    // Add custom templates
+    // Add custom templates (for ALL types including warmup/cooldown)
     const userTemplates = storage.templates[type] || [];
     userTemplates.forEach((template, idx) => {
         const btn = document.createElement('button');
@@ -296,14 +320,48 @@ function showTemplateSelector(type) {
         btn.onclick = () => {
             closeTemplateSelector();
             if (storage.isFromCalendar) {
-                startWorkout(type, null, template);  // Go directly to edit
-                storage.isFromCalendar = false;  // Reset flag
+                startWorkout(type, storage.selectedDate.toISOString(), template);
+                storage.isFromCalendar = false;
             } else {
-                showWorkoutTypePreview(type, template);  // Go to preview
+                showWorkoutTypePreview(type, template);
             }
         };
         container.appendChild(btn);
     });
+
+    // If no templates at all, show "Create New Template" button
+    if (container.children.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.style.cssText = 'padding: 20px; text-align: center; color: #6c757d;';
+        emptyMsg.textContent = 'No templates yet';
+        container.appendChild(emptyMsg);
+
+        const addBtn = document.createElement('button');
+        addBtn.className = 'workout-btn';
+        addBtn.style.cssText = 'border-color: #2d3436; color: #2d3436;';
+        addBtn.textContent = '➕ Create New Template';
+        addBtn.onclick = () => {
+            closeTemplateSelector();
+            if (storage.isFromCalendar) {
+                startWorkout(type, storage.selectedDate.toISOString(), null);
+                storage.isFromCalendar = false;
+            } else {
+                showWorkoutTypePreview(type, null);
+            }
+        };
+        container.appendChild(addBtn);
+    } else if (isWarmupOrCooldown) {
+        // For warmup/cooldown, always show "Create New Template" button at the top
+        const addBtn = document.createElement('button');
+        addBtn.className = 'workout-btn';
+        addBtn.style.cssText = 'border-color: #2d3436; color: #2d3436; grid-column: 1 / -1;';
+        addBtn.textContent = '➕ Create New Template';
+        addBtn.onclick = () => {
+            closeTemplateSelector();
+            showWorkoutTypePreview(type, null);
+        };
+        container.insertBefore(addBtn, container.firstChild);
+    }
 
     modal.classList.add('active');
 }
@@ -348,7 +406,7 @@ function markRest() {
 }
 
 function autoSave() {
-    if (!storage.currentWorkout || storage.isViewMode) return;
+    if (!storage.currentWorkout || storage.isViewMode || storage.isEditingWorkoutType) return;
 
     const existingIdx = storage.workouts.findIndex(w => w.id === storage.currentWorkout.id);
 
@@ -583,20 +641,34 @@ function renderWorkoutActions() {
                 <button class="delete-btn" onclick="deleteWorkout()">Delete</button>
             </div>
         `;
-    } else if (storage.isEditingWorkoutType) {  // ADD THIS CONDITION
-        container.innerHTML = `
-            <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
-            <div class="action-buttons">
-                <button class="save-template-btn" onclick="openSaveTemplate()">Save Template</button>
-                <button class="finish-btn" onclick="saveWorkoutTypeEdit()">Save</button>
-            </div>
-        `;
+    } else if (storage.isEditingWorkoutType) {
+        const isWarmupOrCooldown = (storage.currentWorkout.type === 'warmup' || storage.currentWorkout.type === 'cooldown');
+        const isEditingExistingTemplate = storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous';
+        
+        // For warmup/cooldown creating NEW template (no existing template selected)
+        if (isWarmupOrCooldown && !isEditingExistingTemplate) {
+            container.innerHTML = `
+                <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
+                <div class="action-buttons">
+                    <button class="finish-btn" onclick="openSaveTemplate()">Save as</button>
+                </div>
+            `;
+        } else {
+            // Editing existing template or regular workout type
+            container.innerHTML = `
+                <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
+                <div class="action-buttons">
+                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
+                    <button class="finish-btn" onclick="saveWorkoutTypeEdit()">Save</button>
+                </div>
+            `;
+        }
     } else {
         container.innerHTML = `
             <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
             <div class="action-buttons">
-                <button class="save-template-btn" onclick="openSaveTemplate()">Save Template</button>
-                <button class="finish-btn" onclick="finishWorkout()">Finish</button>
+                <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
+                <button class="finish-btn" onclick="finishWorkout()">Log</button>
             </div>
         `;
     }
@@ -604,8 +676,9 @@ function renderWorkoutActions() {
 
 function saveWorkoutTypeEdit() {
     const type = storage.currentWorkout.type;
+    const isWarmupOrCooldown = (type === 'warmup' || type === 'cooldown');
 
-    // If editing a user-saved template, update it
+    // If editing an existing template (not creating new one)
     if (storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous') {
         const templates = storage.templates;
         const categoryTemplates = templates[type] || [];
@@ -618,37 +691,22 @@ function saveWorkoutTypeEdit() {
             storage.saveTemplates();
             alert(`Template "${storage.selectedTemplate.name}" updated! 💾`);
         }
+    } else if (isWarmupOrCooldown) {
+        // For warmup/cooldown creating NEW template (selectedTemplate is null)
+        // User needs to use "Save as" button to give it a name first
+        alert('Please use "Save as" to create your first template! 💡');
     } else {
-        // If editing default or previous workout, just close without saving
+        // If editing default or previous workout for regular types
         alert('Changes not saved (Default/Previous templates cannot be updated) 💡');
     }
 
     storage.isEditingWorkoutType = false;
     storage.currentWorkout = null;
     storage.isViewMode = false;
-    storage.selectedTemplate = null;  // Clear the selected template
+    storage.selectedTemplate = null;
     showScreen('home');
 }
 
-function changeValue(exIdx, field, delta) {
-    const ex = storage.currentWorkout.exercises[exIdx];
-    if (field === 'sets') {
-        ex.sets = Math.max(1, ex.sets + delta);
-    } else if (field === 'reps') {
-        ex.reps = Math.max(1, ex.reps + delta);
-    } else {
-        ex.weight = Math.max(0, ex.weight + delta);
-    }
-    renderExercises();
-    autoSave();
-}
-
-function updateValue(exIdx, field, value) {
-    const ex = storage.currentWorkout.exercises[exIdx];
-    ex[field] = parseFloat(value) || 0;
-    renderExercises();
-    autoSave();
-}
 
 function deleteExercise(idx) {
     storage.currentWorkout.exercises.splice(idx, 1);
@@ -709,7 +767,18 @@ function addExercise() {
 function openSaveTemplate() {
     document.getElementById('saveTemplateModal').classList.add('active');
     document.getElementById('templateName').value = '';
-    document.getElementById('templateCategory').value = storage.currentWorkout.type;
+    
+    // Set the category dropdown
+    const categoryDropdown = document.getElementById('templateCategory');
+    
+    // Check if current type is warmup or cooldown
+    if (storage.currentWorkout.type === 'warmup' || storage.currentWorkout.type === 'cooldown') {
+        categoryDropdown.value = storage.currentWorkout.type;
+        categoryDropdown.disabled = true; // Lock it so user can't change
+    } else {
+        categoryDropdown.value = storage.currentWorkout.type;
+        categoryDropdown.disabled = false;
+    }
 
     // Populate custom workout types in the dropdown
     const customOptionsGroup = document.getElementById('customCategoryOptions');
@@ -725,7 +794,7 @@ function openSaveTemplate() {
     // If current workout is a custom type, select it
     const isCustomType = storage.customWorkoutTypes.find(t => t.id === storage.currentWorkout.type);
     if (isCustomType) {
-        document.getElementById('templateCategory').value = storage.currentWorkout.type;
+        categoryDropdown.value = storage.currentWorkout.type;
     }
 }
 
@@ -874,7 +943,7 @@ function renderCalendar() {
         const day = prevMonthDays - i;
         const prevMonth = storage.currentMonth === 0 ? 11 : storage.currentMonth - 1;
         const prevYear = storage.currentMonth === 0 ? storage.currentYear - 1 : storage.currentYear;
-        
+
         createCalendarDay(day, new Date(prevYear, prevMonth, day), true);
     }
 
@@ -888,11 +957,11 @@ function renderCalendar() {
     // ===== NEXT MONTH DAYS (grayed out) to fill the grid =====
     const totalCells = firstDay + daysInMonth;
     const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-    
+
     for (let day = 1; day <= remainingCells; day++) {
         const nextMonth = storage.currentMonth === 11 ? 0 : storage.currentMonth + 1;
         const nextYear = storage.currentMonth === 11 ? storage.currentYear + 1 : storage.currentYear;
-        
+
         createCalendarDay(day, new Date(nextYear, nextMonth, day), true);
     }
 }
@@ -901,10 +970,10 @@ function createCalendarDay(day, date, isOtherMonth) {
     const grid = document.getElementById('calendarGrid');
     const today = new Date();
     const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
+
     const dayDiv = document.createElement('div');
     dayDiv.className = 'calendar-day';
-    
+
     if (isOtherMonth) {
         dayDiv.classList.add('other-month');
     }
@@ -1209,12 +1278,8 @@ function startWorkoutForDate(type) {
         renderCalendar();
     } else {
         storage.selectedWorkoutType = type;
-        storage.isFromCalendar = true;  // ADD THIS FLAG
+        storage.isFromCalendar = true;
         showTemplateSelector(type);
-        const originalStartWorkout = startWorkout;
-        startWorkout = function (t, d, td) {
-            originalStartWorkout(t, storage.selectedDate.toISOString(), td);
-        };
     }
 }
 
@@ -1518,27 +1583,27 @@ function renderStats() {
 function renderWeekView() {
     const grid = document.getElementById('calendarGrid');
     const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
+
     // Calculate the week to display
     const today = new Date();
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - today.getDay() + (storage.currentWeekOffset * 7));
-    
+
     grid.innerHTML = '';
     grid.classList.add('one-line');
-    
+
     // Render 7 days (Sun - Sat)
     for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
-        
+
         const dayDiv = document.createElement('div');
         dayDiv.className = 'calendar-day';
-        
+
         const workout = storage.workouts.find(w =>
             new Date(w.date).toDateString() === date.toDateString()
         );
-        
+
         if (workout) {
             const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
             if (customType) {
@@ -1548,35 +1613,35 @@ function renderWeekView() {
                 dayDiv.classList.add(workout.type);
             }
         }
-        
+
         dayDiv.onclick = () => {
             if (storage.activeCalendarDay) storage.activeCalendarDay.classList.remove('active');
             dayDiv.classList.add('active');
             storage.activeCalendarDay = dayDiv;
             showWorkoutDetails(date, workout);
         };
-        
+
         // Check if this is today
         if (date.toDateString() === today.toDateString()) {
             dayDiv.classList.add('today');
         }
-        
+
         // Check if this is the previously selected date
         if (selectedCalendarDate && date.toDateString() === selectedCalendarDate.toDateString()) {
             dayDiv.click();
         } else if (!selectedCalendarDate && date.toDateString() === today.toDateString()) {
             dayDiv.click();
         }
-        
+
         dayDiv.style.cursor = 'pointer';
         dayDiv.innerHTML = `
             <div class="weekday">${weekdayNames[date.getDay()]}</div>
             <div class="day-number">${date.getDate()}</div>
         `;
-        
+
         grid.appendChild(dayDiv);
     }
-    
+
     // Update month display to show week range
     updateWeekHeader(startOfWeek);
 }
@@ -1584,22 +1649,22 @@ function renderWeekView() {
 function updateWeekHeader(startOfWeek) {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
-    
+
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+
     const startMonth = monthNames[startOfWeek.getMonth()];
     const endMonth = monthNames[endOfWeek.getMonth()];
     const startDay = startOfWeek.getDate();
     const endDay = endOfWeek.getDate();
-    
+
     let headerText;
     if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
         headerText = `${startMonth} ${startDay}-${endDay}, ${startOfWeek.getFullYear()}`;
     } else {
         headerText = `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${startOfWeek.getFullYear()}`;
     }
-    
+
     document.getElementById('calendarMonth').textContent = headerText;
 }
 
