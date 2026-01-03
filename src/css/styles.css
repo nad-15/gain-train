@@ -530,16 +530,14 @@ body {
 
 /* ===== ONE-LINER (CYCLING) MODE ===== */
 .calendar.one-line {
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(50px, 1fr);
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
 
-    overflow-x: auto;
-    scrollbar-width: none;
-    /* Firefox */
-    -ms-overflow-style: none;
-    /* IE / Edge */
+  overflow-x: auto;
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE / Edge */
 }
+
 
 
 .calendar.one-line::-webkit-scrollbar {
