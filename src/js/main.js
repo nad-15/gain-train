@@ -1621,16 +1621,16 @@ function renderHomeScreen() {
         // Add custom workout types
         customTypes.forEach((custom, idx) => {
             const btn = document.createElement('button');
-            btn.className = 'workout-btn';
+            btn.className = 'workout-card';
             btn.style.borderColor = custom.color;
             btn.style.color = custom.color;
             btn.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <span>${custom.name}</span>
-                    <button onclick="event.stopPropagation(); deleteCustomWorkoutType(${idx})" 
-                            style="background: #ff6b6b; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75em;">×</button>
-                </div>
+                <span class="material-symbols-outlined card-icon">fitness_center</span>
+                <span class="card-label">${custom.name}</span>
+                <button onclick="event.stopPropagation(); deleteCustomWorkoutType(${idx})" 
+                        style="position: absolute; top: 8px; right: 8px; background: #ff6b6b; color: white; border: none; padding: 4px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;">×</button>
             `;
+            btn.style.position = 'relative';
             btn.onclick = () => selectWorkoutType(custom.id);
             customContainer.appendChild(btn);
         });

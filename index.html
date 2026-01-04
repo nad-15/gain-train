@@ -28,53 +28,78 @@
 
         <div class="content">
             <!-- Home Screen -->
+            <!-- Home Screen -->
             <div id="home" class="screen">
 
-                <h2>Warm-up & Cool-down</h2>
-                <div class="workout-types">
-                    <button class="workout-btn" style="border-color: #ff9800; color: #ff9800;"
-                        onclick="selectWorkoutType('warmup')"><span class="material-symbols-outlined">
-                            directions_walk
-                        </span> Warm-up</button>
-                    <button class="workout-btn" style="border-color: #2196f3; color: #2196f3;"
-                        onclick="selectWorkoutType('cooldown')"><span class="material-symbols-outlined">
-                            self_improvement
-                        </span> Cool-down</button>
+                <div class="home-section">
+                    <div class="section-header">
+                        <span class="material-symbols-outlined">spa</span>
+                        <h3>Preparation</h3>
+                    </div>
+                    <div class="workout-grid">
+                        <button class="workout-card warmup" onclick="selectWorkoutType('warmup')">
+                            <span class="material-symbols-outlined card-icon">directions_walk</span>
+                            <span class="card-label">Warm-up</span>
+                        </button>
+                        <button class="workout-card cooldown" onclick="selectWorkoutType('cooldown')">
+                            <span class="material-symbols-outlined card-icon">self_improvement</span>
+                            <span class="card-label">Cool-down</span>
+                        </button>
+                    </div>
                 </div>
 
-                <h2>Select Workout Type</h2>
-                <div class="workout-types">
-                    <button class="workout-btn push" onclick="selectWorkoutType('push')"><span class="material-symbols-outlined">
-fitness_center
-</span>Push</button>
-                    <button class="workout-btn pull" onclick="selectWorkoutType('pull')"><span class="material-symbols-outlined">
-fitness_center
-</span>Pull</button>
-                    <button class="workout-btn legs" onclick="selectWorkoutType('legs')"><span class="material-symbols-outlined">
-fitness_center
-</span>Legs</button>
-                    <button class="workout-btn upper" onclick="selectWorkoutType('upper')"><span class="material-symbols-outlined">
-fitness_center
-</span>Upper Body</button>
-                    <button class="workout-btn lower" onclick="selectWorkoutType('lower')"><span class="material-symbols-outlined">
-fitness_center
-</span>Lower Body</button>
-                    <button class="workout-btn whole" onclick="selectWorkoutType('whole')"><span class="material-symbols-outlined">
-fitness_center
-</span>Whole Body</button>
-                    <button class="workout-btn rest" onclick="markRest()"><span class="material-symbols-outlined filled">
-airline_seat_flat_angled
-</span>Rest Day</button>
+                <div class="home-section">
+                    <div class="section-header">
+                        <span class="material-symbols-outlined">fitness_center</span>
+                        <h3>Training Programs</h3>
+                    </div>
+                    <div class="workout-grid">
+                        <button class="workout-card push" onclick="selectWorkoutType('push')">
+                            <span class="material-symbols-outlined card-icon">fitness_center</span>
+                            <span class="card-label">Push</span>
+                        </button>
+                        <button class="workout-card pull" onclick="selectWorkoutType('pull')">
+                            <span class="material-symbols-outlined card-icon">fitness_center</span>
+                            <span class="card-label">Pull</span>
+                        </button>
+                        <button class="workout-card legs" onclick="selectWorkoutType('legs')">
+                            <span class="material-symbols-outlined card-icon">fitness_center</span>
+                            <span class="card-label">Legs</span>
+                        </button>
+                        <button class="workout-card upper" onclick="selectWorkoutType('upper')">
+                            <span class="material-symbols-outlined card-icon">fitness_center</span>
+                            <span class="card-label">Upper</span>
+                        </button>
+                        <button class="workout-card lower" onclick="selectWorkoutType('lower')">
+                            <span class="material-symbols-outlined card-icon">fitness_center</span>
+                            <span class="card-label">Lower</span>
+                        </button>
+                        <button class="workout-card whole" onclick="selectWorkoutType('whole')">
+                            <span class="material-symbols-outlined card-icon">fitness_center</span>
+                            <span class="card-label">Full Body</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div id="customWorkoutsSection" style="display: none;">
-                    <h2 style="padding: 0 15px; margin-top: 10px; color: #6c757d; font-size: 1em;">Custom</h2>
-                    <div class="workout-types" id="customWorkoutTypesList"></div>
+                <div class="home-section" id="customWorkoutsSection" style="display: none;">
+                    <div class="section-header">
+                        <span class="material-symbols-outlined">tune</span>
+                        <h3>Custom Programs</h3>
+                    </div>
+                    <div class="workout-grid" id="customWorkoutTypesList"></div>
                 </div>
 
-                <button class="add-exercise-btn" onclick="openCreateCustomWorkout()" style="margin: 15px;">
-                    + Create Custom Workout Type
-                </button>
+                <div class="home-actions">
+                    <button class="action-btn primary" onclick="markRest()">
+                        <span class="material-symbols-outlined">hotel</span>
+                        <span>Rest Day</span>
+                    </button>
+                    <button class="action-btn secondary" onclick="openCreateCustomWorkout()">
+                        <span class="material-symbols-outlined">add_circle</span>
+                        <span>Create Custom</span>
+                    </button>
+                </div>
+
             </div>
 
             <!-- Workout Screen -->
@@ -105,11 +130,11 @@ airline_seat_flat_angled
                         <h2 id="calendarMonth"></h2>
                         <div class="month-nav">
                             <button id="prevBtn" onclick="changeMonth(-1)"><span class="material-symbols-outlined">
-arrow_left
-</span></button>
+                                    arrow_left
+                                </span></button>
                             <button id="nextBtn" onclick="changeMonth(1)"><span class="material-symbols-outlined">
-arrow_right
-</span></button>
+                                    arrow_right
+                                </span></button>
                         </div>
                     </div>
                     <div class="calendar" id="calendarGrid"></div>
@@ -122,8 +147,8 @@ arrow_right
                 <div class="workout-section-header" onclick="toggleExpand()">
                     <div class="expand-handle">
                         <span id="expandIcon" class="material-symbols-outlined">
-arrow_circle_up
-</span> <span id="selectedDateLabel"></span>
+                            arrow_circle_up
+                        </span> <span id="selectedDateLabel"></span>
                     </div>
                     <div class="delete-container"></div>
                 </div>
@@ -224,13 +249,13 @@ arrow_circle_up
     <div id="templateSelectorModal" class="modal">
         <div class="modal-content">
             <!-- <h2 id="templateSelectorTitle">Select Template</h2> -->
-             <div class="template-selector-header">
-    <h2 id="templateSelectorTitle">Select Template</h2>
+            <div class="template-selector-header">
+                <h2 id="templateSelectorTitle">Select Template</h2>
 
-    <button id="addTemplateBtn" class="icon-btn" title="Create new template">
-        <span class="material-symbols-outlined">add</span>
-    </button>
-</div>
+                <button id="addTemplateBtn" class="icon-btn" title="Create new template">
+                    <span class="material-symbols-outlined">add</span>
+                </button>
+            </div>
 
             <div id="templateList" class="workout-types" style="margin-top: 20px;"></div>
             <div class="modal-buttons">

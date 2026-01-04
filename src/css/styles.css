@@ -585,7 +585,7 @@ body {
 .calendar.one-line .calendar-day.empty {
     display: none;
 }
-
+/* 
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -600,7 +600,7 @@ body {
 
 .month-nav {
     display: flex;
-    /* gap: 8px; */
+
     justify-content: center;
     align-items: center;
     border-radius: 6px;
@@ -608,16 +608,67 @@ body {
 }
 
 .month-nav button {
-    /* padding: 6px 12px; */
-    /* background: #6c757d; */
+
     color: white;
     color: #6c757d;
     border: none;
-    /* border-radius: 6px; */
     cursor: pointer;
-    /* font-size: 0.9em; */
     padding-left: 5px;
     padding-right: 5px;
+} */
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 4px;
+}
+
+.calendar-header h2 {
+    color: #2d3436;
+    font-size: 1.2em;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.month-nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.month-nav button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: white;
+    color: #2d3436;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.month-nav button:hover {
+    background: #2d3436;
+    color: white;
+    transform: scale(1.05);
+}
+
+.month-nav button:active {
+    transform: scale(0.95);
+}
+
+.month-nav button .material-symbols-outlined {
+    font-size: 20px;
+    font-weight: 500;
 }
 
 .day-label {
@@ -984,4 +1035,154 @@ body {
     padding: 30px 15px;
     color: #6c757d;
     font-size: 0.9em;
+}
+
+/* ===== HOME SCREEN REDESIGN ===== */
+
+.home-section {
+    margin-bottom: 32px;
+    padding: 0 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.section-header .material-symbols-outlined {
+    font-size: 24px;
+    color: #6c757d;
+}
+
+.section-header h3 {
+    font-size: 1em;
+    font-weight: 600;
+    color: #2d3436;
+    margin: 0;
+}
+
+.workout-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.workout-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px 16px;
+    background: #ffffff;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 100px;
+}
+
+.workout-card:active {
+    transform: scale(0.97);
+}
+
+.workout-card .card-icon {
+    font-size: 32px;
+    transition: transform 0.2s ease;
+}
+
+.workout-card:hover .card-icon {
+    transform: scale(1.1);
+}
+
+.workout-card .card-label {
+    font-size: 0.9em;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Workout type colors */
+.workout-card.warmup {
+    border-color: #ff9800;
+    color: #ff9800;
+}
+
+.workout-card.cooldown {
+    border-color: #2196f3;
+    color: #2196f3;
+}
+
+.workout-card.push {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.workout-card.pull {
+    border-color: #099268;
+    color: #099268;
+}
+
+.workout-card.legs {
+    border-color: #d4a017;
+    color: #d4a017;
+}
+
+.workout-card.upper {
+    border-color: #4c6ef5;
+    color: #4c6ef5;
+}
+
+.workout-card.lower {
+    border-color: #e8590c;
+    color: #e8590c;
+}
+
+.workout-card.whole {
+    border-color: #845ef7;
+    color: #845ef7;
+}
+
+/* Home Actions */
+.home-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 20px;
+    margin-top: 24px;
+}
+
+.action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.action-btn.primary {
+    background: #40c463;
+    color: white;
+}
+
+.action-btn.secondary {
+    background: #2d3436;
+    color: white;
+}
+
+.action-btn:active {
+    transform: scale(0.97);
 }
