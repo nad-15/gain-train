@@ -848,6 +848,15 @@ let isDetailsExpanded = false;
 
 function toggleCalendarView() {
     storage.calendarTextMode = !storage.calendarTextMode;
+    
+    // Rotate the icon
+    const toggleBtn = document.querySelector('.view-toggle-btn .material-symbols-outlined');
+    if (storage.calendarTextMode) {
+        toggleBtn.style.transform = 'rotate(180deg)';
+    } else {
+        toggleBtn.style.transform = 'rotate(0deg)';
+    }
+    
     renderCalendar();
 }
 

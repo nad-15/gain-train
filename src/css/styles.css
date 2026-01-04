@@ -1355,6 +1355,7 @@ body {
 
 .view-toggle-btn .material-symbols-outlined {
     font-size: 20px;
+    transition: transform 0.3s ease;
 }
 
 /* Text Mode Calendar */
