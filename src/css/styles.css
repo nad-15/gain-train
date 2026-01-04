@@ -10,6 +10,18 @@ body {
     min-height: 100vh;
 }
 
+
+.material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 48;
+    font-size: 20px !important;
+    cursor: pointer;
+}
+
+
 .container {
     max-width: 100%;
     margin: 0 auto;
@@ -1185,4 +1197,43 @@ body {
 
 .action-btn:active {
     transform: scale(0.97);
+}
+
+.template-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.template-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+}
+
+.delete-template-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ff6b6b;
+    color: #fff;
+    border: none;
+
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+
+    cursor: pointer;
+}
+
+.delete-template-btn .material-symbols-outlined {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.delete-template-btn:hover {
+    background: #ff5252;
 }

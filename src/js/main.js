@@ -327,15 +327,19 @@ function showTemplateSelector(type) {
         const btn = document.createElement('button');
         btn.className = 'workout-btn ' + type;
         btn.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-                <span>💪 ${template.name}</span>
-                <button
-                    onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})"
-                    style="background:#ff6b6b;color:white;border:none;padding:5px 10px;border-radius:4px;font-size:.8em;">
-                    ×
-                </button>
-            </div>
-        `;
+                <div class="template-row">
+                    <span class="template-name">${template.name}</span>
+
+                    <button
+                        class="delete-template-btn"
+                        onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})"
+                        aria-label="Delete template"
+                    >
+                        <span class="material-symbols-outlined">close_small</span>
+                    </button>
+                </div>
+
+                `;
 
         btn.onclick = () => {
             closeTemplateSelector();
@@ -572,7 +576,7 @@ function renderWorkoutActions() {
     } else if (storage.isEditingWorkoutType) {
         const isWarmupOrCooldown = (storage.currentWorkout.type === 'warmup' || storage.currentWorkout.type === 'cooldown');
         const isEditingExistingTemplate = storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous';
-        
+
         // For warmup/cooldown creating NEW template (no existing template selected)
         if (isWarmupOrCooldown && !isEditingExistingTemplate) {
             container.innerHTML = `
@@ -695,10 +699,10 @@ function addExercise() {
 function openSaveTemplate() {
     document.getElementById('saveTemplateModal').classList.add('active');
     document.getElementById('templateName').value = '';
-    
+
     // Set the category dropdown
     const categoryDropdown = document.getElementById('templateCategory');
-    
+
     // Check if current type is warmup or cooldown
     if (storage.currentWorkout.type === 'warmup' || storage.currentWorkout.type === 'cooldown') {
         categoryDropdown.value = storage.currentWorkout.type;
@@ -1212,141 +1216,6 @@ function startWorkoutForDate(type) {
 }
 
 
-// function renderStats() {
-//     const container = document.getElementById('statsContainer');
-
-//     // Get current month/year
-//     const now = new Date();
-//     const currentMonth = now.getMonth();
-//     const currentYear = now.getFullYear();
-
-//     // Filter workouts for this month
-//     const thisMonthWorkouts = storage.workouts.filter(w => {
-//         const workoutDate = new Date(w.date);
-//         return workoutDate.getMonth() === currentMonth && 
-//                workoutDate.getFullYear() === currentYear;
-//     });
-
-//     // This month stats
-//     const monthWorkouts = thisMonthWorkouts.filter(w => w.type !== 'rest').length;
-//     const monthRestDays = thisMonthWorkouts.filter(w => w.type === 'rest').length;
-
-//     let monthVolume = 0;
-//     thisMonthWorkouts.forEach(w => {
-//         if (w.exercises) {
-//             w.exercises.forEach(ex => {
-//                 if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
-//                     monthVolume += ex.sets * ex.reps * parseFloat(ex.weight);
-//                 }
-//             });
-//         }
-//     });
-
-//     // Overall stats
-//     const totalWorkouts = storage.workouts.filter(w => w.type !== 'rest').length;
-//     const totalRestDays = storage.workouts.filter(w => w.type === 'rest').length;
-
-//     let totalVolume = 0;
-//     storage.workouts.forEach(w => {
-//         if (w.exercises) {
-//             w.exercises.forEach(ex => {
-//                 if (ex.weight !== 'BW' && !isNaN(ex.weight)) {
-//                     totalVolume += ex.sets * ex.reps * parseFloat(ex.weight);
-//                 }
-//             });
-//         }
-//     });
-
-//     // Build debug log
-//     let debugLog = '=== WORKOUTS ===\n';
-//     storage.workouts.filter(w => w.type !== 'rest').forEach(w => {
-//         debugLog += `${new Date(w.date).toDateString()} - ${w.type}\n`;
-//     });
-
-//     debugLog += '\n=== REST DAYS ===\n';
-//     storage.workouts.filter(w => w.type === 'rest').forEach(w => {
-//         debugLog += `${new Date(w.date).toDateString()}\n`;
-//     });
-
-//     // Check duplicates
-//     const dates = {};
-//     storage.workouts.forEach(w => {
-//         const dateStr = new Date(w.date).toDateString();
-//         dates[dateStr] = (dates[dateStr] || 0) + 1;
-//     });
-
-//     debugLog += '\n=== DUPLICATES ===\n';
-//     Object.entries(dates).forEach(([date, count]) => {
-//         if (count > 1) {
-//             debugLog += `⚠️ ${date}: ${count} entries\n`;
-//         }
-//     });
-
-//     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-//         'July', 'August', 'September', 'October', 'November', 'December'];
-
-//     container.innerHTML = `
-//         <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 5px;">
-//             <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📅 ${monthNames[currentMonth]} ${currentYear}</h3>
-//         </div>
-
-//         <div class="stat-card">
-//             <div class="stat-value">${monthWorkouts}</div>
-//             <div class="stat-label">Workouts</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${monthRestDays}</div>
-//             <div class="stat-label">Rest Days</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${Math.round(monthVolume)}</div>
-//             <div class="stat-label">Volume (kg)</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${thisMonthWorkouts.length}</div>
-//             <div class="stat-label">Days Tracked</div>
-//         </div>
-
-//         <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px; margin-bottom: 5px;">
-//             <h3 style="font-size: 0.95em; color: #495057; font-weight: 600;">📊 Overall</h3>
-//         </div>
-
-//         <div class="stat-card">
-//             <div class="stat-value">${totalWorkouts}</div>
-//             <div class="stat-label">Total Workouts</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${totalRestDays}</div>
-//             <div class="stat-label">Total Rest Days</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${Math.round(totalVolume)}</div>
-//             <div class="stat-label">Total Volume (kg)</div>
-//         </div>
-//         <div class="stat-card">
-//             <div class="stat-value">${storage.workouts.length}</div>
-//             <div class="stat-label">Total Days Tracked</div>
-//         </div>
-
-//         <button class="debug-log-btn debug-btns" style="grid-column: 1 / -1;" onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
-//             🔍 Show Debug Log
-//         </button>
-//         <button class="delete-duplicate-btn debug-btns" style="grid-column: 1 / -1;" onclick="cleanupDuplicates()">
-//             🧹 Clean Up Duplicates
-//         </button>
-//     `;
-
-//     let debugClickCount = 0;
-//     container.addEventListener('click', () => {
-//         debugClickCount++;
-//         if (debugClickCount === 7) {
-//             document.querySelectorAll('.debug-btns').forEach(btn => {
-//                 btn.style.display = 'inline-block';
-//             });
-//             debugClickCount = 0;
-//         }
-//     });
-// }
 // HELPER FUNCTIONS (keep these outside renderStats)
 function getWeekKey(date) {
     const d = new Date(date);
@@ -1628,7 +1497,9 @@ function renderHomeScreen() {
                 <span class="material-symbols-outlined card-icon">fitness_center</span>
                 <span class="card-label">${custom.name}</span>
                 <button onclick="event.stopPropagation(); deleteCustomWorkoutType(${idx})" 
-                        style="position: absolute; top: 8px; right: 8px; background: #ff6b6b; color: white; border: none; padding: 4px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;">×</button>
+                        style="position: absolute; top: 8px; right: 8px; background: #ff6b6b; color: white; border: none; padding: 4px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;">
+                        <span class="material-symbols-outlined">close_small</span>
+                        </button>
             `;
             btn.style.position = 'relative';
             btn.onclick = () => selectWorkoutType(custom.id);
