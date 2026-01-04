@@ -160,7 +160,7 @@ body {
 #home h2 {
     margin-left: 10px;
 }
-
+/* 
 .workout-types {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -219,9 +219,87 @@ body {
 }
 
 .workout-btn.rest {
-    /* border-color: #6c757d; */
-    /* color: #6c757d; */
     color: #9be9a8;
+    border-color: #40c463;
+} */
+ 
+.workout-types {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0;
+    margin-top: 16px;
+}
+
+.workout-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-align: left;
+    gap: 12px;
+}
+
+.workout-btn:hover {
+    background: #f8f9fa;
+    border-color: currentColor;
+    transform: translateX(4px);
+}
+
+.workout-btn:active {
+    transform: translateX(4px) scale(0.98);
+}
+
+.workout-btn-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.workout-btn-icon {
+    font-size: 22px !important;
+}
+
+.workout-btn.push {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.workout-btn.pull {
+    border-color: #099268;
+    color: #099268;
+}
+
+.workout-btn.legs {
+    border-color: #d4a017;
+    color: #d4a017;
+}
+
+.workout-btn.upper {
+    border-color: #4c6ef5;
+    color: #4c6ef5;
+}
+
+.workout-btn.lower {
+    border-color: #e8590c;
+    color: #e8590c;
+}
+
+.workout-btn.whole {
+    border-color: #845ef7;
+    color: #845ef7;
+}
+
+.workout-btn.rest {
+    color: #40c463;
     border-color: #40c463;
 }
 
@@ -1029,25 +1107,62 @@ body {
 .save-template-btn {
     background: #6c757d;
 }
-.template-selector-header {
+/* .template-selector-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
+} */
 
-.icon-btn {
+/* .icon-btn {
     background: none;
     border: none;
     cursor: pointer;
     padding: 6px;
+} */
+
+/* .icon-btn .material-symbols-outlined {
+    font-size: 28px;
+    color: #2d3436;
+} */
+
+.template-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
 }
 
-.icon-btn .material-symbols-outlined {
-    font-size: 28px;
+.template-selector-header h2 {
+    font-size: 1.1em;
+    font-weight: 600;
     color: #2d3436;
 }
 
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2d3436;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
 
+.icon-btn:hover {
+    background: #1a1f20;
+    transform: scale(1.05);
+}
+
+.icon-btn:active {
+    transform: scale(0.95);
+}
+
+.icon-btn .material-symbols-outlined {
+    font-size: 20px;
+    color: white;
+}
 
 .finish-btn {
     background: #2d3436;

@@ -73,7 +73,8 @@ const storage = {
     isEditingWorkoutType: false,
     isFromCalendar: false,
     selectedTemplate: null,
-    currentWeekOffset: 0
+    currentWeekOffset: 0,
+    isCreatingNewTemplate: false  // ADD THIS LINE
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -172,14 +173,17 @@ function showWorkoutTypePreview(type, templateData = null) {
     // Get exercises for this type
     let exercises;
     if (templateData) {
+        // Using a specific template (Previous or custom template)
         exercises = JSON.parse(JSON.stringify(templateData.exercises));
+    } else if (storage.isCreatingNewTemplate) {
+        // Creating NEW template from ➕ button - start EMPTY
+        exercises = [];
     } else {
+        // Not creating new, but no template provided - use defaults if available
         const customType = storage.customWorkoutTypes.find(t => t.id === type);
         if (customType) {
-            // Custom workout types use their own exercises (can be empty)
             exercises = JSON.parse(JSON.stringify(customType.exercises));
         } else if (defaultTemplates[type]) {
-            // Default workout types use predefined templates ONLY if they exist
             exercises = defaultTemplates[type].map(name => ({
                 name: name,
                 sets: 3,
@@ -188,7 +192,6 @@ function showWorkoutTypePreview(type, templateData = null) {
                 notes: ''
             }));
         } else {
-            // No template - start empty (warmup/cooldown)
             exercises = [];
         }
     }
@@ -258,7 +261,6 @@ function showTemplateSelector(type) {
     // Set title
     document.getElementById('templateSelectorTitle').textContent =
         `Select ${displayName} Template`;
-
     // Wire the HEADER ➕ button
     const addBtn = document.getElementById('addTemplateBtn');
     addBtn.onclick = () => {
@@ -267,6 +269,8 @@ function showTemplateSelector(type) {
             startWorkout(type, storage.selectedDate.toISOString(), null);
             storage.isFromCalendar = false;
         } else {
+            // Mark that we're creating a NEW template (not editing)
+            storage.isCreatingNewTemplate = true;  // ADD THIS LINE
             showWorkoutTypePreview(type, null);
         }
     };
@@ -282,10 +286,16 @@ function showTemplateSelector(type) {
         if (hasDefaultTemplate && !isCustomType) {
             const defaultBtn = document.createElement('button');
             defaultBtn.className = 'workout-btn ' + type;
-            defaultBtn.textContent = 'Default';
+            defaultBtn.innerHTML = `
+        <div class="workout-btn-content">
+            <span class="material-symbols-outlined workout-btn-icon">fitness_center</span>
+            <span>Default</span>
+        </div>
+    `;
 
             defaultBtn.onclick = () => {
                 closeTemplateSelector();
+                storage.isCreatingNewTemplate = false;
                 if (storage.isFromCalendar) {
                     startWorkout(type, storage.selectedDate.toISOString(), null);
                     storage.isFromCalendar = false;
@@ -301,67 +311,73 @@ function showTemplateSelector(type) {
             .filter(w => w.type === type && w.exercises?.length)
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        if (previousWorkouts.length) {
-            const lastWorkout = previousWorkouts[0];
-            const prevBtn = document.createElement('button');
-            prevBtn.className = 'workout-btn ' + type;
+if (previousWorkouts.length) {
+    const lastWorkout = previousWorkouts[0];
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'workout-btn ' + type;
 
-            const workoutDate = new Date(lastWorkout.date)
-                .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const workoutDate = new Date(lastWorkout.date)
+        .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-            prevBtn.textContent = `Previous (${workoutDate})`;
+    prevBtn.innerHTML = `
+        <div class="workout-btn-content">
+            <span class="material-symbols-outlined workout-btn-icon">history</span>
+            <span>Previous (${workoutDate})</span>
+        </div>
+    `;
 
-            prevBtn.onclick = () => {
-                closeTemplateSelector();
-                const previousTemplate = {
-                    name: 'Previous',
-                    exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
-                };
-
-                if (storage.isFromCalendar) {
-                    startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
-                    storage.isFromCalendar = false;
-                } else {
-                    showWorkoutTypePreview(type, previousTemplate);
-                }
-            };
-
-            container.appendChild(prevBtn);
-        }
-    }
-
-    // Custom templates (ALL types)
-    const userTemplates = storage.templates[type] || [];
-    userTemplates.forEach((template, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'workout-btn ' + type;
-        btn.innerHTML = `
-                <div class="template-row">
-                    <span class="template-name">${template.name}</span>
-
-                    <button
-                        class="delete-template-btn"
-                        onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})"
-                        aria-label="Delete template"
-                    >
-                        <span class="material-symbols-outlined">close_small</span>
-                    </button>
-                </div>
-
-                `;
-
-        btn.onclick = () => {
-            closeTemplateSelector();
-            if (storage.isFromCalendar) {
-                startWorkout(type, storage.selectedDate.toISOString(), template);
-                storage.isFromCalendar = false;
-            } else {
-                showWorkoutTypePreview(type, template);
-            }
+    prevBtn.onclick = () => {
+        closeTemplateSelector();
+        storage.isCreatingNewTemplate = false;
+        const previousTemplate = {
+            name: 'Previous',
+            exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
         };
 
-        container.appendChild(btn);
-    });
+        if (storage.isFromCalendar) {
+            startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
+            storage.isFromCalendar = false;
+        } else {
+            showWorkoutTypePreview(type, previousTemplate);
+        }
+    };
+
+    container.appendChild(prevBtn);
+}
+    }
+
+// Custom templates (ALL types)
+const userTemplates = storage.templates[type] || [];
+userTemplates.forEach((template, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'workout-btn ' + type;
+    btn.innerHTML = `
+        <div class="workout-btn-content">
+            <span class="material-symbols-outlined workout-btn-icon">bookmark</span>
+            <span class="template-name">${template.name}</span>
+        </div>
+        <button
+            class="delete-template-btn"
+            onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})"
+            aria-label="Delete template"
+        >
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    `;
+
+    btn.onclick = () => {
+        closeTemplateSelector();
+        storage.isCreatingNewTemplate = false;
+        if (storage.isFromCalendar) {
+            startWorkout(type, storage.selectedDate.toISOString(), template);
+            storage.isFromCalendar = false;
+        } else {
+            showWorkoutTypePreview(type, template);
+        }
+    };
+
+    container.appendChild(btn);
+});
 
     // Empty state (TEXT ONLY)
     if (container.children.length === 0) {
@@ -586,21 +602,30 @@ function renderWorkoutActions() {
         const isWarmupOrCooldown = (storage.currentWorkout.type === 'warmup' || storage.currentWorkout.type === 'cooldown');
         const isEditingExistingTemplate = storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous';
 
-        // For warmup/cooldown creating NEW template (no existing template selected)
-        if (isWarmupOrCooldown && !isEditingExistingTemplate) {
+        // CHANGE THIS SECTION:
+        if (storage.isCreatingNewTemplate) {
+            // Creating brand new template - only "Save as" button
             container.innerHTML = `
                 <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
                 <div class="action-buttons">
                     <button class="finish-btn" onclick="openSaveTemplate()">Save as</button>
                 </div>
             `;
-        } else {
-            // Editing existing template or regular workout type
+        } else if (isEditingExistingTemplate) {
+            // Editing existing template - both "Save" and "Save as"
             container.innerHTML = `
                 <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
                 <div class="action-buttons">
                     <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
                     <button class="finish-btn" onclick="saveWorkoutTypeEdit()">Save</button>
+                </div>
+            `;
+        } else {
+            // Editing default/previous - only "Save as"
+            container.innerHTML = `
+                <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
+                <div class="action-buttons">
+                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
                 </div>
             `;
         }
@@ -856,7 +881,7 @@ let isDetailsExpanded = false;
 
 function toggleCalendarView() {
     storage.calendarTextMode = !storage.calendarTextMode;
-    
+
     // Rotate the icon
     const toggleBtn = document.querySelector('.view-toggle-btn .material-symbols-outlined');
     if (storage.calendarTextMode) {
@@ -864,7 +889,7 @@ function toggleCalendarView() {
     } else {
         toggleBtn.style.transform = 'rotate(0deg)';
     }
-    
+
     renderCalendar();
 }
 
@@ -969,7 +994,7 @@ function createCalendarDay(day, date, isOtherMonth) {
                 'cooldown': 'Cool'
             };
             workoutLabel = labelMap[workout.type] || workout.type;
-            
+
             if (!storage.calendarTextMode) {
                 dayDiv.classList.add(workout.type);
             }
@@ -1378,7 +1403,7 @@ function renderStats() {
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
-// Render UI
+    // Render UI
     container.innerHTML = `
         <div class="stats-section current-month">
             <div class="stats-section-header">
