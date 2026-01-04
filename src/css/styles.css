@@ -1291,12 +1291,15 @@ body {
     justify-content: flex-start;
     padding: 4px 6px;
     background: white !important;
+    border: 1px solid #dee2e6;
+
+    
 }
 
 .calendar-day.text-mode .day-number {
     font-size: 0.7em;
-    color: #6c757d;
-    font-weight: 500;
+    color: #96a1aa;
+    font-weight: 700;
     margin-bottom: 2px;
 }
 
@@ -1305,9 +1308,10 @@ body {
     display: flex;
     font-size: 0.75em;
     font-weight: 700;
-    text-align: center !important;
     line-height: 1.2;
     word-break: break-word;
+    color: #6d757c;
+
 }
 
 
