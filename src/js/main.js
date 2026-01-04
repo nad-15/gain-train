@@ -273,7 +273,7 @@ function showTemplateSelector(type) {
         if (hasDefaultTemplate && !isCustomType) {
             const defaultBtn = document.createElement('button');
             defaultBtn.className = 'workout-btn ' + type;
-            defaultBtn.textContent = '✨ Default';
+            defaultBtn.textContent = 'Default';
 
             defaultBtn.onclick = () => {
                 closeTemplateSelector();
@@ -300,7 +300,7 @@ function showTemplateSelector(type) {
             const workoutDate = new Date(lastWorkout.date)
                 .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-            prevBtn.textContent = `📋 Previous (${workoutDate})`;
+            prevBtn.textContent = `Previous (${workoutDate})`;
 
             prevBtn.onclick = () => {
                 closeTemplateSelector();
@@ -1032,7 +1032,7 @@ bath_bedrock
             <div class="no-workout-message">
                 No workout logged for this day
             </div>
-            <div style="padding: 0 15px 15px;">
+            <div style=" display: flex; justify-content: center; padding: 0 15px 15px;">
                 <button class="add-exercise-btn" style="margin: 0;" onclick="selectDateForWorkout(new Date('${date.toISOString()}'))">Log Workout</button>
             </div>
         `;

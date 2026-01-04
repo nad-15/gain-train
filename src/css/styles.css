@@ -1186,7 +1186,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 14px 20px;
+    padding: 10px 6px;
     border: none;
     border-radius: 10px;
     font-size: 0.9em;
@@ -1202,11 +1202,13 @@ body {
 .action-btn.primary {
     background: #40c463;
     color: white;
+        font-size: 12px;
 }
 
 .action-btn.secondary {
     background: #2d3436;
     color: white;
+    font-size: 12px;
 }
 
 .action-btn:active {
