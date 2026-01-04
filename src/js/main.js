@@ -1353,69 +1353,72 @@ function renderStats() {
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
-
-    // Render UI
+// Render UI
     container.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 16px 0; border-bottom: 1px solid #e9ecef;">
-            <h3 style="font-size: 1em; font-weight: 600; color: #2d3436; margin: 0;">
-                ${monthNames[currentMonth]} ${currentYear}
-            </h3>
+        <div class="stats-section current-month">
+            <div class="stats-section-header">
+                <span class="material-symbols-outlined">calendar_month</span>
+                <h3>${monthNames[currentMonth]} ${currentYear}</h3>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="material-symbols-outlined stat-icon">fitness_center</span>
+                    <div class="stat-value">${monthWorkouts}</div>
+                    <div class="stat-label">Workouts</div>
+                </div>
+                <div class="stat-card">
+                    <span class="material-symbols-outlined stat-icon">hotel</span>
+                    <div class="stat-value">${monthRestDays}</div>
+                    <div class="stat-label">Rest Days</div>
+                </div>
+                <div class="stat-card">
+                    <span class="material-symbols-outlined stat-icon">trending_up</span>
+                    <div class="stat-value">${monthAvgPerWeek}</div>
+                    <div class="stat-label">Avg per Week</div>
+                </div>
+                <div class="stat-card">
+                    <span class="material-symbols-outlined stat-icon">calendar_today</span>
+                    <div class="stat-value">${thisMonthWorkouts.length}</div>
+                    <div class="stat-label">Days Tracked</div>
+                </div>
+            </div>
         </div>
 
-        <div class="stat-card">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">fitness_center</span>
-            <div class="stat-value">${monthWorkouts}</div>
-            <div class="stat-label">Workouts</div>
-        </div>
-        <div class="stat-card">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">hotel</span>
-            <div class="stat-value">${monthRestDays}</div>
-            <div class="stat-label">Rest Days</div>
-        </div>
-        <div class="stat-card">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">trending_up</span>
-            <div class="stat-value">${monthAvgPerWeek}</div>
-            <div class="stat-label">Avg per Week</div>
-        </div>
-        <div class="stat-card">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">calendar_today</span>
-            <div class="stat-value">${thisMonthWorkouts.length}</div>
-            <div class="stat-label">Days Tracked</div>
-        </div>
-
-        <div style="grid-column: 1 / -1; padding: 16px 0; border-bottom: 1px solid #e9ecef; margin-top: 16px;">
-            <h3 style="font-size: 1em; font-weight: 600; color: #2d3436; margin: 0;">
-                All Time
-            </h3>
-        </div>
-
-        <div class="stat-card">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">bar_chart</span>
-            <div class="stat-value">${totalWorkouts}</div>
-            <div class="stat-label">Total Workouts</div>
-        </div>
-        <div class="stat-card">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">bedtime</span>
-            <div class="stat-value">${totalRestDays}</div>
-            <div class="stat-label">Total Rest Days</div>
-        </div>
-        <div class="stat-card">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">analytics</span>
-            <div class="stat-value">${avgWorkoutsPerWeek}</div>
-            <div class="stat-label">Avg per Week</div>
-        </div>
-        <div class="stat-card">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">event_available</span>
-            <div class="stat-value">${storage.workouts.length}</div>
-            <div class="stat-label">Days Tracked</div>
+        <div class="stats-section all-time">
+            <div class="stats-section-header">
+                <span class="material-symbols-outlined">insights</span>
+                <h3>All Time</h3>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="material-symbols-outlined stat-icon">bar_chart</span>
+                    <div class="stat-value">${totalWorkouts}</div>
+                    <div class="stat-label">Total Workouts</div>
+                </div>
+                <div class="stat-card">
+                    <span class="material-symbols-outlined stat-icon">bedtime</span>
+                    <div class="stat-value">${totalRestDays}</div>
+                    <div class="stat-label">Total Rest Days</div>
+                </div>
+                <div class="stat-card">
+                    <span class="material-symbols-outlined stat-icon">analytics</span>
+                    <div class="stat-value">${avgWorkoutsPerWeek}</div>
+                    <div class="stat-label">Avg per Week</div>
+                </div>
+                <div class="stat-card">
+                    <span class="material-symbols-outlined stat-icon">event_available</span>
+                    <div class="stat-value">${storage.workouts.length}</div>
+                    <div class="stat-label">Days Tracked</div>
+                </div>
+            </div>
         </div>
 
-        <button class="debug-log-btn debug-btns" style="grid-column: 1 / -1; display:none;"
+        <button class="debug-log-btn debug-btns" style="display:none;"
             onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
             <span class="material-symbols-outlined" style="font-size: 18px;">bug_report</span>
             Show Debug Log
         </button>
-        <button class="delete-duplicate-btn debug-btns" style="grid-column: 1 / -1; display:none;"
+        <button class="delete-duplicate-btn debug-btns" style="display:none;"
             onclick="cleanupDuplicates()">
             <span class="material-symbols-outlined" style="font-size: 18px;">cleaning_services</span>
             Clean Up Duplicates
