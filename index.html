@@ -223,7 +223,15 @@ arrow_circle_up
     <!-- Template Selector Modal -->
     <div id="templateSelectorModal" class="modal">
         <div class="modal-content">
-            <h2 id="templateSelectorTitle">Select Template</h2>
+            <!-- <h2 id="templateSelectorTitle">Select Template</h2> -->
+             <div class="template-selector-header">
+    <h2 id="templateSelectorTitle">Select Template</h2>
+
+    <button id="addTemplateBtn" class="icon-btn" title="Create new template">
+        <span class="material-symbols-outlined">add</span>
+    </button>
+</div>
+
             <div id="templateList" class="workout-types" style="margin-top: 20px;"></div>
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeTemplateSelector()">Cancel</button>

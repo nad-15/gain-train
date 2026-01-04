@@ -892,6 +892,25 @@ body {
 .save-template-btn {
     background: #6c757d;
 }
+.template-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+}
+
+.icon-btn .material-symbols-outlined {
+    font-size: 28px;
+    color: #2d3436;
+}
+
+
 
 .finish-btn {
     background: #2d3436;

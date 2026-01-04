@@ -246,19 +246,30 @@ function showTemplateSelector(type) {
         displayName = type.charAt(0).toUpperCase() + type.slice(1);
     }
 
-    document.getElementById('templateSelectorTitle').textContent = `Select ${displayName} Template`;
+    // Set title
+    document.getElementById('templateSelectorTitle').textContent =
+        `Select ${displayName} Template`;
+
+    // Wire the HEADER ➕ button
+    const addBtn = document.getElementById('addTemplateBtn');
+    addBtn.onclick = () => {
+        closeTemplateSelector();
+        if (storage.isFromCalendar) {
+            startWorkout(type, storage.selectedDate.toISOString(), null);
+            storage.isFromCalendar = false;
+        } else {
+            showWorkoutTypePreview(type, null);
+        }
+    };
 
     container.innerHTML = '';
 
-    // Check if this is warmup or cooldown - special handling
     const isWarmupOrCooldown = (type === 'warmup' || type === 'cooldown');
-    
+
     if (!isWarmupOrCooldown) {
-        // For regular workout types, show default and previous
         const isCustomType = storage.customWorkoutTypes.find(t => t.id === type);
         const hasDefaultTemplate = defaultTemplates[type] !== undefined;
 
-        // Only add default template button if it exists in defaultTemplates
         if (hasDefaultTemplate && !isCustomType) {
             const defaultBtn = document.createElement('button');
             defaultBtn.className = 'workout-btn ' + type;
@@ -273,26 +284,31 @@ function showTemplateSelector(type) {
                     showWorkoutTypePreview(type, null);
                 }
             };
+
             container.appendChild(defaultBtn);
         }
 
-        // Find and add previous workout of same type (with actual exercises)
         const previousWorkouts = storage.workouts
-            .filter(w => w.type === type && w.exercises && w.exercises.length > 0)
+            .filter(w => w.type === type && w.exercises?.length)
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        if (previousWorkouts.length > 0) {
+        if (previousWorkouts.length) {
             const lastWorkout = previousWorkouts[0];
             const prevBtn = document.createElement('button');
             prevBtn.className = 'workout-btn ' + type;
-            const workoutDate = new Date(lastWorkout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+            const workoutDate = new Date(lastWorkout.date)
+                .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
             prevBtn.textContent = `📋 Previous (${workoutDate})`;
+
             prevBtn.onclick = () => {
                 closeTemplateSelector();
                 const previousTemplate = {
                     name: 'Previous',
                     exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
                 };
+
                 if (storage.isFromCalendar) {
                     startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
                     storage.isFromCalendar = false;
@@ -305,18 +321,22 @@ function showTemplateSelector(type) {
         }
     }
 
-    // Add custom templates (for ALL types including warmup/cooldown)
+    // Custom templates (ALL types)
     const userTemplates = storage.templates[type] || [];
     userTemplates.forEach((template, idx) => {
         const btn = document.createElement('button');
         btn.className = 'workout-btn ' + type;
         btn.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <span>💪 ${template.name}</span>
-            <button onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})" 
-                    style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">×</button>
-        </div>
-    `;
+            <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+                <span>💪 ${template.name}</span>
+                <button
+                    onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})"
+                    style="background:#ff6b6b;color:white;border:none;padding:5px 10px;border-radius:4px;font-size:.8em;">
+                    ×
+                </button>
+            </div>
+        `;
+
         btn.onclick = () => {
             closeTemplateSelector();
             if (storage.isFromCalendar) {
@@ -326,45 +346,22 @@ function showTemplateSelector(type) {
                 showWorkoutTypePreview(type, template);
             }
         };
+
         container.appendChild(btn);
     });
 
-    // If no templates at all, show "Create New Template" button
+    // Empty state (TEXT ONLY)
     if (container.children.length === 0) {
         const emptyMsg = document.createElement('div');
-        emptyMsg.style.cssText = 'padding: 20px; text-align: center; color: #6c757d;';
+        emptyMsg.style.cssText =
+            'padding:20px;text-align:center;color:#6c757d;';
         emptyMsg.textContent = 'No templates yet';
         container.appendChild(emptyMsg);
-
-        const addBtn = document.createElement('button');
-        addBtn.className = 'workout-btn';
-        addBtn.style.cssText = 'border-color: #2d3436; color: #2d3436;';
-        addBtn.textContent = '➕ Create New Template';
-        addBtn.onclick = () => {
-            closeTemplateSelector();
-            if (storage.isFromCalendar) {
-                startWorkout(type, storage.selectedDate.toISOString(), null);
-                storage.isFromCalendar = false;
-            } else {
-                showWorkoutTypePreview(type, null);
-            }
-        };
-        container.appendChild(addBtn);
-    } else if (isWarmupOrCooldown) {
-        // For warmup/cooldown, always show "Create New Template" button at the top
-        const addBtn = document.createElement('button');
-        addBtn.className = 'workout-btn';
-        addBtn.style.cssText = 'border-color: #2d3436; color: #2d3436; grid-column: 1 / -1;';
-        addBtn.textContent = '➕ Create New Template';
-        addBtn.onclick = () => {
-            closeTemplateSelector();
-            showWorkoutTypePreview(type, null);
-        };
-        container.insertBefore(addBtn, container.firstChild);
     }
 
     modal.classList.add('active');
 }
+
 
 function closeTemplateSelector() {
     document.getElementById('templateSelectorModal').classList.remove('active');
