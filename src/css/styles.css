@@ -1371,6 +1371,11 @@ body {
     
 }
 
+.calendar-day.text-mode.today .day-number {
+color: black;
+font-size: 1em;
+}
+
 .calendar-day.text-mode .day-number {
     font-size: 0.7em;
     color: #96a1aa;
