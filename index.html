@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <title>Workout Tracker</title>
 
 </head>
@@ -21,9 +21,15 @@
         </div>
 
         <div class="nav">
-            <button class="nav-btn" onclick="showScreen('home')">Home</button>
-            <button class="nav-btn active" onclick="showScreen('calendar')">Calendar</button>
-            <button class="nav-btn" onclick="showScreen('stats')">Stats</button>
+            <button class="nav-btn" onclick="showScreen('home')"><span class="material-symbols-outlined">
+                    home
+                </span>Home</button>
+            <button class="nav-btn active" onclick="showScreen('calendar')"><span class="material-symbols-outlined">
+                    calendar_add_on
+                </span>Calendar</button>
+            <button class="nav-btn" onclick="showScreen('stats')"><span class="material-symbols-outlined">
+                    query_stats
+                </span>Stats</button>
         </div>
 
         <div class="content">
@@ -130,7 +136,7 @@
                         <h2 id="calendarMonth"></h2>
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <button class="view-toggle-btn" onclick="toggleCalendarView()" title="Toggle view">
-                                <span class="material-symbols-outlined">flip</span>
+                                <span class="material-symbols-outlined">flip_camera_android</span>
                             </button>
                             <div class="month-nav">
                                 <button id="prevBtn" onclick="changeMonth(-1)">
@@ -151,22 +157,67 @@
 
                 <div class="workout-section-header" onclick="toggleExpand()">
                     <div class="expand-handle">
-                        <span id="expandIcon" class="material-symbols-outlined">
-                            arrow_circle_up
-                        </span> <span id="selectedDateLabel"></span>
+                        <span id="selectedDateLabel"></span>
                     </div>
-                    <div class="delete-container"></div>
+
+                    <div class="workout-details-tools">
+                        <button class="detail-tool-btn" onclick="toggleExpand()">
+                            <span id="expandIcon" class="material-symbols-outlined">
+                                more_up
+                            </span>
+                        </button>
+                        <button class="detail-tool-btn" id="deleteWorkoutBtn">
+                            <!-- This will be populated by JavaScript -->
+                        </button>
+                    </div>
+
                 </div>
 
-                <div id="workoutDetailsContent" style="padding: 15px;"></div>
+                <div id="workoutDetailsContent"></div>
             </div>
-
 
             <!-- Stats Screen -->
             <div id="stats" class="screen">
                 <h2 style="margin-left:  10px;">Your Progress</h2>
+
+
+                <!-- Weekly Graph -->
+                <!-- <div style="padding: 15px; margin-top: 20px;">
+                    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 20px;">
+                        <div
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid rgba(0, 0, 0, 0.06);">
+                            <span class="material-symbols-outlined"
+                                style="font-size: 24px; color: #2d3436;">show_chart</span>
+                            <h3 style="margin: 0; font-size: 1.1em; font-weight: 700; color: #2d3436;">Weekly Progress
+                            </h3>
+                        </div>
+                        <canvas id="weeklyChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div> -->
+
+                <!-- Weekly Graph -->
+                <div style="padding: 15px; padding-bottom: 0;">
+                    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 20px;">
+                        <div
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid rgba(0, 0, 0, 0.06);">
+                            <span class="material-symbols-outlined"
+                                style="font-size: 24px; color: #2d3436;">show_chart</span>
+                            <h3 style="margin: 0; font-size: 1.1em; font-weight: 700; color: #2d3436;">Weekly Progress
+                            </h3>
+                        </div>
+                        <div style="overflow-x: auto; overflow-y: hidden;">
+                            <div id="chartWrapper" style="min-width: 100%;">
+                                <canvas id="weeklyChart" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
                 <div class="stats" id="statsContainer"></div>
             </div>
+
+
         </div>
     </div>
 

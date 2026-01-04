@@ -311,47 +311,47 @@ function showTemplateSelector(type) {
             .filter(w => w.type === type && w.exercises?.length)
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-if (previousWorkouts.length) {
-    const lastWorkout = previousWorkouts[0];
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'workout-btn ' + type;
+        if (previousWorkouts.length) {
+            const lastWorkout = previousWorkouts[0];
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'workout-btn ' + type;
 
-    const workoutDate = new Date(lastWorkout.date)
-        .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const workoutDate = new Date(lastWorkout.date)
+                .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    prevBtn.innerHTML = `
+            prevBtn.innerHTML = `
         <div class="workout-btn-content">
             <span class="material-symbols-outlined workout-btn-icon">history</span>
             <span>Previous (${workoutDate})</span>
         </div>
     `;
 
-    prevBtn.onclick = () => {
-        closeTemplateSelector();
-        storage.isCreatingNewTemplate = false;
-        const previousTemplate = {
-            name: 'Previous',
-            exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
-        };
+            prevBtn.onclick = () => {
+                closeTemplateSelector();
+                storage.isCreatingNewTemplate = false;
+                const previousTemplate = {
+                    name: 'Previous',
+                    exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
+                };
 
-        if (storage.isFromCalendar) {
-            startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
-            storage.isFromCalendar = false;
-        } else {
-            showWorkoutTypePreview(type, previousTemplate);
+                if (storage.isFromCalendar) {
+                    startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
+                    storage.isFromCalendar = false;
+                } else {
+                    showWorkoutTypePreview(type, previousTemplate);
+                }
+            };
+
+            container.appendChild(prevBtn);
         }
-    };
-
-    container.appendChild(prevBtn);
-}
     }
 
-// Custom templates (ALL types)
-const userTemplates = storage.templates[type] || [];
-userTemplates.forEach((template, idx) => {
-    const btn = document.createElement('button');
-    btn.className = 'workout-btn ' + type;
-    btn.innerHTML = `
+    // Custom templates (ALL types)
+    const userTemplates = storage.templates[type] || [];
+    userTemplates.forEach((template, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'workout-btn ' + type;
+        btn.innerHTML = `
         <div class="workout-btn-content">
             <span class="material-symbols-outlined workout-btn-icon">bookmark</span>
             <span class="template-name">${template.name}</span>
@@ -365,19 +365,19 @@ userTemplates.forEach((template, idx) => {
         </button>
     `;
 
-    btn.onclick = () => {
-        closeTemplateSelector();
-        storage.isCreatingNewTemplate = false;
-        if (storage.isFromCalendar) {
-            startWorkout(type, storage.selectedDate.toISOString(), template);
-            storage.isFromCalendar = false;
-        } else {
-            showWorkoutTypePreview(type, template);
-        }
-    };
+        btn.onclick = () => {
+            closeTemplateSelector();
+            storage.isCreatingNewTemplate = false;
+            if (storage.isFromCalendar) {
+                startWorkout(type, storage.selectedDate.toISOString(), template);
+                storage.isFromCalendar = false;
+            } else {
+                showWorkoutTypePreview(type, template);
+            }
+        };
 
-    container.appendChild(btn);
-});
+        container.appendChild(btn);
+    });
 
     // Empty state (TEXT ONLY)
     if (container.children.length === 0) {
@@ -1070,20 +1070,22 @@ function showWorkoutDetails(date, workout) {
     // Format date
     const dateStr = date.toLocaleDateString('en-US', {
         month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+        day: 'numeric'
+        // ,
+        // year: 'numeric'
     });
-
-    const deleteContainer = document.querySelector(".delete-container");
-    deleteContainer.innerHTML = `${workout ? `
-    <button
-    class="delete-btn"
-    style="margin-left: auto; background: none; border: none; cursor: pointer;"
-    onclick="event.stopPropagation(); deleteWorkoutFromCalendar('${workout.id}')">
-    <span class="material-icons" style="font-size: 20px; color: #4e4b4bff;">delete</span>
-    </button>
-    ` : ''}
-    `;
+    const deleteBtn = document.getElementById("deleteWorkoutBtn");
+    if (workout) {
+        deleteBtn.innerHTML = `<span class="material-symbols-outlined">delete</span>`;
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteWorkoutFromCalendar(workout.id);
+        };
+        deleteBtn.style.display = 'flex';
+    } else {
+        deleteBtn.innerHTML = '';
+        deleteBtn.style.display = 'none';
+    }
     dateLabel.innerHTML = `
   <span>${dateStr}</span>
 `;
@@ -1143,13 +1145,13 @@ function toggleExpand() {
 
     if (isDetailsExpanded) {
         section.classList.add('expanded');
-        icon.textContent = 'arrow_circle_down';
+        icon.textContent = 'more_down';
         // Initialize to current week
         storage.currentWeekOffset = 0;
         renderWeekView();
     } else {
         section.classList.remove('expanded');
-        icon.textContent = 'arrow_circle_up';
+        icon.textContent = 'more_up';
         renderCalendar();
     }
 }
@@ -1486,6 +1488,9 @@ function renderStats() {
             debugClickCount = 0;
         }
     });
+
+    // Render the weekly chart
+    setTimeout(() => renderWeeklyChart(), 100);  // ADD THIS LINE
 }
 
 
@@ -1774,5 +1779,323 @@ function scrollToActiveDay() {
     grid.scrollTo({
         left: scrollLeft,
         behavior: 'smooth'
+    });
+}
+
+// Weekly Chart
+let weeklyChart = null;
+
+// function renderWeeklyChart() {
+//     const canvas = document.getElementById('weeklyChart');
+//     if (!canvas) return;
+
+//     // Get all workouts sorted by date
+//     const sortedWorkouts = storage.workouts
+//         .filter(w => w.type !== 'rest')
+//         .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+//     // if (sortedWorkouts.length === 0) {
+//     //     // No data to display
+//     //     const ctx = canvas.getContext('2d');
+//     //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+//     //     ctx.font = '14px Segoe UI';
+//     //     ctx.fillStyle = '#6c757d';
+//     //     ctx.textAlign = 'center';
+//     //     ctx.fillText('No workout data yet', canvas.width / 2, canvas.height / 2);
+//     //     return;
+//     // }
+
+//     if (sortedWorkouts.length === 0) {
+//     // No data to display
+//     canvas.style.display = 'block';
+//     canvas.style.height = '200px';
+//     const ctx = canvas.getContext('2d');
+//     ctx.clearRect(0, 0, canvas.width, canvas.height);
+//     ctx.font = '14px Segoe UI';
+//     ctx.fillStyle = '#6c757d';
+//     ctx.textAlign = 'center';
+//     ctx.fillText('No workout data yet', canvas.width / 2, 100);
+//     return;
+// }
+
+//     // Get first and last workout dates
+//     const firstDate = new Date(sortedWorkouts[0].date);
+//     const lastDate = new Date(sortedWorkouts[sortedWorkouts.length - 1].date);
+
+//     // Calculate start of first week (Sunday)
+//     const startDate = new Date(firstDate);
+//     startDate.setDate(startDate.getDate() - startDate.getDay());
+//     startDate.setHours(0, 0, 0, 0);
+
+//     // Calculate end of last week (Saturday)
+//     const endDate = new Date(lastDate);
+//     endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+//     endDate.setHours(23, 59, 59, 999);
+
+//     // Generate week labels and count workouts per week
+//     const weeks = [];
+//     const workoutCounts = [];
+//     let currentWeekStart = new Date(startDate);
+
+//     while (currentWeekStart <= endDate) {
+//         const currentWeekEnd = new Date(currentWeekStart);
+//         currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
+
+//         // Format week label (e.g., "Jan 6-12")
+//         const startMonth = currentWeekStart.toLocaleDateString('en-US', { month: 'short' });
+//         const startDay = currentWeekStart.getDate();
+//         const endDay = currentWeekEnd.getDate();
+//         const label = `${startMonth} ${startDay}-${endDay}`;
+
+//         weeks.push(label);
+
+//         // Count workouts in this week
+//         const weekWorkouts = sortedWorkouts.filter(w => {
+//             const workoutDate = new Date(w.date);
+//             return workoutDate >= currentWeekStart && workoutDate <= currentWeekEnd;
+//         });
+
+//         workoutCounts.push(weekWorkouts.length);
+
+//         // Move to next week
+//         currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+//     }
+
+//     // Destroy existing chart if it exists
+//     if (weeklyChart) {
+//         weeklyChart.destroy();
+//     }
+
+//     // Create the chart
+//     const ctx = canvas.getContext('2d');
+//     weeklyChart = new Chart(ctx, {
+//         type: 'line',
+//         data: {
+//             labels: weeks,
+//             datasets: [{
+//                 label: 'Workouts per Week',
+//                 data: workoutCounts,
+//                 borderColor: '#2d3436',
+//                 backgroundColor: 'rgba(45, 52, 54, 0.1)',
+//                 tension: 0.3,
+//                 fill: true,
+//                 pointBackgroundColor: '#2d3436',
+//                 pointBorderColor: '#fff',
+//                 pointBorderWidth: 2,
+//                 pointRadius: 4,
+//                 pointHoverRadius: 6
+//             }]
+//         },
+//         options: {
+//             responsive: true,
+//             // maintainAspectRatio: true,
+//                         maintainAspectRatio: false,
+//             plugins: {
+//                 legend: {
+//                     display: false
+//                 },
+//                 tooltip: {
+//                     backgroundColor: 'rgba(45, 52, 54, 0.9)',
+//                     padding: 12,
+//                     titleFont: {
+//                         size: 13,
+//                         weight: 'bold'
+//                     },
+//                     bodyFont: {
+//                         size: 12
+//                     },
+//                     callbacks: {
+//                         label: function (context) {
+//                             return `Workouts: ${context.parsed.y}`;
+//                         }
+//                     }
+//                 }
+//             },
+//             scales: {
+//                 y: {
+//                     beginAtZero: true,
+//                     max: 7,
+//                     ticks: {
+//                         stepSize: 1,
+//                         font: {
+//                             size: 11
+//                         },
+//                         color: '#6c757d'
+//                     },
+//                     grid: {
+//                         color: 'rgba(0, 0, 0, 0.05)'
+//                     }
+//                 },
+//                 x: {
+//                     ticks: {
+//                         font: {
+//                             size: 10
+//                         },
+//                         color: '#6c757d',
+//                         maxRotation: 45,
+//                         minRotation: 45
+//                     },
+//                     grid: {
+//                         display: false
+//                     }
+//                 }
+//             }
+//         }
+//     });
+// }
+
+function renderWeeklyChart() {
+    const canvas = document.getElementById('weeklyChart');
+    if (!canvas) return;
+
+    // Get all workouts sorted by date
+    const sortedWorkouts = storage.workouts
+        .filter(w => w.type !== 'rest')
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (sortedWorkouts.length === 0) {
+        // No data to display
+        canvas.style.display = 'block';
+        canvas.style.height = '200px';
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Segoe UI';
+        ctx.fillStyle = '#6c757d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No workout data yet', canvas.width / 2, 100);
+        return;
+    }
+
+    // Get first and last workout dates
+    const firstDate = new Date(sortedWorkouts[0].date);
+    const lastDate = new Date(sortedWorkouts[sortedWorkouts.length - 1].date);
+
+    // Calculate start of first week (Sunday)
+    const startDate = new Date(firstDate);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
+    startDate.setHours(0, 0, 0, 0);
+
+    // Calculate end of last week (Saturday)
+    const endDate = new Date(lastDate);
+    endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+    endDate.setHours(23, 59, 59, 999);
+
+    // Generate week labels and count workouts per week
+    const weeks = [];
+    const workoutCounts = [];
+    let currentWeekStart = new Date(startDate);
+
+    while (currentWeekStart <= endDate) {
+        const currentWeekEnd = new Date(currentWeekStart);
+        currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
+
+        // Format week label (e.g., "Jan 6-12")
+        const startMonth = currentWeekStart.toLocaleDateString('en-US', { month: 'short' });
+        const startDay = currentWeekStart.getDate();
+        const endDay = currentWeekEnd.getDate();
+        const label = `${startMonth} ${startDay}-${endDay}`;
+
+        weeks.push(label);
+
+        // Count workouts in this week
+        const weekWorkouts = sortedWorkouts.filter(w => {
+            const workoutDate = new Date(w.date);
+            return workoutDate >= currentWeekStart && workoutDate <= currentWeekEnd;
+        });
+
+        workoutCounts.push(weekWorkouts.length);
+
+        // Move to next week
+        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+    }
+
+    // Destroy existing chart if it exists
+    if (weeklyChart) {
+        weeklyChart.destroy();
+    }
+
+    // Set dynamic width based on number of weeks
+        const wrapper = document.getElementById('chartWrapper');
+    // const minWidth = weeks.length * 60; // 60px per week
+    // Only expand if more than 12 weeks, otherwise fit to container
+const minWidth = weeks.length > 12 ? weeks.length * 60 : wrapper.parentElement.offsetWidth;
+
+
+    wrapper.style.width = Math.max(minWidth, wrapper.parentElement.offsetWidth) + 'px';
+
+    // Create the chart
+    const ctx = canvas.getContext('2d');
+    weeklyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: weeks,
+            datasets: [{
+                label: 'Workouts per Week',
+                data: workoutCounts,
+                borderColor: '#2d3436',
+                backgroundColor: 'rgba(45, 52, 54, 0.1)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#2d3436',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(45, 52, 54, 0.9)',
+                    padding: 12,
+                    titleFont: {
+                        size: 13,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 12
+                    },
+                    callbacks: {
+                        label: function (context) {
+                            return `Workouts: ${context.parsed.y}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 7,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        color: '#6c757d',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
     });
 }
