@@ -1356,59 +1356,69 @@ function renderStats() {
 
     // Render UI
     container.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px;">
-            <h3 style="font-size: 0.95em; font-weight: 600;">
-                📅 ${monthNames[currentMonth]} ${currentYear}
+        <div style="grid-column: 1 / -1; padding: 16px 0; border-bottom: 1px solid #e9ecef;">
+            <h3 style="font-size: 1em; font-weight: 600; color: #2d3436; margin: 0;">
+                ${monthNames[currentMonth]} ${currentYear}
             </h3>
         </div>
 
         <div class="stat-card">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">fitness_center</span>
             <div class="stat-value">${monthWorkouts}</div>
             <div class="stat-label">Workouts</div>
         </div>
         <div class="stat-card">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">hotel</span>
             <div class="stat-value">${monthRestDays}</div>
             <div class="stat-label">Rest Days</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">${monthAvgPerWeek} / 7d</div>
-            <div class="stat-label">Avg Workouts</div>
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">trending_up</span>
+            <div class="stat-value">${monthAvgPerWeek}</div>
+            <div class="stat-label">Avg per Week</div>
         </div>
         <div class="stat-card">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">calendar_today</span>
             <div class="stat-value">${thisMonthWorkouts.length}</div>
             <div class="stat-label">Days Tracked</div>
         </div>
 
-        <div style="grid-column: 1 / -1; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; margin-top: 10px;">
-            <h3 style="font-size: 0.95em; font-weight: 600;">
-                📊 Overall
+        <div style="grid-column: 1 / -1; padding: 16px 0; border-bottom: 1px solid #e9ecef; margin-top: 16px;">
+            <h3 style="font-size: 1em; font-weight: 600; color: #2d3436; margin: 0;">
+                All Time
             </h3>
         </div>
 
         <div class="stat-card">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">bar_chart</span>
             <div class="stat-value">${totalWorkouts}</div>
             <div class="stat-label">Total Workouts</div>
         </div>
         <div class="stat-card">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">bedtime</span>
             <div class="stat-value">${totalRestDays}</div>
             <div class="stat-label">Total Rest Days</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value">${avgWorkoutsPerWeek} / 7d</div>
-            <div class="stat-label">Avg Workouts</div>
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">analytics</span>
+            <div class="stat-value">${avgWorkoutsPerWeek}</div>
+            <div class="stat-label">Avg per Week</div>
         </div>
         <div class="stat-card">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d; margin-bottom: 8px;">event_available</span>
             <div class="stat-value">${storage.workouts.length}</div>
-            <div class="stat-label">Total Days Tracked</div>
+            <div class="stat-label">Days Tracked</div>
         </div>
 
         <button class="debug-log-btn debug-btns" style="grid-column: 1 / -1; display:none;"
             onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
-            🔍 Show Debug Log
+            <span class="material-symbols-outlined" style="font-size: 18px;">bug_report</span>
+            Show Debug Log
         </button>
         <button class="delete-duplicate-btn debug-btns" style="grid-column: 1 / -1; display:none;"
             onclick="cleanupDuplicates()">
-            🧹 Clean Up Duplicates
+            <span class="material-symbols-outlined" style="font-size: 18px;">cleaning_services</span>
+            Clean Up Duplicates
         </button>
     `;
 

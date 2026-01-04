@@ -823,18 +823,26 @@ body {
 
 .debug-btns {
     display: none;
-
     width: calc(100% - 30px);
     margin: 15px;
     padding: 12px;
-    background: #2d3436;
-    color: white;
-    border: none;
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
     border-radius: 8px;
-    font-size: 1em;
+    font-size: 0.9em;
     font-weight: 600;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
 
+.debug-btns:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
 }
 
 .color-option {
@@ -877,7 +885,6 @@ body {
     cursor: pointer;
     font-size: 0.85em;
 }
-
 .stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -885,24 +892,35 @@ body {
     padding: 15px;
 }
 
-
 .stat-card {
-    background: #2d3436;
-    color: white;
-    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    padding: 20px 16px;
     border-radius: 8px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-color: #dee2e6;
 }
 
 .stat-value {
     font-size: 2em;
-    font-weight: bold;
-    margin-bottom: 8px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #2d3436;
+    line-height: 1;
 }
 
 .stat-label {
-    font-size: 0.85em;
-    opacity: 0.9;
+    font-size: 0.8em;
+    color: #6c757d;
+    font-weight: 500;
 }
 
 .back-btn {
