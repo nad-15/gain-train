@@ -2015,10 +2015,10 @@ function renderWeeklyChart() {
     }
 
     // Set dynamic width based on number of weeks
-        const wrapper = document.getElementById('chartWrapper');
+    const wrapper = document.getElementById('chartWrapper');
     // const minWidth = weeks.length * 60; // 60px per week
     // Only expand if more than 12 weeks, otherwise fit to container
-const minWidth = weeks.length > 12 ? weeks.length * 60 : wrapper.parentElement.offsetWidth;
+    const minWidth = weeks.length > 12 ? weeks.length * 60 : wrapper.parentElement.offsetWidth;
 
 
     wrapper.style.width = Math.max(minWidth, wrapper.parentElement.offsetWidth) + 'px';
@@ -2069,19 +2069,23 @@ const minWidth = weeks.length > 12 ? weeks.length * 60 : wrapper.parentElement.o
             },
             scales: {
                 y: {
-                    beginAtZero: true,
-                    max: 7,
-                    ticks: {
-                        stepSize: 1,
-                        font: {
-                            size: 11
-                        },
-                        color: '#6c757d'
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                },
+    min: 0,
+    max: 7,
+    ticks: {
+        stepSize: 1,
+        autoSkip: false,
+        callback: function(value) {
+            return value;
+        },
+        font: {
+            size: 11
+        },
+        color: '#6c757d'
+    },
+    grid: {
+        color: 'rgba(0, 0, 0, 0.05)'
+    }
+},
                 x: {
                     ticks: {
                         font: {
