@@ -128,13 +128,18 @@
                 <div class="calendar-section">
                     <div class="calendar-header">
                         <h2 id="calendarMonth"></h2>
-                        <div class="month-nav">
-                            <button id="prevBtn" onclick="changeMonth(-1)"><span class="material-symbols-outlined">
-                                    arrow_left
-                                </span></button>
-                            <button id="nextBtn" onclick="changeMonth(1)"><span class="material-symbols-outlined">
-                                    arrow_right
-                                </span></button>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button class="view-toggle-btn" onclick="toggleCalendarView()" title="Toggle view">
+                                <span class="material-symbols-outlined">view_compact</span>
+                            </button>
+                            <div class="month-nav">
+                                <button id="prevBtn" onclick="changeMonth(-1)">
+                                    <span class="material-symbols-outlined">arrow_left</span>
+                                </button>
+                                <button id="nextBtn" onclick="changeMonth(1)">
+                                    <span class="material-symbols-outlined">arrow_right</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="calendar" id="calendarGrid"></div>
@@ -250,7 +255,7 @@
         <div class="modal-content">
             <!-- <h2 id="templateSelectorTitle">Select Template</h2> -->
             <div class="template-selector-header">
-                <h2  style="margin: 0;" id="templateSelectorTitle">Select Template</h2>
+                <h2 style="margin: 0;" id="templateSelectorTitle">Select Template</h2>
 
                 <button id="addTemplateBtn" class="icon-btn" title="Create new template">
                     <span class="material-symbols-outlined">add</span>

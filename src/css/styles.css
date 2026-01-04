@@ -1254,3 +1254,76 @@ body {
     background: #ff5252;
 }
 
+
+/* View Toggle Button */
+.view-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: white;
+    color: #2d3436;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+    background: #f8f9fa;
+    border-color: #2d3436;
+}
+
+.view-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+.view-toggle-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+/* Text Mode Calendar */
+.calendar-day.text-mode {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 4px 6px;
+    background: white !important;
+}
+
+.calendar-day.text-mode .day-number {
+    font-size: 0.7em;
+    color: #6c757d;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.calendar-day.text-mode .workout-label {
+    align-self: center;  /* centers this child horizontally */
+    display: flex;
+    font-size: 0.75em;
+    font-weight: 700;
+    text-align: center !important;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+
+.calendar-day.text-mode.push .workout-label { color: #ff6b6b; }
+.calendar-day.text-mode.pull .workout-label { color: #099268; }
+.calendar-day.text-mode.legs .workout-label { color: #d4a017; }
+.calendar-day.text-mode.upper .workout-label { color: #4c6ef5; }
+.calendar-day.text-mode.lower .workout-label { color: #e8590c; }
+.calendar-day.text-mode.whole .workout-label { color: #845ef7; }
+.calendar-day.text-mode.rest .workout-label { color: #40c463; }
+
+.calendar-day.text-mode.today {
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.calendar-day.text-mode.other-month .workout-label {
+    opacity: 0.5;
+}

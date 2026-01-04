@@ -64,7 +64,8 @@ const storage = {
     isEditingWorkoutType: false,
     isFromCalendar: false,
     selectedTemplate: null,
-    currentWeekOffset: 0  // ADD THIS for week navigation
+    currentWeekOffset: 0,
+    calendarTextMode: false  // ADD THIS LINE
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -845,6 +846,11 @@ function viewWorkout(workoutId) {
 let selectedCalendarDate = null;
 let isDetailsExpanded = false;
 
+function toggleCalendarView() {
+    storage.calendarTextMode = !storage.calendarTextMode;
+    renderCalendar();
+}
+
 function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -914,12 +920,41 @@ function createCalendarDay(day, date, isOtherMonth) {
         new Date(w.date).toDateString() === date.toDateString()
     );
 
+    // Get workout label
+    let workoutLabel = '';
     if (workout) {
         const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
         if (customType) {
-            dayDiv.style.backgroundColor = customType.color + '33';
-            dayDiv.style.borderColor = customType.color;
+            workoutLabel = customType.name;
+            if (!storage.calendarTextMode) {
+                dayDiv.style.backgroundColor = customType.color + '33';
+                dayDiv.style.borderColor = customType.color;
+            }
         } else {
+            // Map workout types to short labels
+            const labelMap = {
+                'push': 'Push',
+                'pull': 'Pull',
+                'legs': 'Legs',
+                'upper': 'UB',
+                'lower': 'LB',
+                'whole': 'FB',
+                'rest': 'Rest',
+                'warmup': 'Warm',
+                'cooldown': 'Cool'
+            };
+            workoutLabel = labelMap[workout.type] || workout.type;
+            
+            if (!storage.calendarTextMode) {
+                dayDiv.classList.add(workout.type);
+            }
+        }
+    }
+
+    // Add text mode class if enabled
+    if (storage.calendarTextMode) {
+        dayDiv.classList.add('text-mode');
+        if (workout) {
             dayDiv.classList.add(workout.type);
         }
     }
@@ -945,10 +980,22 @@ function createCalendarDay(day, date, isOtherMonth) {
     }
 
     dayDiv.style.cursor = 'pointer';
-    dayDiv.innerHTML = `
-        <div class="weekday">${weekdayNames[date.getDay()]}</div>
-        <div class="day-number">${day}</div>
-    `;
+
+    // Render based on mode
+    if (storage.calendarTextMode) {
+        // Text mode: small number top-left, workout label below
+        dayDiv.innerHTML = `
+            <div class="weekday">${weekdayNames[date.getDay()]}</div>
+            <div class="day-number">${day}</div>
+            ${workoutLabel ? `<div class="workout-label">${workoutLabel}</div>` : ''}
+        `;
+    } else {
+        // Normal mode: centered number
+        dayDiv.innerHTML = `
+            <div class="weekday">${weekdayNames[date.getDay()]}</div>
+            <div class="day-number">${day}</div>
+        `;
+    }
 
     grid.appendChild(dayDiv);
 }
