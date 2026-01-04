@@ -40,6 +40,15 @@ const storage = {
         localStorage.setItem('customWorkoutTypes', JSON.stringify(value));
     },
 
+    get calendarTextMode() {
+        const saved = localStorage.getItem('calendarTextMode');
+        return saved === 'true';
+    },
+
+    set calendarTextMode(value) {
+        localStorage.setItem('calendarTextMode', value);
+    },
+
     saveWorkouts() {
         localStorage.setItem('workouts', JSON.stringify(this._workouts));
     },
@@ -64,8 +73,7 @@ const storage = {
     isEditingWorkoutType: false,
     isFromCalendar: false,
     selectedTemplate: null,
-    currentWeekOffset: 0,
-    calendarTextMode: false  // ADD THIS LINE
+    currentWeekOffset: 0
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -861,6 +869,14 @@ function toggleCalendarView() {
 }
 
 function renderCalendar() {
+
+    // Initialize icon rotation based on saved state
+    const toggleBtn = document.querySelector('.view-toggle-btn .material-symbols-outlined');
+    if (toggleBtn) {
+        toggleBtn.style.transform = storage.calendarTextMode ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+
     const grid = document.getElementById('calendarGrid');
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'];
