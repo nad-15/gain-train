@@ -1000,7 +1000,10 @@ function showWorkoutDetails(date, workout) {
         if (workout.type === 'rest') {
             detailsContent.innerHTML = `
                 <div class="no-workout-message">
-                    Rest Day 💤
+                    <span class="material-symbols-outlined rest-day-icon">
+bath_bedrock
+</span>    <div class="rest-day-text">Rest Day</div>
+                
                 </div>
 
             `;

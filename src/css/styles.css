@@ -1049,6 +1049,20 @@ body {
     font-size: 0.9em;
 }
 
+.rest-day-text {
+    margin-top: 8px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+        color: #146121;
+    font-size: 24px;
+}
+
+.material-symbols-outlined.rest-day-icon {
+    font-size: 100px !important;
+    color: #146121;
+    margin-bottom: 12px;
+}
+
 /* ===== HOME SCREEN REDESIGN ===== */
 
 .home-section {
@@ -1237,3 +1251,4 @@ body {
 .delete-template-btn:hover {
     background: #ff5252;
 }
+
