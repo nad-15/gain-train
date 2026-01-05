@@ -2096,11 +2096,11 @@ function renderWeeklyChart() {
             datasets: [{
                 label: 'Workouts per Week',
                 data: workoutCounts,
-                borderColor: '#2d3436',
-                backgroundColor: 'rgba(45, 52, 54, 0.1)',
+                borderColor: '#2da44e',
+                backgroundColor: 'rgba(64, 196, 99, 0.2)',
                 tension: 0.3,
                 fill: true,
-                pointBackgroundColor: '#2d3436',
+                pointBackgroundColor: '#2da44e',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 pointRadius: 4,
@@ -2341,32 +2341,32 @@ function renderMonthLabels() {
 
     monthsContainer.innerHTML = '';
 
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
     // Calculate weeks in year
     const yearStart = new Date(currentHeatmapYear, 0, 1);
     const firstSunday = new Date(yearStart);
     firstSunday.setDate(yearStart.getDate() - yearStart.getDay());
-    
+
     const yearEnd = new Date(currentHeatmapYear, 11, 31);
     const lastSaturday = new Date(yearEnd);
     lastSaturday.setDate(yearEnd.getDate() + (6 - yearEnd.getDay()));
-    
+
     let currentWeek = new Date(firstSunday);
     let lastMonth = -1;
-    
+
     while (currentWeek <= lastSaturday) {
         const month = currentWeek.getMonth();
         const label = document.createElement('div');
         label.className = 'heatmap-month-label';
-        
+
         // Only show month label when month changes
         if (month !== lastMonth && currentWeek.getFullYear() === currentHeatmapYear) {
             label.textContent = monthNames[month];
             lastMonth = month;
         }
-        
+
         monthsContainer.appendChild(label);
         currentWeek.setDate(currentWeek.getDate() + 7);
     }
