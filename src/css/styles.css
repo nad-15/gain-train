@@ -985,12 +985,12 @@ body {
 
 .calendar-day.pull {
     background: linear-gradient(135deg, 
-        rgba(9, 146, 104, 0.2) 0%, 
-        rgba(9, 146, 104, 0.08) 100%);
-    border: 2px solid rgba(9, 146, 104, 0.3);
+        rgba(76, 110, 245, 0.2) 0%, 
+        rgba(76, 110, 245, 0.08) 100%);
+    border: 2px solid rgba(76, 110, 245, 0.3);
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5),
-                0 2px 8px rgba(9, 146, 104, 0.15);
-    color: #099268;
+                0 2px 8px rgba(76, 110, 245, 0.15);
+    color: #4c6ef5;
     font-weight: 700;
 }
 
@@ -1007,12 +1007,12 @@ body {
 
 .calendar-day.upper {
     background: linear-gradient(135deg, 
-        rgba(76, 110, 245, 0.2) 0%, 
-        rgba(76, 110, 245, 0.08) 100%);
-    border: 2px solid rgba(76, 110, 245, 0.3);
+        rgba(0, 137, 123, 0.2) 0%, 
+        rgba(0, 137, 123, 0.08) 100%);
+    border: 2px solid rgba(0, 137, 123, 0.3);
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5),
-                0 2px 8px rgba(76, 110, 245, 0.15);
-    color: #4c6ef5;
+                0 2px 8px rgba(0, 137, 123, 0.15);
+    color: #00897b;
     font-weight: 700;
 }
 
@@ -1047,9 +1047,9 @@ body {
                 0 3px 12px rgba(64, 196, 99, 0.35);
     color: #2da44e;
     font-weight: 700;
-    position: relative;
+    /* position: relative; */
 }
-
+/* 
 .calendar-day.rest:not(.text-mode)::after {
     content: 'relax';
     font-family: 'Material Symbols Outlined';
@@ -1059,8 +1059,33 @@ body {
     right: 2px;
     opacity: 0.6;
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+} */
+
+
+.calendar-day.push:not(.text-mode)::after,
+.calendar-day.pull:not(.text-mode)::after,
+.calendar-day.legs:not(.text-mode)::after,
+.calendar-day.upper:not(.text-mode)::after,
+.calendar-day.lower:not(.text-mode)::after,
+.calendar-day.whole:not(.text-mode)::after {
+    content: 'run_circle';
+    font-family: 'Material Symbols Outlined';
+    position: absolute;
+    font-size: 0.9em;
+    bottom: 2px;
+    right: 2px;
+    opacity: 0.6;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
+.calendar-day.push,
+.calendar-day.pull,
+.calendar-day.legs,
+.calendar-day.upper,
+.calendar-day.lower,
+.calendar-day.whole {
+    position: relative;
+}
 
 .exercise-name-input {
     flex: 1;
@@ -1544,9 +1569,9 @@ body {
 
 .workout-card.pull {
     background: linear-gradient(135deg, 
-        rgba(9, 146, 104, 0.15) 0%, 
-        rgba(9, 146, 104, 0.05) 100%);
-    color: #099268;
+        rgba(76, 110, 245, 0.15) 0%, 
+        rgba(76, 110, 245, 0.05) 100%);
+    color: #4c6ef5;
 }
 
 .workout-card.legs {
@@ -1558,9 +1583,9 @@ body {
 
 .workout-card.upper {
     background: linear-gradient(135deg, 
-        rgba(76, 110, 245, 0.15) 0%, 
-        rgba(76, 110, 245, 0.05) 100%);
-    color: #4c6ef5;
+        rgba(0, 137, 123, 0.15) 0%, 
+        rgba(0, 137, 123, 0.05) 100%);
+    color: #00897b;
 }
 
 .workout-card.lower {
@@ -1742,17 +1767,13 @@ body {
     color: #ff6b6b;
 }
 
-.calendar-day.text-mode.pull .workout-label {
-    color: #099268;
-}
+.calendar-day.text-mode.pull .workout-label { color: #4c6ef5; }
 
 .calendar-day.text-mode.legs .workout-label {
     color: #d4a017;
 }
 
-.calendar-day.text-mode.upper .workout-label {
-    color: #4c6ef5;
-}
+.calendar-day.text-mode.upper .workout-label { color: #00897b; }
 
 .calendar-day.text-mode.lower .workout-label {
     color: #e8590c;
