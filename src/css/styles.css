@@ -1193,7 +1193,7 @@ body {
 
     /* Remove horizontal gap */
     column-gap: 0;
-    row-gap: 6px; /* optional for small row breathing */
+    /* row-gap: 6px;  */
 
     margin: 12px;
     padding: 12px 10px;
@@ -1223,6 +1223,13 @@ body {
     background: rgba(64, 196, 99, 0.2);
     /* border-radius: 6px; */
 }
+
+.stats-compare > div {
+    padding: 6px 8px; /* vertical + horizontal padding per cell */
+    display: flex;
+    align-items: center;
+}
+
 
 
 
