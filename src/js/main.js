@@ -225,7 +225,7 @@ function renderPreviewActions() {
     const container = document.getElementById('workoutActions');
     container.innerHTML = `
         <div class="action-buttons">
-            <button class="save-template-btn" onclick="editFromPreview()">Edit & Start Workout</button>
+            <button class="save-template-btn" onclick="editFromPreview()">Edit Workout</button>
         </div>
     `;
 }
