@@ -1092,7 +1092,8 @@ body {
 .calendar-day.legs.text-mode,
 .calendar-day.upper.text-mode,
 .calendar-day.lower.text-mode,
-.calendar-day.whole.text-mode { 
+.calendar-day.whole.text-mode,
+.calendar-day.rest.text-mode { 
     box-shadow: none;
     /* background: none; */
 }
