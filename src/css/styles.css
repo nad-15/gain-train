@@ -1062,16 +1062,17 @@ body {
 } */
 
 
-.calendar-day.push:not(.text-mode)::after,
-.calendar-day.pull:not(.text-mode)::after,
-.calendar-day.legs:not(.text-mode)::after,
-.calendar-day.upper:not(.text-mode)::after,
-.calendar-day.lower:not(.text-mode)::after,
-.calendar-day.whole:not(.text-mode)::after {
-    content: 'run_circle';
+.calendar-day.push:not(.text-mode):not(.today)::after,
+.calendar-day.pull:not(.text-mode):not(.today)::after,
+.calendar-day.legs:not(.text-mode):not(.today)::after,
+.calendar-day.upper:not(.text-mode):not(.today)::after,
+.calendar-day.lower:not(.text-mode):not(.today)::after,
+.calendar-day.whole:not(.text-mode):not(.today)::after {
+
+    content: 'asterisk';
     font-family: 'Material Symbols Outlined';
     position: absolute;
-    font-size: 0.7em !important;
+    font-size: 1em !important;
     bottom: 2px;
     right: 2px;
     opacity: 0.6;
