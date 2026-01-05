@@ -1087,6 +1087,16 @@ body {
     position: relative;
 }
 
+.calendar-day.push.text-mode,
+.calendar-day.pull.text-mode,
+.calendar-day.legs.text-mode,
+.calendar-day.upper.text-mode,
+.calendar-day.lower.text-mode,
+.calendar-day.whole.text-mode { 
+    box-shadow: none;
+    /* background: none; */
+}
+
 .exercise-name-input {
     flex: 1;
     margin-right: 10px;
