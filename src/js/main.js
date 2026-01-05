@@ -1491,7 +1491,6 @@ function renderStats() {
 
     // Render the weekly chart
     setTimeout(() => renderWeeklyChart(), 100);  // ADD THIS LINE
-
     
 }
 

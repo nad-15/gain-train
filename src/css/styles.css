@@ -1051,7 +1051,7 @@ body {
 }
 
 .calendar-day.rest::after {
-    content: 'bath_soak';
+    content: 'relax';
     font-family: 'Material Symbols Outlined';
     position: absolute;
     font-size: 0.85em;
