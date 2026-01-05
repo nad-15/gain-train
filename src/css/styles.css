@@ -1190,10 +1190,12 @@ body {
 .stats-compare {
     display: grid;
     grid-template-columns: minmax(120px, 1.2fr) 1fr 1fr;
-    gap: 8px 6px;
-    
 
-    margin-top: 14px;
+    /* Remove horizontal gap */
+    column-gap: 0;
+    row-gap: 6px; /* optional for small row breathing */
+
+    margin: 12px;
     padding: 12px 10px;
 
     border: 1px solid rgba(0, 0, 0, 0.08);
@@ -1204,13 +1206,22 @@ body {
         rgba(255, 255, 255, 0.9),
         rgba(255, 255, 255, 0.65)
     );
-
     backdrop-filter: blur(8px);
 }
 
 
+
 .stats-compare > * {
     min-width: 0;
+}
+
+
+/* Alternate row background (zebra striping) */
+.stats-compare > div:nth-child(6n + 4),
+.stats-compare > div:nth-child(6n + 5),
+.stats-compare > div:nth-child(6n + 6) {
+    background: rgba(64, 196, 99, 0.2);
+    /* border-radius: 6px; */
 }
 
 
@@ -1224,13 +1235,16 @@ body {
 
 /* Column headers */
 .stats-col-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #6c757d;
+    gap: 3px;
 
-    text-align: center;
     white-space: nowrap;
 }
 
@@ -1824,6 +1838,8 @@ body {
     background: white;
     border-radius: 12px;
     border: 1px solid #e9ecef;
+        margin: 12px;
+    border-radius: 10px; /* match stat cards */
 }
 
 .year-heatmap-header {
