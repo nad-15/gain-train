@@ -1491,6 +1491,8 @@ function renderStats() {
 
     // Render the weekly chart
     setTimeout(() => renderWeeklyChart(), 100);  // ADD THIS LINE
+
+    
 }
 
 
@@ -1590,6 +1592,67 @@ function changeWeek(delta) {
 
 
 renderCalendar();
+
+
+
+// ===== SWIPE FUNCTIONALITY =====
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+
+function handleSwipe(startX, endX, startY, endY) {
+    const dx = endX - startX;
+    const dy = endY - startY;
+
+    const minSwipeDistance = 50;
+    if (Math.abs(dx) < minSwipeDistance) return; // too short
+
+    const slope = Math.abs(dy / dx);
+    const maxAllowedSlope = Math.tan(30 * Math.PI / 180); // ~0.577 (~30°)
+
+    if (slope > maxAllowedSlope) return; // too vertical - let scroll work
+
+    // Valid horizontal swipe detected
+    if (dx < 0) {
+        // Swipe left → next
+        changeMonth(1);
+    } else {
+        // Swipe right → previous
+        changeMonth(-1);
+    }
+}
+
+// Attach swipe listeners to calendar section
+const calendarSection = document.querySelector('.calendar-section');
+if (calendarSection) {
+    calendarSection.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    calendarSection.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe(touchStartX, touchEndX, touchStartY, touchEndY);
+    }, { passive: true });
+}
+
+// Attach swipe listeners to workout details section
+const detailsSection = document.getElementById('workoutDetailsSection');
+if (detailsSection) {
+    detailsSection.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    detailsSection.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe(touchStartX, touchEndX, touchStartY, touchEndY);
+    }, { passive: true });
+}
+
 
 // ===== CUSTOM WORKOUT TYPE FUNCTIONS =====
 
