@@ -1480,18 +1480,21 @@ function renderStats() {
     // Hidden debug unlock
     let debugClickCount = 0;
     container.addEventListener('click', () => {
-        debugClickCount++;
-        if (debugClickCount === 7) {
-            document.querySelectorAll('.debug-btns').forEach(btn => {
-                btn.style.display = 'inline-block';
-            });
-            debugClickCount = 0;
-        }
+        // debugClickCount++;
+        // if (debugClickCount === 7) {
+        //     document.querySelectorAll('.debug-btns').forEach(btn => {
+        //         btn.style.display = 'inline-block';
+        //     });
+        //     debugClickCount = 0;
+        // }
     });
 
     // Render the weekly chart
-    setTimeout(() => renderWeeklyChart(), 100);  // ADD THIS LINE
-    
+    setTimeout(() => renderWeeklyChart(), 100);
+
+    // Render year heatmap
+    setTimeout(() => renderYearHeatmap(), 200);
+
 }
 
 
@@ -2131,23 +2134,23 @@ function renderWeeklyChart() {
             },
             scales: {
                 y: {
-    min: 0,
-    max: 7,
-    ticks: {
-        stepSize: 1,
-        autoSkip: false,
-        callback: function(value) {
-            return value;
-        },
-        font: {
-            size: 11
-        },
-        color: '#6c757d'
-    },
-    grid: {
-        color: 'rgba(0, 0, 0, 0.05)'
-    }
-},
+                    min: 0,
+                    max: 7,
+                    ticks: {
+                        stepSize: 1,
+                        autoSkip: false,
+                        callback: function (value) {
+                            return value;
+                        },
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
                 x: {
                     ticks: {
                         font: {
@@ -2164,4 +2167,239 @@ function renderWeeklyChart() {
             }
         }
     });
+}
+
+
+
+// ===== YEAR HEATMAP =====
+let currentHeatmapYear = new Date().getFullYear();
+
+function renderYearHeatmap() {
+    const container = document.getElementById('statsContainer');
+    if (!container) {
+        console.error('Stats container not found!');
+        return;
+    }
+
+    // Calculate total workouts for the year
+    const yearWorkouts = storage.workouts.filter(w => {
+        const d = new Date(w.date);
+        return d.getFullYear() === currentHeatmapYear && w.type !== 'rest';
+    });
+
+    const totalDays = yearWorkouts.length;
+
+    // Create heatmap section
+    const heatmapSection = document.createElement('div');
+    heatmapSection.className = 'year-heatmap-section';
+    heatmapSection.innerHTML = `
+        <div class="year-heatmap-header">
+            <div class="year-heatmap-title">
+                <span class="material-symbols-outlined">calendar_view_month</span>
+                <h3>${totalDays} workouts in ${currentHeatmapYear}</h3>
+            </div>
+            <div class="year-nav">
+                <button onclick="changeHeatmapYear(-1)">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <span>${currentHeatmapYear}</span>
+                <button onclick="changeHeatmapYear(1)" ${currentHeatmapYear >= new Date().getFullYear() ? 'disabled' : ''}>
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+        </div>
+        <div class="heatmap-container">
+            <div class="heatmap-grid" id="heatmapGrid"></div>
+            <div class="heatmap-months" id="heatmapMonths"></div>
+        </div>
+        <div class="heatmap-legend">
+            <span>Rest</span>
+            <div class="legend-scale">
+                <div class="legend-box empty"></div>
+                <div class="legend-box filled"></div>
+            </div>
+            <span>Load</span>
+        </div>
+    `;
+
+    // Append to container
+    container.appendChild(heatmapSection);
+
+    // Render grid with a small delay to ensure DOM is ready
+    setTimeout(() => {
+        const grid = document.getElementById('heatmapGrid');
+        if (grid) {
+            renderHeatmapGrid();
+            renderMonthLabels();
+        }
+    }, 100);
+}
+
+function renderHeatmapGrid() {
+    const grid = document.getElementById('heatmapGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    // Start from first Sunday of the year
+    const yearStart = new Date(currentHeatmapYear, 0, 1);
+    const firstSunday = new Date(yearStart);
+    firstSunday.setDate(yearStart.getDate() - yearStart.getDay());
+
+    // End at last Saturday that contains Dec 31
+    const yearEnd = new Date(currentHeatmapYear, 11, 31);
+    const lastSaturday = new Date(yearEnd);
+    lastSaturday.setDate(yearEnd.getDate() + (6 - yearEnd.getDay()));
+
+    // Create all days
+    const currentDate = new Date(firstSunday);
+    const days = [];
+
+    while (currentDate <= lastSaturday) {
+        days.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Create workout lookup map
+    const workoutMap = {};
+    storage.workouts.forEach(w => {
+        const dateKey = new Date(w.date).toDateString();
+        workoutMap[dateKey] = w;
+    });
+
+    // Render grid
+    days.forEach(date => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'heatmap-day';
+
+        const dateKey = date.toDateString();
+        const workout = workoutMap[dateKey];
+
+        // Only color if workout exists and it's not a rest day
+        if (workout && workout.type !== 'rest') {
+            dayDiv.classList.add('has-workout');
+        }
+
+        // Check if date is in current year (gray out other year dates)
+        if (date.getFullYear() !== currentHeatmapYear) {
+            dayDiv.style.opacity = '0.3';
+        }
+
+        // Hover tooltip
+        dayDiv.addEventListener('mouseenter', (e) => {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'heatmap-tooltip';
+
+            const dateStr = date.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            if (workout && workout.type !== 'rest') {
+                const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
+                const typeName = customType ? customType.name :
+                    workout.type.charAt(0).toUpperCase() + workout.type.slice(1);
+                tooltip.textContent = `${dateStr} - ${typeName}`;
+            } else if (workout && workout.type === 'rest') {
+                tooltip.textContent = `${dateStr} - Rest Day`;
+            } else {
+                tooltip.textContent = `${dateStr} - No workout`;
+            }
+
+            document.body.appendChild(tooltip);
+
+            const rect = dayDiv.getBoundingClientRect();
+            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+
+            dayDiv._tooltip = tooltip;
+        });
+
+        dayDiv.addEventListener('mouseleave', (e) => {
+            if (dayDiv._tooltip) {
+                dayDiv._tooltip.remove();
+                dayDiv._tooltip = null;
+            }
+        });
+
+        // Click to view workout
+        dayDiv.addEventListener('click', () => {
+            if (workout && workout.type !== 'rest') {
+                viewWorkout(workout.id);
+                showScreen('workout');
+            }
+        });
+
+        grid.appendChild(dayDiv);
+    });
+}
+
+function renderMonthLabels() {
+    const monthsContainer = document.getElementById('heatmapMonths');
+    if (!monthsContainer) return;
+
+    monthsContainer.innerHTML = '';
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Calculate weeks in year
+    const yearStart = new Date(currentHeatmapYear, 0, 1);
+    const firstSunday = new Date(yearStart);
+    firstSunday.setDate(yearStart.getDate() - yearStart.getDay());
+    
+    const yearEnd = new Date(currentHeatmapYear, 11, 31);
+    const lastSaturday = new Date(yearEnd);
+    lastSaturday.setDate(yearEnd.getDate() + (6 - yearEnd.getDay()));
+    
+    let currentWeek = new Date(firstSunday);
+    let lastMonth = -1;
+    
+    while (currentWeek <= lastSaturday) {
+        const month = currentWeek.getMonth();
+        const label = document.createElement('div');
+        label.className = 'heatmap-month-label';
+        
+        // Only show month label when month changes
+        if (month !== lastMonth && currentWeek.getFullYear() === currentHeatmapYear) {
+            label.textContent = monthNames[month];
+            lastMonth = month;
+        }
+        
+        monthsContainer.appendChild(label);
+        currentWeek.setDate(currentWeek.getDate() + 7);
+    }
+}
+
+function changeHeatmapYear(delta) {
+    const newYear = currentHeatmapYear + delta;
+    const currentYear = new Date().getFullYear();
+
+    // Don't allow future years
+    if (newYear > currentYear) return;
+
+    // Get earliest workout year
+    if (storage.workouts.length === 0) return;
+
+    const earliestWorkout = storage.workouts.reduce((earliest, w) => {
+        const wDate = new Date(w.date);
+        return wDate < earliest ? wDate : earliest;
+    }, new Date());
+
+    const earliestYear = earliestWorkout.getFullYear();
+
+    // Don't go before earliest workout
+    if (newYear < earliestYear) return;
+
+    currentHeatmapYear = newYear;
+
+    // Remove old heatmap and render new one
+    const oldHeatmap = document.querySelector('.year-heatmap-section');
+    if (oldHeatmap) {
+        oldHeatmap.remove();
+    }
+
+    renderYearHeatmap();
 }
