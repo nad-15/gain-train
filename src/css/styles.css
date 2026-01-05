@@ -1071,7 +1071,7 @@ body {
     content: 'run_circle';
     font-family: 'Material Symbols Outlined';
     position: absolute;
-    font-size: 0.7em;
+    font-size: 0.7em !important;
     bottom: 2px;
     right: 2px;
     opacity: 0.6;
@@ -1266,7 +1266,7 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-}
+} 
 
 .back-btn {
     background: none;
@@ -1461,6 +1461,11 @@ body {
     margin-bottom: 32px;
     padding: 0 20px;
 }
+
+.home-section:first-of-type {
+    margin-top: 24px; /* adjust as needed */
+}
+
 
 .section-header {
     display: flex;
