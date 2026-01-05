@@ -1050,16 +1050,17 @@ body {
     position: relative;
 }
 
-.calendar-day.rest::after {
+.calendar-day.rest:not(.text-mode)::after {
     content: 'relax';
     font-family: 'Material Symbols Outlined';
     position: absolute;
-    font-size: 0.85em;
+    font-size: 0.6em;
     bottom: 2px;
     right: 2px;
     opacity: 0.6;
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
+
 
 .exercise-name-input {
     flex: 1;
