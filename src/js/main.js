@@ -1407,75 +1407,66 @@ function renderStats() {
     ];
     // Render UI
     container.innerHTML = `
-        <div class="stats-section current-month">
-            <div class="stats-section-header">
-                <span class="material-symbols-outlined">calendar_month</span>
-                <h3>${monthNames[currentMonth]} ${currentYear}</h3>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <span class="material-symbols-outlined stat-icon">fitness_center</span>
-                    <div class="stat-value">${monthWorkouts}</div>
-                    <div class="stat-label">Workouts</div>
-                </div>
-                <div class="stat-card">
-                    <span class="material-symbols-outlined stat-icon">hotel</span>
-                    <div class="stat-value">${monthRestDays}</div>
-                    <div class="stat-label">Rest Days</div>
-                </div>
-                <div class="stat-card">
-                    <span class="material-symbols-outlined stat-icon">trending_up</span>
-                    <div class="stat-value">${monthAvgPerWeek}</div>
-                    <div class="stat-label">Avg per Week</div>
-                </div>
-                <div class="stat-card">
-                    <span class="material-symbols-outlined stat-icon">calendar_today</span>
-                    <div class="stat-value">${thisMonthWorkouts.length}</div>
-                    <div class="stat-label">Days Tracked</div>
-                </div>
-            </div>
+    <div class="stats-compare">
+
+        <!-- Header row -->
+        <div></div>
+        <div class="stats-col-header">
+            <span class="material-symbols-outlined">calendar_month</span>
+            ${monthNames[currentMonth]} ${currentYear}
+        </div>
+        <div class="stats-col-header">
+            <span class="material-symbols-outlined">insights</span>
+            All Time
         </div>
 
-        <div class="stats-section all-time">
-            <div class="stats-section-header">
-                <span class="material-symbols-outlined">insights</span>
-                <h3>All Time</h3>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <span class="material-symbols-outlined stat-icon">bar_chart</span>
-                    <div class="stat-value">${totalWorkouts}</div>
-                    <div class="stat-label">Total Workouts</div>
-                </div>
-                <div class="stat-card">
-                    <span class="material-symbols-outlined stat-icon">bedtime</span>
-                    <div class="stat-value">${totalRestDays}</div>
-                    <div class="stat-label">Total Rest Days</div>
-                </div>
-                <div class="stat-card">
-                    <span class="material-symbols-outlined stat-icon">analytics</span>
-                    <div class="stat-value">${avgWorkoutsPerWeek}</div>
-                    <div class="stat-label">Avg per Week</div>
-                </div>
-                <div class="stat-card">
-                    <span class="material-symbols-outlined stat-icon">event_available</span>
-                    <div class="stat-value">${storage.workouts.length}</div>
-                    <div class="stat-label">Days Tracked</div>
-                </div>
-            </div>
+        <!-- Workouts -->
+        <div class="stats-label">
+            <span class="material-symbols-outlined">fitness_center</span>
+            Workouts
         </div>
+        <div class="stats-value">${monthWorkouts}</div>
+        <div class="stats-value">${totalWorkouts}</div>
 
-        <button class="debug-log-btn debug-btns" style="display:none;"
-            onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
-            <span class="material-symbols-outlined" style="font-size: 18px;">bug_report</span>
-            Show Debug Log
-        </button>
-        <button class="delete-duplicate-btn debug-btns" style="display:none;"
-            onclick="cleanupDuplicates()">
-            <span class="material-symbols-outlined" style="font-size: 18px;">cleaning_services</span>
-            Clean Up Duplicates
-        </button>
-    `;
+        <!-- Rest Days -->
+        <div class="stats-label">
+            <span class="material-symbols-outlined">hotel</span>
+            Rest Days
+        </div>
+        <div class="stats-value">${monthRestDays}</div>
+        <div class="stats-value">${totalRestDays}</div>
+
+        <!-- Avg per Week -->
+        <div class="stats-label">
+            <span class="material-symbols-outlined">trending_up</span>
+            Avg / Week
+        </div>
+        <div class="stats-value">${monthAvgPerWeek}</div>
+        <div class="stats-value">${avgWorkoutsPerWeek}</div>
+
+        <!-- Days Tracked -->
+        <div class="stats-label">
+            <span class="material-symbols-outlined">calendar_today</span>
+            Days Tracked
+        </div>
+        <div class="stats-value">${thisMonthWorkouts.length}</div>
+        <div class="stats-value">${storage.workouts.length}</div>
+
+    </div>
+
+    <button class="debug-log-btn debug-btns" style="display:none;"
+        onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
+        <span class="material-symbols-outlined">bug_report</span>
+        Show Debug Log
+    </button>
+
+    <button class="delete-duplicate-btn debug-btns" style="display:none;"
+        onclick="cleanupDuplicates()">
+        <span class="material-symbols-outlined">cleaning_services</span>
+        Clean Up Duplicates
+    </button>
+`;
+
 
     // Hidden debug unlock
     let debugClickCount = 0;

@@ -1186,119 +1186,99 @@ body {
     font-size: 0.85em;
 }
 
-.stats {
+
+.stats-compare {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    padding: 12px;
+    grid-template-columns: minmax(120px, 1.2fr) 1fr 1fr;
+    gap: 8px 6px;
+    
+
+    margin-top: 14px;
+    padding: 12px 10px;
+
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.9),
+        rgba(255, 255, 255, 0.65)
+    );
+
+    backdrop-filter: blur(8px);
 }
 
-.stats-section {
-    border-radius: 10px;
-    padding: 12px;
-    border: 1px solid #e9ecef;
-    min-width: 0; /* This is important for grid overflow */
-    overflow: hidden;
+
+.stats-compare > * {
+    min-width: 0;
 }
 
-.stats-section.current-month {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border-color: #bae6fd;
+
+
+.stats-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    text-align: right;
 }
 
-.stats-section.all-time {
-    background: #ffffff;
-    border-color: #e9ecef;
+
+/* Column headers */
+.stats-col-header {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+
+    text-align: center;
+    white-space: nowrap;
 }
 
-.stats-section-header {
+/* Left labels */
+.stats-label {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.06);
-}
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6c757d;
 
-.stats-section-header .material-symbols-outlined {
-    font-size: 20px;
-    color: #2d3436;
-}
-
-.stats-section-header h3 {
-    margin: 0;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #1a1d1f;
-    letter-spacing: -0.02em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.stats-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.stats-label .material-symbols-outlined {
+    font-size: 18px;
+    opacity: 0.7;
 }
 
-.stat-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 8px 10px;
-    border-radius: 6px;
-    text-align: center;
+/* Values */
+.stats-value {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    transition: all 0.2s ease;
-}
+    justify-content: center;
 
-.stats-section.all-time .stat-card {
-    background: #fafbfc;
-    border-color: #e9ecef;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.stat-card .stat-icon {
-    font-size: 16px;
-    color: #6c757d;
-    margin: 0;
-    flex-shrink: 0;
-}
-
-.stat-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0;
-    color: #1a1d1f;
+    font-size: 1.15rem;
+    font-weight: 800;
     line-height: 1;
-    letter-spacing: -0.03em;
-}
-
-.stat-label {
-    font-size: 0.625rem;
-    color: #6c757d;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-top: 2px;
     white-space: nowrap;
 }
 
-.stat-info {
+
+.stats-col-header:first-child {
+    text-align: left;
+}
+
+
+/* .stat-info {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     flex: 1;
-}
+} */
 
 
 .back-btn {
