@@ -470,7 +470,7 @@ function renderExercises() {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <input type="text" class="exercise-name-input" value="${ex.name}" 
                            onchange="updateExerciseName(${idx}, this.value)"
-                           style="flex: 1; margin-right: 10px; padding: 6px; border-radius: 6px; font-weight: 600; font-size: 0.95em;">
+                           style="flex: 1; margin-right: 10px; padding: 6px; font-weight: 600; font-size: 0.95em;">
                     <button class="delete-exercise" onclick="deleteExercise(${idx})">
                     
                         <span class="material-icons" style="font-size: 20px; color: #4e4b4bff;">delete</span>
@@ -1496,7 +1496,6 @@ function renderStats() {
     setTimeout(() => renderYearHeatmap(), 200);
 
 }
-
 
 // ===== WEEK VIEW FUNCTIONS =====
 function renderWeekView() {
