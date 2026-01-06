@@ -614,10 +614,13 @@ body {
     border-radius: 4px;
     font-size: 0.8em;
     font-family: inherit;
-    resize: vertical;
+    resize: none;
     margin-top: 8px;
     color: #495057;
     font-style: italic;
+    overflow: hidden;
+    min-height: 32px;
+    transition: height 0.2s ease;
 }
 
 .notes-input:focus {

@@ -537,7 +537,7 @@ function renderExercises() {
                 
                 <textarea class="notes-input" 
                           placeholder="Notes (optional)" 
-                          onchange="updateNotes(${idx}, this.value)"
+                          oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)"
                           rows="1">${ex.notes || ''}</textarea>
             `;
         }
@@ -2392,4 +2392,9 @@ function changeHeatmapYear(delta) {
     }
 
     renderYearHeatmap();
+}
+
+function autoResizeTextarea(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
 }
