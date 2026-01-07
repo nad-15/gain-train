@@ -45,9 +45,19 @@ const storage = {
         return saved === 'true';
     },
 
+
+
     set calendarTextMode(value) {
         localStorage.setItem('calendarTextMode', value);
     },
+    get isDetailsExpanded() {
+        const saved = localStorage.getItem('isDetailsExpanded');
+        return saved === 'true';
+    },
+
+    set isDetailsExpanded(value) {
+        localStorage.setItem('isDetailsExpanded', value);
+    }, 
 
     saveWorkouts() {
         localStorage.setItem('workouts', JSON.stringify(this._workouts));
@@ -890,10 +900,27 @@ function toggleCalendarView() {
         toggleBtn.style.transform = 'rotate(0deg)';
     }
 
-    renderCalendar();
+    // Re-render current view (weekly or monthly) instead of always going to monthly
+    if (isDetailsExpanded) {
+        renderWeekView();
+    } else {
+        renderCalendar();
+    }
 }
 
 function renderCalendar() {
+
+    // Restore expanded state if saved
+    if (storage.isDetailsExpanded && !isDetailsExpanded) {
+        isDetailsExpanded = true;
+        const section = document.getElementById('workoutDetailsSection');
+        const icon = document.getElementById('expandIcon');
+        section.classList.add('expanded');
+        icon.textContent = 'more_down';
+        storage.currentWeekOffset = 0;
+        renderWeekView();
+        return; // Exit early, renderWeekView will handle the rest
+    }
 
     // Initialize icon rotation based on saved state
     const toggleBtn = document.querySelector('.view-toggle-btn .material-symbols-outlined');
@@ -1142,6 +1169,9 @@ function toggleExpand() {
     const section = document.getElementById('workoutDetailsSection');
     const icon = document.getElementById('expandIcon');
     isDetailsExpanded = !isDetailsExpanded;
+    
+    // Save state to localStorage
+    storage.isDetailsExpanded = isDetailsExpanded;
 
     if (isDetailsExpanded) {
         section.classList.add('expanded');
@@ -1513,12 +1543,41 @@ function renderWeekView() {
             new Date(w.date).toDateString() === date.toDateString()
         );
 
+        // Get workout label
+        let workoutLabel = '';
         if (workout) {
             const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
             if (customType) {
-                dayDiv.style.backgroundColor = customType.color + '33';
-                dayDiv.style.borderColor = customType.color;
+                workoutLabel = customType.name;
+                if (!storage.calendarTextMode) {
+                    dayDiv.style.backgroundColor = customType.color + '33';
+                    dayDiv.style.borderColor = customType.color;
+                }
             } else {
+                // Map workout types to short labels
+                const labelMap = {
+                    'push': 'Push',
+                    'pull': 'Pull',
+                    'legs': 'Legs',
+                    'upper': 'UB',
+                    'lower': 'LB',
+                    'whole': 'FB',
+                    'rest': 'Rest',
+                    'warmup': 'Warm',
+                    'cooldown': 'Cool'
+                };
+                workoutLabel = labelMap[workout.type] || workout.type;
+
+                if (!storage.calendarTextMode) {
+                    dayDiv.classList.add(workout.type);
+                }
+            }
+        }
+
+        // Add text mode class if enabled
+        if (storage.calendarTextMode) {
+            dayDiv.classList.add('text-mode');
+            if (workout) {
                 dayDiv.classList.add(workout.type);
             }
         }
@@ -1543,10 +1602,22 @@ function renderWeekView() {
         }
 
         dayDiv.style.cursor = 'pointer';
-        dayDiv.innerHTML = `
-            <div class="weekday">${weekdayNames[date.getDay()]}</div>
-            <div class="day-number">${date.getDate()}</div>
-        `;
+        
+        // Render based on mode
+        if (storage.calendarTextMode) {
+            // Text mode: small number top-left, workout label below
+            dayDiv.innerHTML = `
+                <div class="weekday">${weekdayNames[date.getDay()]}</div>
+                <div class="day-number">${date.getDate()}</div>
+                ${workoutLabel ? `<div class="workout-label">${workoutLabel}</div>` : ''}
+            `;
+        } else {
+            // Normal mode: centered number
+            dayDiv.innerHTML = `
+                <div class="weekday">${weekdayNames[date.getDay()]}</div>
+                <div class="day-number">${date.getDate()}</div>
+            `;
+        }
 
         grid.appendChild(dayDiv);
     }
