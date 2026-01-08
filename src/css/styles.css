@@ -789,10 +789,10 @@ body {
 
 
 /* ===== NORMAL MODE ===== */
-.weekday {
+/* .weekday {
     display: none;
     text-align: center;
-}
+} */
 
 /* ===== ONE-LINER (CYCLING) MODE ===== */
 .calendar.one-line {
@@ -831,13 +831,13 @@ body {
 }
 
 /* Show cycling weekday */
-.calendar.one-line .weekday {
+/* .calendar.one-line .weekday {
     display: block;
     text-align: center;
     font-size: 0.75rem;
     font-weight: 600;
     opacity: 0.7;
-}
+} */
 
 /* Remove empty fillers */
 .calendar.one-line .calendar-day.empty {
@@ -899,13 +899,13 @@ body {
     font-weight: 400;
 }
 
-.day-label {
+/* .day-label {
     text-align: center;
     font-weight: 600;
     color: #6c757d;
     padding: 6px 2px;
     font-size: 0.75em;
-}
+} */
 
 /* .day-label.flex {
     display: none;
@@ -975,9 +975,9 @@ body {
     border-radius: 50%;
 }
 
-.calendar-day.today .weekday {
+/* .calendar-day.today .weekday {
     display: none;
-}
+} */
 .calendar-day.push {
     background: linear-gradient(135deg, 
         rgba(255, 107, 107, 0.2) 0%, 
@@ -2135,4 +2135,24 @@ body {
 .icon-action-btn.delete-btn:hover {
     background: #ff6b6b;
     color: white;
+}
+
+.calendar-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-weekday-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.weekday-header-item {
+    text-align: center;
+    font-weight: 600;
+    color: #6c757d;
+    padding: 6px 2px;
+    font-size: 0.75em;
 }

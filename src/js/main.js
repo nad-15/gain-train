@@ -84,7 +84,7 @@ const storage = {
     isFromCalendar: false,
     selectedTemplate: null,
     currentWeekOffset: 0,
-    isCreatingNewTemplate: false,  
+    isCreatingNewTemplate: false,
     editingExerciseIndex: null  // ADD THIS NEW LINE
 };
 // Default exercise templates
@@ -124,6 +124,10 @@ function startWorkout(type, date = null, templateData = null) {
     storage.isViewMode = false;
     storage.editingWorkoutId = null;
     storage.editingExerciseIndex = null;
+
+    // If no date provided, we're editing/creating a template (from home screen)
+    // If date provided, we're logging a workout for that specific day
+    storage.isEditingWorkoutType = (date === null);
 
     let exercises;
     if (templateData) {
@@ -294,6 +298,7 @@ function showTemplateSelector(type) {
     addBtn.onclick = () => {
         closeTemplateSelector();
         storage.isCreatingNewTemplate = true;
+        storage.selectedTemplate = null; // Creating new, not editing existing
         startWorkout(type, storage.isFromCalendar ? storage.selectedDate.toISOString() : null, null);
         storage.isFromCalendar = false;
     };
@@ -316,20 +321,10 @@ function showTemplateSelector(type) {
         </div>
     `;
 
-            // defaultBtn.onclick = () => {
-            //     closeTemplateSelector();
-            //     storage.isCreatingNewTemplate = false;
-            //     if (storage.isFromCalendar) {
-            //         startWorkout(type, storage.selectedDate.toISOString(), null);
-            //         storage.isFromCalendar = false;
-            //     } else {
-            //         // showWorkoutTypePreview(type, null);
-            //     }
-            // };
-
             defaultBtn.onclick = () => {
                 closeTemplateSelector();
                 storage.isCreatingNewTemplate = false;
+                storage.selectedTemplate = null; // Not editing a saved template
                 startWorkout(type, storage.isFromCalendar ? storage.selectedDate.toISOString() : null, null);
                 storage.isFromCalendar = false;
             };
@@ -378,7 +373,7 @@ function showTemplateSelector(type) {
                     name: 'Previous',
                     exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
                 };
-
+                storage.selectedTemplate = previousTemplate; // Track it
                 startWorkout(type, storage.isFromCalendar ? storage.selectedDate.toISOString() : null, previousTemplate);
                 storage.isFromCalendar = false;
             };
@@ -419,6 +414,7 @@ function showTemplateSelector(type) {
         btn.onclick = () => {
             closeTemplateSelector();
             storage.isCreatingNewTemplate = false;
+            storage.selectedTemplate = template; // Track which template we're editing
             startWorkout(type, storage.isFromCalendar ? storage.selectedDate.toISOString() : null, template);
             storage.isFromCalendar = false;
         };
@@ -519,14 +515,14 @@ function autoSave() {
 //                            onchange="updateExerciseName(${idx}, this.value)"
 //                            style="flex: 1; margin-right: 10px; padding: 6px; font-weight: 600; font-size: 0.95em;">
 //                     <button class="delete-exercise" onclick="deleteExercise(${idx})">
-                    
+
 //                         <span class="material-icons" style="font-size: 20px; color: #4e4b4bff;">delete</span>
- 
+
 
 
 //                     </button>
 //                 </div>
-                
+
 //                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px;">
 //                     <!-- SETS -->
 //                     <div style="text-align: center;">
@@ -539,7 +535,7 @@ function autoSave() {
 //                             <button class="control-btn plus" onclick="changeValue(${idx}, 'sets', 1)">+</button>
 //                         </div>
 //                     </div>
-                    
+
 //                     <!-- REPS -->
 //                     <div style="text-align: center;">
 //                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">REPS</div>
@@ -551,7 +547,7 @@ function autoSave() {
 //                             <button class="control-btn plus" onclick="changeValue(${idx}, 'reps', 1)">+</button>
 //                         </div>
 //                     </div>
-                    
+
 //                     <!-- KG -->
 //                     <div style="text-align: center;">
 // <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;"> 
@@ -581,7 +577,7 @@ function autoSave() {
 //                         </div>
 //                     </div>
 //                 </div>
-                
+
 //                 <textarea class="notes-input" 
 //                           placeholder="Notes (optional)" 
 //                           oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)"
@@ -756,66 +752,48 @@ function updateValue(exIdx, field, value) {
 function renderWorkoutActions() {
     const container = document.getElementById('workoutActions');
 
-    // if (storage.isViewMode) {
-    //     container.innerHTML = `
-    //         <div class="action-buttons">
-    //             <button class="save-template-btn" onclick="editCurrentWorkout()">Edit</button>
-    //             <button class="delete-btn" onclick="deleteWorkout()">Delete</button>
-    //         </div>
-    //     `;
-    // } else if (storage.isEditingWorkoutType) {
     if (storage.isViewMode) {
+        // Viewing a completed workout from calendar
         container.innerHTML = `
             <div class="action-buttons">
                 <button class="save-template-btn" onclick="editCurrentWorkout()">Edit</button>
                 <button class="delete-btn" onclick="deleteWorkout()">Delete</button>
             </div>
         `;
-    } else if (storage.isCreatingNewTemplate) {
-        const isWarmupOrCooldown = (storage.currentWorkout.type === 'warmup' || storage.currentWorkout.type === 'cooldown');
-        const isEditingExistingTemplate = storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous';
+    } else if (storage.isEditingWorkoutType) {
+        // We're working on a template (from home screen, not logging to a date)
+        
+        // Only show "Save" button if editing an EXISTING SAVED template
+        // NOT for Default, Previous, or new templates
+        const isEditingExistingTemplate = storage.selectedTemplate && 
+                                          storage.selectedTemplate.name && 
+                                          storage.selectedTemplate.name !== 'Previous' &&
+                                          storage.selectedTemplate.name !== 'Default';
 
-        // CHANGE THIS SECTION:
-        // if (storage.isCreatingNewTemplate) {
-        //     // Creating brand new template - only "Save as" button
-        //     container.innerHTML = `
-        //         <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
-        //         <div class="action-buttons">
-        //             <button class="finish-btn" onclick="openSaveTemplate()">Save as</button>
-        //         </div>
-        //     `;
-
-        if (storage.isCreatingNewTemplate) {
-            // Creating brand new template - only "Save as Template" button
+        if (isEditingExistingTemplate) {
+            // Editing an existing saved template - show both "Save" and "Save as"
+            container.innerHTML = `
+                <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
+                <div class="action-buttons">
+                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as Template</button>
+                    <button class="finish-btn" onclick="saveWorkoutTypeEdit()">Save</button>
+                </div>
+            `;
+        } else {
+            // Default/Previous or creating new - only "Save as Template"
             container.innerHTML = `
                 <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
                 <div class="action-buttons">
                     <button class="save-template-btn" onclick="openSaveTemplate()">Save as Template</button>
                 </div>
             `;
-        } else if (isEditingExistingTemplate) {
-            // Editing existing template - both "Save" and "Save as"
-            container.innerHTML = `
-                <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
-                <div class="action-buttons">
-                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
-                    <button class="finish-btn" onclick="saveWorkoutTypeEdit()">Save</button>
-                </div>
-            `;
-        } else {
-            // Editing default/previous - only "Save as"
-            container.innerHTML = `
-                <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
-                <div class="action-buttons">
-                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
-                </div>
-            `;
         }
     } else {
+        // We're logging a workout to a specific date
         container.innerHTML = `
             <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
             <div class="action-buttons">
-                <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
+                <button class="save-template-btn" onclick="openSaveTemplate()">Save as Template</button>
                 <button class="finish-btn" onclick="finishWorkout()">Log</button>
             </div>
         `;
@@ -865,7 +843,7 @@ function renderWorkoutActions() {
 function saveWorkoutTypeEdit() {
     const type = storage.currentWorkout.type;
 
-    // If editing an existing template (not creating new one)
+    // If editing an existing template
     if (storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous') {
         const templates = storage.templates;
         const categoryTemplates = templates[type] || [];
@@ -878,11 +856,9 @@ function saveWorkoutTypeEdit() {
             storage.saveTemplates();
             alert(`Template "${storage.selectedTemplate.name}" updated! 💾`);
         }
-    } else {
-        // If editing default or previous workout
-        alert('Changes not saved. Use "Save as Template" to create a new template! 💡');
     }
 
+    storage.isEditingWorkoutType = false;
     storage.isCreatingNewTemplate = false;
     storage.currentWorkout = null;
     storage.isViewMode = false;
@@ -893,9 +869,9 @@ function saveWorkoutTypeEdit() {
 
 function deleteExercise(idx) {
     if (!confirm('Delete this exercise?')) return;
-    
+
     storage.currentWorkout.exercises.splice(idx, 1);
-    
+
     // Reset editing state if we deleted the exercise being edited
     if (storage.editingExerciseIndex === idx) {
         storage.editingExerciseIndex = null;
@@ -903,7 +879,7 @@ function deleteExercise(idx) {
         // Adjust index if we deleted an exercise before the one being edited
         storage.editingExerciseIndex--;
     }
-    
+
     renderExercises();
     autoSave();
 }
@@ -1031,20 +1007,42 @@ function saveAsTemplate() {
 }
 
 function finishWorkout() {
+    // Check if this date already has a workout
+    const workoutDateStr = new Date(storage.currentWorkout.date).toDateString();
+    const existingEntry = storage.workouts.find(w =>
+        w.id !== storage.currentWorkout.id && // Don't count itself if editing
+        new Date(w.date).toDateString() === workoutDateStr
+    );
+
+    if (existingEntry) {
+        alert('Already logged for this day! Delete the existing workout first if you want to replace it.');
+        return;
+    }
+
     autoSave();
     alert('Workout completed! 💪');
     storage.currentWorkout = null;
     storage.isViewMode = false;
+    storage.editingExerciseIndex = null;
     showScreen('calendar');
 }
 
 function goBackFromWorkout() {
+    storage.editingExerciseIndex = null;
+
     if (storage.isViewMode) {
         storage.isViewMode = false;
         storage.currentWorkout = null;
         showScreen('calendar');
-    } else {
+    } else if (storage.isEditingWorkoutType) {
+        // Coming from home screen (editing template)
+        storage.isEditingWorkoutType = false;
+        storage.currentWorkout = null;
         showScreen('home');
+    } else {
+        // Coming from calendar (logging workout)
+        storage.currentWorkout = null;
+        showScreen('calendar');
     }
 }
 
@@ -1129,6 +1127,7 @@ function toggleCalendarView() {
 function renderCalendar() {
 
     // Restore expanded state if saved
+    
     if (storage.isDetailsExpanded && !isDetailsExpanded) {
         isDetailsExpanded = true;
         const section = document.getElementById('workoutDetailsSection');
@@ -1138,6 +1137,12 @@ function renderCalendar() {
         storage.currentWeekOffset = 0;
         renderWeekView();
         return; // Exit early, renderWeekView will handle the rest
+    }
+
+    // Show weekday header for monthly view
+    const header = document.getElementById('calendarWeekdayHeader');
+    if (header) {
+        header.style.display = 'grid';
     }
 
     // Initialize icon rotation based on saved state
@@ -1163,13 +1168,7 @@ function renderCalendar() {
     grid.innerHTML = '';
     grid.classList.remove('one-line');
 
-    // ===== HEADER DAY LABELS =====
-    weekdayNames.forEach(day => {
-        const label = document.createElement('div');
-        label.className = 'day-label';
-        label.textContent = day;
-        grid.appendChild(label);
-    });
+    // Days are now in fixed header, no need to add them to grid
 
     // ===== PREVIOUS MONTH DAYS (grayed out) =====
     for (let i = firstDay - 1; i >= 0; i--) {
@@ -1276,18 +1275,16 @@ function createCalendarDay(day, date, isOtherMonth) {
 
     dayDiv.style.cursor = 'pointer';
 
-    // Render based on mode
+    // Render based on mode (no weekday inside cell anymore)
     if (storage.calendarTextMode) {
         // Text mode: small number top-left, workout label below
         dayDiv.innerHTML = `
-            <div class="weekday">${weekdayNames[date.getDay()]}</div>
             <div class="day-number">${day}</div>
             ${workoutLabel ? `<div class="workout-label">${workoutLabel}</div>` : ''}
         `;
     } else {
         // Normal mode: centered number
         dayDiv.innerHTML = `
-            <div class="weekday">${weekdayNames[date.getDay()]}</div>
             <div class="day-number">${day}</div>
         `;
     }
@@ -1749,6 +1746,15 @@ function renderWeekView() {
     grid.innerHTML = '';
     grid.classList.add('one-line');
 
+    grid.innerHTML = '';
+    grid.classList.add('one-line');
+
+    // Show weekday header in week view too
+    const header = document.getElementById('calendarWeekdayHeader');
+    if (header) {
+        header.style.display = 'grid';
+    }
+
     // Render 7 days (Sun - Sat)
     for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
@@ -1820,19 +1826,17 @@ function renderWeekView() {
         }
 
         dayDiv.style.cursor = 'pointer';
-
-        // Render based on mode
+        
+        // Render based on mode (no weekday inside cell)
         if (storage.calendarTextMode) {
-            // Text mode: small number top-left, workout label below
+            // Text mode: number + workout label
             dayDiv.innerHTML = `
-                <div class="weekday">${weekdayNames[date.getDay()]}</div>
                 <div class="day-number">${date.getDate()}</div>
                 ${workoutLabel ? `<div class="workout-label">${workoutLabel}</div>` : ''}
             `;
         } else {
-            // Normal mode: centered number
+            // Normal mode: just number
             dayDiv.innerHTML = `
-                <div class="weekday">${weekdayNames[date.getDay()]}</div>
                 <div class="day-number">${date.getDate()}</div>
             `;
         }
