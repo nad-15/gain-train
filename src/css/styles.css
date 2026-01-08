@@ -822,14 +822,23 @@ body {
 }
 
 /* Each date becomes 2-row column */
-.calendar.one-line .calendar-day {
+/* .calendar.one-line .calendar-day {
     display: grid;
     grid-template-rows: auto auto;
     text-align: center;
-    /* background-color: red; */
 
+
+} */
+
+.calendar.one-line .calendar-day:not(.today) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 4px 6px;
+    background: white !important;
+    border: 1px solid #dee2e6;
 }
-
 /* Show cycling weekday */
 /* .calendar.one-line .weekday {
     display: block;
@@ -1840,9 +1849,9 @@ body {
     padding: 4px 6px;
     background: white !important;
     border: 1px solid #dee2e6;
-
-
 }
+
+
 
 .calendar-day.text-mode.today .day-number {
     color: black;
@@ -1857,7 +1866,7 @@ body {
 }
 
 .calendar-day.text-mode .workout-label {
-    align-self: center;
+    align-self: center !important;
     /* centers this child horizontally */
     display: flex;
     font-size: 0.75em;
@@ -1867,6 +1876,7 @@ body {
     color: #6d757c;
 
 }
+
 
 
 .calendar-day.text-mode.push .workout-label {
