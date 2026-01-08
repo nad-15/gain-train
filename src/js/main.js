@@ -57,7 +57,7 @@ const storage = {
 
     set isDetailsExpanded(value) {
         localStorage.setItem('isDetailsExpanded', value);
-    }, 
+    },
 
     saveWorkouts() {
         localStorage.setItem('workouts', JSON.stringify(this._workouts));
@@ -84,7 +84,8 @@ const storage = {
     isFromCalendar: false,
     selectedTemplate: null,
     currentWeekOffset: 0,
-    isCreatingNewTemplate: false  // ADD THIS LINE
+    isCreatingNewTemplate: false,  
+    editingExerciseIndex: null  // ADD THIS NEW LINE
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -114,10 +115,15 @@ function showScreen(screenName) {
     if (screenName === 'stats') renderStats();
 }
 
+// function startWorkout(type, date = null, templateData = null) {
+//     storage.isViewMode = false;
+//     storage.editingWorkoutId = null;
+//     storage.isEditingWorkoutType = false;
+
 function startWorkout(type, date = null, templateData = null) {
     storage.isViewMode = false;
     storage.editingWorkoutId = null;
-    storage.isEditingWorkoutType = false;
+    storage.editingExerciseIndex = null;
 
     let exercises;
     if (templateData) {
@@ -175,81 +181,81 @@ function selectWorkoutType(type) {
     showTemplateSelector(type);
 }
 
-function showWorkoutTypePreview(type, templateData = null) {
-    storage.isViewMode = true;
-    storage.isEditingWorkoutType = true;
-    storage.selectedTemplate = templateData;
+// function showWorkoutTypePreview(type, templateData = null) {
+//     storage.isViewMode = true;
+//     storage.isEditingWorkoutType = true;
+//     storage.selectedTemplate = templateData;
 
-    // Get exercises for this type
-    let exercises;
-    if (templateData) {
-        // Using a specific template (Previous or custom template)
-        exercises = JSON.parse(JSON.stringify(templateData.exercises));
-    } else if (storage.isCreatingNewTemplate) {
-        // Creating NEW template from ➕ button - start EMPTY
-        exercises = [];
-    } else {
-        // Not creating new, but no template provided - use defaults if available
-        const customType = storage.customWorkoutTypes.find(t => t.id === type);
-        if (customType) {
-            exercises = JSON.parse(JSON.stringify(customType.exercises));
-        } else if (defaultTemplates[type]) {
-            exercises = defaultTemplates[type].map(name => ({
-                name: name,
-                sets: 3,
-                reps: 10,
-                weight: 0,
-                notes: ''
-            }));
-        } else {
-            exercises = [];
-        }
-    }
+//     // Get exercises for this type
+//     let exercises;
+//     if (templateData) {
+//         // Using a specific template (Previous or custom template)
+//         exercises = JSON.parse(JSON.stringify(templateData.exercises));
+//     } else if (storage.isCreatingNewTemplate) {
+//         // Creating NEW template from ➕ button - start EMPTY
+//         exercises = [];
+//     } else {
+//         // Not creating new, but no template provided - use defaults if available
+//         const customType = storage.customWorkoutTypes.find(t => t.id === type);
+//         if (customType) {
+//             exercises = JSON.parse(JSON.stringify(customType.exercises));
+//         } else if (defaultTemplates[type]) {
+//             exercises = defaultTemplates[type].map(name => ({
+//                 name: name,
+//                 sets: 3,
+//                 reps: 10,
+//                 weight: 0,
+//                 notes: ''
+//             }));
+//         } else {
+//             exercises = [];
+//         }
+//     }
 
-    storage.currentWorkout = {
-        type: type,
-        exercises: exercises
-    };
+//     storage.currentWorkout = {
+//         type: type,
+//         exercises: exercises
+//     };
 
-    // Get display name
-    let displayName;
-    const customType = storage.customWorkoutTypes.find(t => t.id === type);
-    if (customType) {
-        displayName = customType.name;
-    } else if (type === 'warmup') {
-        displayName = 'Warm-up';
-    } else if (type === 'cooldown') {
-        displayName = 'Cool-down';
-    } else {
-        displayName = type.charAt(0).toUpperCase() + type.slice(1);
-    }
+//     // Get display name
+//     let displayName;
+//     const customType = storage.customWorkoutTypes.find(t => t.id === type);
+//     if (customType) {
+//         displayName = customType.name;
+//     } else if (type === 'warmup') {
+//         displayName = 'Warm-up';
+//     } else if (type === 'cooldown') {
+//         displayName = 'Cool-down';
+//     } else {
+//         displayName = type.charAt(0).toUpperCase() + type.slice(1);
+//     }
 
-    document.getElementById('workoutTitle').textContent = displayName + ' Workout';
-    document.getElementById('workoutDate').textContent = 'Preview';
+//     document.getElementById('workoutTitle').textContent = displayName + ' Workout';
+//     document.getElementById('workoutDate').textContent = 'Preview';
 
-    renderExercises();
-    renderPreviewActions();
-    showScreen('workout');
-}
-function renderPreviewActions() {
-    const container = document.getElementById('workoutActions');
-    container.innerHTML = `
-        <div class="action-buttons">
-            <button class="save-template-btn" onclick="editFromPreview()">Edit Workout</button>
-        </div>
-    `;
-}
+//     renderExercises();
+//     renderPreviewActions();
+//     showScreen('workout');
+// }
+// function renderPreviewActions() {
+//     const container = document.getElementById('workoutActions');
+//     container.innerHTML = `
+//         <div class="action-buttons">
+//             <button class="save-template-btn" onclick="editFromPreview()">Edit Workout</button>
+//         </div>
+//     `;
+// }
 
-function editFromPreview() {
-    storage.isViewMode = false;
-    // isEditingWorkoutType stays true (don't change it)
+// function editFromPreview() {
+//     storage.isViewMode = false;
+//     // isEditingWorkoutType stays true (don't change it)
 
-    document.getElementById('workoutDate').textContent = 'Editing';
-    document.getElementById('viewModeIndicator').innerHTML = '';
+//     document.getElementById('workoutDate').textContent = 'Editing';
+//     document.getElementById('viewModeIndicator').innerHTML = '';
 
-    renderExercises();
-    renderWorkoutActions();
-}
+//     renderExercises();
+//     renderWorkoutActions();
+// }
 
 function showTemplateSelector(type) {
     const modal = document.getElementById('templateSelectorModal');
@@ -273,16 +279,23 @@ function showTemplateSelector(type) {
         `Select ${displayName} Template`;
     // Wire the HEADER ➕ button
     const addBtn = document.getElementById('addTemplateBtn');
+    // addBtn.onclick = () => {
+    //     closeTemplateSelector();
+    //     if (storage.isFromCalendar) {
+    //         startWorkout(type, storage.selectedDate.toISOString(), null);
+    //         storage.isFromCalendar = false;
+    //     } else {
+    //         // Mark that we're creating a NEW template (not editing)
+    //         storage.isCreatingNewTemplate = true;  // ADD THIS LINE
+    //         // showWorkoutTypePreview(type, null);
+    //     }
+    // };
+
     addBtn.onclick = () => {
         closeTemplateSelector();
-        if (storage.isFromCalendar) {
-            startWorkout(type, storage.selectedDate.toISOString(), null);
-            storage.isFromCalendar = false;
-        } else {
-            // Mark that we're creating a NEW template (not editing)
-            storage.isCreatingNewTemplate = true;  // ADD THIS LINE
-            showWorkoutTypePreview(type, null);
-        }
+        storage.isCreatingNewTemplate = true;
+        startWorkout(type, storage.isFromCalendar ? storage.selectedDate.toISOString() : null, null);
+        storage.isFromCalendar = false;
     };
 
     container.innerHTML = '';
@@ -303,17 +316,23 @@ function showTemplateSelector(type) {
         </div>
     `;
 
+            // defaultBtn.onclick = () => {
+            //     closeTemplateSelector();
+            //     storage.isCreatingNewTemplate = false;
+            //     if (storage.isFromCalendar) {
+            //         startWorkout(type, storage.selectedDate.toISOString(), null);
+            //         storage.isFromCalendar = false;
+            //     } else {
+            //         // showWorkoutTypePreview(type, null);
+            //     }
+            // };
+
             defaultBtn.onclick = () => {
                 closeTemplateSelector();
                 storage.isCreatingNewTemplate = false;
-                if (storage.isFromCalendar) {
-                    startWorkout(type, storage.selectedDate.toISOString(), null);
-                    storage.isFromCalendar = false;
-                } else {
-                    showWorkoutTypePreview(type, null);
-                }
+                startWorkout(type, storage.isFromCalendar ? storage.selectedDate.toISOString() : null, null);
+                storage.isFromCalendar = false;
             };
-
             container.appendChild(defaultBtn);
         }
 
@@ -336,6 +355,22 @@ function showTemplateSelector(type) {
         </div>
     `;
 
+            // prevBtn.onclick = () => {
+            //     closeTemplateSelector();
+            //     storage.isCreatingNewTemplate = false;
+            //     const previousTemplate = {
+            //         name: 'Previous',
+            //         exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
+            //     };
+
+            //     if (storage.isFromCalendar) {
+            //         startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
+            //         storage.isFromCalendar = false;
+            //     } else {
+            //         // showWorkoutTypePreview(type, previousTemplate);
+            //     }
+            // };
+
             prevBtn.onclick = () => {
                 closeTemplateSelector();
                 storage.isCreatingNewTemplate = false;
@@ -344,14 +379,9 @@ function showTemplateSelector(type) {
                     exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
                 };
 
-                if (storage.isFromCalendar) {
-                    startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
-                    storage.isFromCalendar = false;
-                } else {
-                    showWorkoutTypePreview(type, previousTemplate);
-                }
+                startWorkout(type, storage.isFromCalendar ? storage.selectedDate.toISOString() : null, previousTemplate);
+                storage.isFromCalendar = false;
             };
-
             container.appendChild(prevBtn);
         }
     }
@@ -375,15 +405,22 @@ function showTemplateSelector(type) {
         </button>
     `;
 
+        // btn.onclick = () => {
+        //     closeTemplateSelector();
+        //     storage.isCreatingNewTemplate = false;
+        //     if (storage.isFromCalendar) {
+        //         startWorkout(type, storage.selectedDate.toISOString(), template);
+        //         storage.isFromCalendar = false;
+        //     } else {
+        //         // showWorkoutTypePreview(type, template);
+        //     }
+        // };
+
         btn.onclick = () => {
             closeTemplateSelector();
             storage.isCreatingNewTemplate = false;
-            if (storage.isFromCalendar) {
-                startWorkout(type, storage.selectedDate.toISOString(), template);
-                storage.isFromCalendar = false;
-            } else {
-                showWorkoutTypePreview(type, template);
-            }
+            startWorkout(type, storage.isFromCalendar ? storage.selectedDate.toISOString() : null, template);
+            storage.isFromCalendar = false;
         };
 
         container.appendChild(btn);
@@ -455,6 +492,107 @@ function autoSave() {
 }
 
 
+// function renderExercises() {
+//     const container = document.getElementById('exerciseList');
+//     container.innerHTML = '';
+
+//     if (!storage.currentWorkout || !storage.currentWorkout.exercises) return;
+
+//     storage.currentWorkout.exercises.forEach((ex, idx) => {
+//         const div = document.createElement('div');
+//         div.className = 'exercise-item';
+
+//         if (storage.isViewMode) {
+//             // View mode - simple format
+//             div.innerHTML = `
+//                 <div class="exercise-name" style="margin-bottom: 8px;">${ex.name}</div>
+//                 <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
+//                     ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
+//                 </div>
+//                 ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
+//             `;
+//         } else {
+//             // Edit mode - new redesigned layout
+//             div.innerHTML = `
+//                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+//                     <input type="text" class="exercise-name-input" value="${ex.name}" 
+//                            onchange="updateExerciseName(${idx}, this.value)"
+//                            style="flex: 1; margin-right: 10px; padding: 6px; font-weight: 600; font-size: 0.95em;">
+//                     <button class="delete-exercise" onclick="deleteExercise(${idx})">
+                    
+//                         <span class="material-icons" style="font-size: 20px; color: #4e4b4bff;">delete</span>
+ 
+
+
+//                     </button>
+//                 </div>
+                
+//                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px;">
+//                     <!-- SETS -->
+//                     <div style="text-align: center;">
+//                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">SETS</div>
+//                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+//                             <button class="control-btn minus" onclick="changeValue(${idx}, 'sets', -1)">−</button>
+//                             <input type="number" class="value-input" value="${ex.sets}" 
+//                                    onchange="updateValue(${idx}, 'sets', this.value)" min="1"
+//                                    style="width: 45px;">
+//                             <button class="control-btn plus" onclick="changeValue(${idx}, 'sets', 1)">+</button>
+//                         </div>
+//                     </div>
+                    
+//                     <!-- REPS -->
+//                     <div style="text-align: center;">
+//                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">REPS</div>
+//                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+//                             <button class="control-btn minus" onclick="changeValue(${idx}, 'reps', -1)">−</button>
+//                             <input type="number" class="value-input" value="${ex.reps}" 
+//                                    onchange="updateValue(${idx}, 'reps', this.value)" min="1"
+//                                    style="width: 45px;">
+//                             <button class="control-btn plus" onclick="changeValue(${idx}, 'reps', 1)">+</button>
+//                         </div>
+//                     </div>
+                    
+//                     <!-- KG -->
+//                     <div style="text-align: center;">
+// <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;"> 
+//     <div style="font-size: 0.75em; font-weight: 600; color: #6c757d;">KG</div>
+
+//     <label style="display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 0.6em; color: #6c757d;">
+//         <input 
+//             type="checkbox"
+//             style="zoom: 0.7;"
+//             ${ex.weight === 'BW' ? 'checked' : ''} 
+//             onchange="toggleBodyweight(${idx}, this.checked)"
+//         >
+//         BW
+//     </label>
+// </div>
+
+
+
+
+//                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+//                             <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
+//                             <input type="text" class="value-input" value="${ex.weight}" 
+//                                    onchange="updateValue(${idx}, 'weight', this.value)" 
+//                                    ${ex.weight === 'BW' ? 'disabled' : ''}
+//                                    style="width: 45px;">
+//                             <button class="control-btn plus" onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>+</button>
+//                         </div>
+//                     </div>
+//                 </div>
+                
+//                 <textarea class="notes-input" 
+//                           placeholder="Notes (optional)" 
+//                           oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)"
+//                           rows="1">${ex.notes || ''}</textarea>
+//             `;
+//         }
+
+//         container.appendChild(div);
+//     });
+// }
+
 function renderExercises() {
     const container = document.getElementById('exerciseList');
     container.innerHTML = '';
@@ -465,28 +603,20 @@ function renderExercises() {
         const div = document.createElement('div');
         div.className = 'exercise-item';
 
-        if (storage.isViewMode) {
-            // View mode - simple format
-            div.innerHTML = `
-                <div class="exercise-name" style="margin-bottom: 8px;">${ex.name}</div>
-                <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
-                    ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
-                </div>
-                ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
-            `;
-        } else {
-            // Edit mode - new redesigned layout
+        const isEditing = storage.editingExerciseIndex === idx;
+
+        if (isEditing) {
+            // EDIT MODE - Full editable form
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <input type="text" class="exercise-name-input" value="${ex.name}" 
                            onchange="updateExerciseName(${idx}, this.value)"
                            style="flex: 1; margin-right: 10px; padding: 6px; font-weight: 600; font-size: 0.95em;">
-                    <button class="delete-exercise" onclick="deleteExercise(${idx})">
-                    
-                        <span class="material-icons" style="font-size: 20px; color: #4e4b4bff;">delete</span>
- 
-
-
+                    <button class="icon-action-btn save-btn" onclick="saveExercise(${idx})" title="Save">
+                        <span class="material-icons" style="font-size: 20px;">check</span>
+                    </button>
+                    <button class="icon-action-btn delete-btn" onclick="deleteExercise(${idx})" title="Delete">
+                        <span class="material-icons" style="font-size: 20px;">delete</span>
                     </button>
                 </div>
                 
@@ -517,23 +647,18 @@ function renderExercises() {
                     
                     <!-- KG -->
                     <div style="text-align: center;">
-<div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;"> 
-    <div style="font-size: 0.75em; font-weight: 600; color: #6c757d;">KG</div>
-
-    <label style="display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 0.6em; color: #6c757d;">
-        <input 
-            type="checkbox"
-            style="zoom: 0.7;"
-            ${ex.weight === 'BW' ? 'checked' : ''} 
-            onchange="toggleBodyweight(${idx}, this.checked)"
-        >
-        BW
-    </label>
-</div>
-
-
-
-
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;"> 
+                            <div style="font-size: 0.75em; font-weight: 600; color: #6c757d;">KG</div>
+                            <label style="display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 0.6em; color: #6c757d;">
+                                <input 
+                                    type="checkbox"
+                                    style="zoom: 0.7;"
+                                    ${ex.weight === 'BW' ? 'checked' : ''} 
+                                    onchange="toggleBodyweight(${idx}, this.checked)"
+                                >
+                                BW
+                            </label>
+                        </div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
                             <input type="text" class="value-input" value="${ex.weight}" 
@@ -550,10 +675,40 @@ function renderExercises() {
                           oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)"
                           rows="1">${ex.notes || ''}</textarea>
             `;
+        } else {
+            // VIEW MODE - Read-only display
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div class="exercise-name">${ex.name}</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="icon-action-btn edit-btn" onclick="editExercise(${idx})" title="Edit">
+                            <span class="material-icons" style="font-size: 20px;">edit</span>
+                        </button>
+                        <button class="icon-action-btn delete-btn" onclick="deleteExercise(${idx})" title="Delete">
+                            <span class="material-icons" style="font-size: 20px;">delete</span>
+                        </button>
+                    </div>
+                </div>
+                <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
+                    ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
+                </div>
+                ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
+            `;
         }
 
         container.appendChild(div);
     });
+}
+
+function editExercise(idx) {
+    storage.editingExerciseIndex = idx;
+    renderExercises();
+}
+
+function saveExercise(idx) {
+    storage.editingExerciseIndex = null;
+    renderExercises();
+    autoSave();
 }
 
 function updateExerciseName(exIdx, newName) {
@@ -601,6 +756,14 @@ function updateValue(exIdx, field, value) {
 function renderWorkoutActions() {
     const container = document.getElementById('workoutActions');
 
+    // if (storage.isViewMode) {
+    //     container.innerHTML = `
+    //         <div class="action-buttons">
+    //             <button class="save-template-btn" onclick="editCurrentWorkout()">Edit</button>
+    //             <button class="delete-btn" onclick="deleteWorkout()">Delete</button>
+    //         </div>
+    //     `;
+    // } else if (storage.isEditingWorkoutType) {
     if (storage.isViewMode) {
         container.innerHTML = `
             <div class="action-buttons">
@@ -608,17 +771,26 @@ function renderWorkoutActions() {
                 <button class="delete-btn" onclick="deleteWorkout()">Delete</button>
             </div>
         `;
-    } else if (storage.isEditingWorkoutType) {
+    } else if (storage.isCreatingNewTemplate) {
         const isWarmupOrCooldown = (storage.currentWorkout.type === 'warmup' || storage.currentWorkout.type === 'cooldown');
         const isEditingExistingTemplate = storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous';
 
         // CHANGE THIS SECTION:
+        // if (storage.isCreatingNewTemplate) {
+        //     // Creating brand new template - only "Save as" button
+        //     container.innerHTML = `
+        //         <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
+        //         <div class="action-buttons">
+        //             <button class="finish-btn" onclick="openSaveTemplate()">Save as</button>
+        //         </div>
+        //     `;
+
         if (storage.isCreatingNewTemplate) {
-            // Creating brand new template - only "Save as" button
+            // Creating brand new template - only "Save as Template" button
             container.innerHTML = `
                 <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
                 <div class="action-buttons">
-                    <button class="finish-btn" onclick="openSaveTemplate()">Save as</button>
+                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as Template</button>
                 </div>
             `;
         } else if (isEditingExistingTemplate) {
@@ -650,9 +822,48 @@ function renderWorkoutActions() {
     }
 }
 
+// function saveWorkoutTypeEdit() {
+//     const type = storage.currentWorkout.type;
+//     const isWarmupOrCooldown = (type === 'warmup' || type === 'cooldown');
+
+//     // If editing an existing template (not creating new one)
+//     if (storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous') {
+//         const templates = storage.templates;
+//         const categoryTemplates = templates[type] || [];
+
+//         // Find and update the template
+//         const templateIndex = categoryTemplates.findIndex(t => t.name === storage.selectedTemplate.name);
+//         if (templateIndex >= 0) {
+//             categoryTemplates[templateIndex].exercises = JSON.parse(JSON.stringify(storage.currentWorkout.exercises));
+//             storage.templates = templates;
+//             storage.saveTemplates();
+//             alert(`Template "${storage.selectedTemplate.name}" updated! 💾`);
+//         }
+//     } else if (isWarmupOrCooldown) {
+//         // For warmup/cooldown creating NEW template (selectedTemplate is null)
+//         // User needs to use "Save as" button to give it a name first
+//         alert('Please use "Save as" to create your first template! 💡');
+//     } else {
+//         // If editing default or previous workout for regular types
+//         alert('Changes not saved (Default/Previous templates cannot be updated) 💡');
+//     }
+
+//     storage.isEditingWorkoutType = false;
+//     storage.currentWorkout = null;
+//     storage.isViewMode = false;
+//     storage.selectedTemplate = null;
+//     showScreen('home');
+// }
+
+
+// function deleteExercise(idx) {
+//     storage.currentWorkout.exercises.splice(idx, 1);
+//     renderExercises();
+//     autoSave();
+// }
+
 function saveWorkoutTypeEdit() {
     const type = storage.currentWorkout.type;
-    const isWarmupOrCooldown = (type === 'warmup' || type === 'cooldown');
 
     // If editing an existing template (not creating new one)
     if (storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous') {
@@ -667,25 +878,32 @@ function saveWorkoutTypeEdit() {
             storage.saveTemplates();
             alert(`Template "${storage.selectedTemplate.name}" updated! 💾`);
         }
-    } else if (isWarmupOrCooldown) {
-        // For warmup/cooldown creating NEW template (selectedTemplate is null)
-        // User needs to use "Save as" button to give it a name first
-        alert('Please use "Save as" to create your first template! 💡');
     } else {
-        // If editing default or previous workout for regular types
-        alert('Changes not saved (Default/Previous templates cannot be updated) 💡');
+        // If editing default or previous workout
+        alert('Changes not saved. Use "Save as Template" to create a new template! 💡');
     }
 
-    storage.isEditingWorkoutType = false;
+    storage.isCreatingNewTemplate = false;
     storage.currentWorkout = null;
     storage.isViewMode = false;
     storage.selectedTemplate = null;
+    storage.editingExerciseIndex = null;
     showScreen('home');
 }
 
-
 function deleteExercise(idx) {
+    if (!confirm('Delete this exercise?')) return;
+    
     storage.currentWorkout.exercises.splice(idx, 1);
+    
+    // Reset editing state if we deleted the exercise being edited
+    if (storage.editingExerciseIndex === idx) {
+        storage.editingExerciseIndex = null;
+    } else if (storage.editingExerciseIndex > idx) {
+        // Adjust index if we deleted an exercise before the one being edited
+        storage.editingExerciseIndex--;
+    }
+    
     renderExercises();
     autoSave();
 }
@@ -1169,7 +1387,7 @@ function toggleExpand() {
     const section = document.getElementById('workoutDetailsSection');
     const icon = document.getElementById('expandIcon');
     isDetailsExpanded = !isDetailsExpanded;
-    
+
     // Save state to localStorage
     storage.isDetailsExpanded = isDetailsExpanded;
 
@@ -1602,7 +1820,7 @@ function renderWeekView() {
         }
 
         dayDiv.style.cursor = 'pointer';
-        
+
         // Render based on mode
         if (storage.calendarTextMode) {
             // Text mode: small number top-left, workout label below

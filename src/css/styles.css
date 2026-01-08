@@ -2083,3 +2083,56 @@ body {
 .legend-box.filled {
     background: #40c463;
 }
+
+.icon-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.icon-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.icon-action-btn:active {
+    transform: scale(0.95);
+}
+
+.icon-action-btn.edit-btn {
+    color: #4c6ef5;
+    border-color: #4c6ef5;
+}
+
+.icon-action-btn.edit-btn:hover {
+    background: #4c6ef5;
+    color: white;
+}
+
+.icon-action-btn.save-btn {
+    color: #2da44e;
+    border-color: #2da44e;
+}
+
+.icon-action-btn.save-btn:hover {
+    background: #2da44e;
+    color: white;
+}
+
+.icon-action-btn.delete-btn {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+.icon-action-btn.delete-btn:hover {
+    background: #ff6b6b;
+    color: white;
+}
