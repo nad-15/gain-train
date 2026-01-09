@@ -611,12 +611,19 @@ function renderExercises() {
                     <input type="text" class="exercise-name-input" value="${ex.name}" 
                            onchange="updateExerciseName(${idx}, this.value)"
                            style="flex: 1; margin-right: 10px; padding: 6px; font-weight: 600; font-size: 0.95em;">
-                    <button class="icon-action-btn save-btn" onclick="saveExercise(${idx})" title="Save">
-                        <span class="material-icons" style="font-size: 20px;">check</span>
+                <div style="width: 80px; display: flex; gap: 8px; "> 
+                    <button class="icon-action-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
+                            onclick="toggleEdit(${idx})"
+                            title="${isEditing ? 'Save' : 'Edit'}">
+                        <span class="material-icons edit-icon">edit</span>
+                        <span class="material-icons save-icon">check</span>
                     </button>
+
+
                     <button class="icon-action-btn delete-btn" onclick="deleteExercise(${idx})" title="Delete">
                         <span class="material-icons" style="font-size: 20px;">delete</span>
                     </button>
+                                    </div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px;">
@@ -679,13 +686,19 @@ function renderExercises() {
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <div class="exercise-name">${ex.name}</div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="icon-action-btn edit-btn" onclick="editExercise(${idx})" title="Edit">
-                            <span class="material-icons" style="font-size: 20px;">edit</span>
+                    <div style="display: flex; gap: 8px; ">
+                    <div style="width: 80px; display: flex; gap: 8px; "> 
+                        <button class="icon-action-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
+                                onclick="toggleEdit(${idx})"
+                                title="${isEditing ? 'Save' : 'Edit'}">
+                            <span class="material-icons edit-icon">edit</span>
+                            <span class="material-icons save-icon">check</span>
                         </button>
+
                         <button class="icon-action-btn delete-btn" onclick="deleteExercise(${idx})" title="Delete">
                             <span class="material-icons" style="font-size: 20px;">delete</span>
                         </button>
+                                            </div>  
                     </div>
                 </div>
                 <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
@@ -698,6 +711,16 @@ function renderExercises() {
         container.appendChild(div);
     });
 }
+
+function toggleEdit(idx) {
+    if (storage.editingExerciseIndex === idx) {
+        storage.editingExerciseIndex = null; // save / exit edit
+    } else {
+        storage.editingExerciseIndex = idx; // enter edit
+    }
+    renderExercises();
+}
+
 
 function editExercise(idx) {
     storage.editingExerciseIndex = idx;
@@ -890,13 +913,13 @@ function deleteExercise(idx) {
 function prefillExerciseData() {
     const exerciseName = document.getElementById('exerciseName').value.trim();
     if (!exerciseName) return;
-    
+
     const currentType = storage.currentWorkout.type;
-    
+
     // Search for the most recent workout with this exercise
     let latestExercise = null;
     let latestDate = null;
-    
+
     storage.workouts.forEach(w => {
         if (w.type === currentType && w.exercises) {
             w.exercises.forEach(ex => {
@@ -910,7 +933,7 @@ function prefillExerciseData() {
             });
         }
     });
-    
+
     // If found, prefill the values
     if (latestExercise) {
         document.getElementById('exerciseSets').value = latestExercise.sets;
@@ -931,18 +954,18 @@ function toggleExerciseDropdown() {
 function handleExerciseSelection() {
     const select = document.getElementById('exerciseSelect');
     const exerciseName = select.value;
-    
+
     if (!exerciseName) return;
-    
+
     // Put the selected name in the text input
     document.getElementById('exerciseName').value = exerciseName;
-    
+
     // Prefill data
     prefillExerciseData();
-    
+
     // Reset select back to placeholder
     select.selectedIndex = 0;
-    
+
     // Hide the dropdown
     select.style.display = 'none';
 }
@@ -951,7 +974,7 @@ function openAddExercise() {
     // Get all exercise names from workouts AND templates of the SAME TYPE
     const currentType = storage.currentWorkout.type;
     const allExerciseNames = new Set();
-    
+
     // Get from previous workouts
     storage.workouts.forEach(w => {
         if (w.type === currentType && w.exercises) {
@@ -960,7 +983,7 @@ function openAddExercise() {
             });
         }
     });
-    
+
     // Get from templates
     if (storage.templates[currentType]) {
         storage.templates[currentType].forEach(template => {
@@ -971,14 +994,14 @@ function openAddExercise() {
             }
         });
     }
-    
+
     // Get from default templates
     if (defaultTemplates[currentType]) {
         defaultTemplates[currentType].forEach(name => {
             allExerciseNames.add(name);
         });
     }
-    
+
     // Populate select dropdown
     const select = document.getElementById('exerciseSelect');
     if (select) {
@@ -990,13 +1013,13 @@ function openAddExercise() {
             select.appendChild(option);
         });
     }
-    
+
     // Reset form
     document.getElementById('exerciseName').value = '';
     document.getElementById('exerciseSets').value = '3';
     document.getElementById('exerciseReps').value = '10';
     document.getElementById('exerciseWeight').value = '0';
-    
+
     document.getElementById('exerciseModal').classList.add('active');
 }
 

@@ -193,6 +193,26 @@ body {
     font-size: 18px !important;
 }
 
+/* Update the existing icon-action-btn and detail-tool-btn */
+.icon-action-btn, .detail-tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px !important;  /* Force fixed width */
+    height: 36px !important; /* Force fixed height */
+    padding: 0 !important;   /* Remove padding that causes shifts */
+    flex-shrink: 0;          /* Prevent shrinking in flex containers */
+}
+
+/* Ensure icons inside are always centered */
+.icon-action-btn span, .detail-tool-btn span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
 .workout-details-tools {
     display: flex;
     position: absolute;
@@ -432,6 +452,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    position: relative;
 }
 
 .exercise-name {
@@ -2176,3 +2197,44 @@ margin-top: 0;
     padding: 6px 2px;
     font-size: 0.75em;
 }
+
+
+
+.toggle-edit-btn {
+    position: relative;
+    width: 36px;
+    height: 36px;
+}
+
+.toggle-edit-btn span {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.save-icon {
+    opacity: 0;
+    transform: scale(0.7);
+}
+
+.material-icons.edit-icon {
+       color: #4c6ef5 !important; 
+}
+
+.toggle-edit-btn.editing .edit-icon {
+    opacity: 0;
+    transform: scale(0.7);
+ 
+}
+
+.toggle-edit-btn.editing .save-icon {
+    opacity: 1;
+    font-weight: bold;
+    transform: scale(1);
+        color: #2da44e; /* green */
+}
+
+
