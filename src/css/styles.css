@@ -1849,7 +1849,7 @@ body {
 
 
 .calendar-day.text-mode.today .day-number {
-    color: black;
+    /* color: black; */
     font-size: 1em;
 }
 
@@ -1860,11 +1860,13 @@ body {
     margin-bottom: 2px;
 }
 
-/* .calendar-day.text-mode {
-    background-color: #52676d !important; 
-    color: #ffffff !important;
+
+.calendar-day.text-mode {
+    background: rgba(0, 0, 0, 0.7) !important;
     
-} */
+    backdrop-filter: blur(10px);
+    border-radius: 4px;
+}
 
 .calendar-day.text-mode .workout-label {
     align-self: center !important;
@@ -1876,14 +1878,14 @@ body {
     line-height: 1;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #6d757c;
+    color: white;
     margin-top: 7px;
     /* padding: 3px 6px; */
     /* background: rgba(255, 255, 255, 0.7); */
     /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); */
 }
 
-
+/* 
 
 .calendar-day.text-mode.push .workout-label {
     color: #ff6b6b;
@@ -1912,7 +1914,7 @@ body {
 .calendar-day.text-mode.today {
     border-radius: 6px;
     font-size: 0.9em;
-}
+} */
 
 .calendar-day.text-mode.other-month .workout-label {
     opacity: 0.5;
