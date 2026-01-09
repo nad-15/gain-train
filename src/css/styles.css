@@ -1849,7 +1849,7 @@ body {
 
 
 .calendar-day.text-mode.today .day-number {
-    color: black;
+    /* color: black; */
     font-size: 1em;
 }
 
