@@ -1135,29 +1135,24 @@ body {
     border-bottom-color: #1a1d1f;
 }
 
-
-.debug-btns {
-    display: none;
-    width: 100%;
-    padding: 12px;
-    background: #f8f9fa;
-    color: #6c757d;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    font-size: 0.9em;
-    font-weight: 600;
-    cursor: pointer;
+.debug-controls {
+    
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    margin-top: 12px;
+    justify-content: space-around;
+    color: #666; /* Or your preferred muted color */
+
+}
+
+.debug-btns {
+    cursor: pointer;
+    padding: 3px 5px;
+    transition: color 0.2s ease;
+    border-radius: 6px;
 }
 
 .debug-btns:hover {
-    background: #e9ecef;
-    border-color: #adb5bd;
+    color: #ff4444; /* Highlights red when you're about to click a debug tool */
 }
 
 .color-picker-grid {

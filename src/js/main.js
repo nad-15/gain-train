@@ -775,7 +775,7 @@ function renderWorkoutActions() {
             container.innerHTML = `
                 <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
                 <div class="action-buttons">
-                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as Template</button>
+                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
                     <button class="finish-btn" onclick="saveWorkoutTypeEdit()">Save</button>
                 </div>
             `;
@@ -793,7 +793,7 @@ function renderWorkoutActions() {
         container.innerHTML = `
             <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
             <div class="action-buttons">
-                <button class="save-template-btn" onclick="openSaveTemplate()">Save as Template</button>
+                <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
                 <button class="finish-btn" onclick="finishWorkout()">Log</button>
             </div>
         `;
@@ -1655,7 +1655,17 @@ function renderStats() {
     <div class="stats-compare">
 
         <!-- Header row -->
-        <div></div>
+        <div class="debug-controls">
+            <span class="material-symbols-outlined debug-btns" 
+                    style="display:none; cursor:pointer;     border: 1px solid #ccc;" 
+                    onclick="alert(\`${debugLog.replace(/`/g, '')}\`)"
+                    title="Show Debug Log">bug_report</span>
+            <span class="material-symbols-outlined debug-btns" 
+                    style="display:none; cursor:pointer;     border: 1px solid #ccc;" 
+                    onclick="cleanupDuplicates()"
+                    title="Clean Up Duplicates">cleaning_services</span>
+        </div>
+        
         <div class="stats-col-header">
             <span class="material-symbols-outlined">calendar_month</span>
             ${monthNames[currentMonth]} ${currentYear}
@@ -1699,31 +1709,25 @@ function renderStats() {
 
     </div>
 
-    <button class="debug-log-btn debug-btns" style="display:none;"
-        onclick="alert(\`${debugLog.replace(/`/g, '')}\`)">
-        <span class="material-symbols-outlined">bug_report</span>
-        Show Debug Log
-    </button>
-
-    <button class="delete-duplicate-btn debug-btns" style="display:none;"
-        onclick="cleanupDuplicates()">
-        <span class="material-symbols-outlined">cleaning_services</span>
-        Clean Up Duplicates
-    </button>
 `;
 
-
+const statsCompare = container.querySelector('.stats-compare');
+statsCompare.addEventListener('click', () => {
+    
     // Hidden debug unlock
     let debugClickCount = 0;
     container.addEventListener('click', () => {
-        // debugClickCount++;
-        // if (debugClickCount === 7) {
-        //     document.querySelectorAll('.debug-btns').forEach(btn => {
-        //         btn.style.display = 'inline-block';
-        //     });
-        //     debugClickCount = 0;
-        // }
+        debugClickCount++;
+        if (debugClickCount === 7) {
+            document.querySelectorAll('.debug-btns').forEach(btn => {
+                btn.style.display = 'inline-block';
+            });
+            debugClickCount = 0;
+        }
     });
+});
+
+
 
     // Render the weekly chart
     setTimeout(() => renderWeeklyChart(), 100);
