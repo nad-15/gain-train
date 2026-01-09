@@ -829,16 +829,16 @@ body {
 
 
 } */
-
+/* 
 .calendar.one-line .calendar-day:not(.today) {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    /* padding: 4px 6px; */
-    /* background: white !important; */
-    /* border: 1px solid #dee2e6; */
-}
+    padding: 4px 6px;
+    background: white !important;
+    border: 1px solid #dee2e6;
+} */
 /* Show cycling weekday */
 /* .calendar.one-line .weekday {
     display: block;
@@ -1860,16 +1860,28 @@ body {
     margin-bottom: 2px;
 }
 
+/* .calendar-day.text-mode {
+    background-color: #52676d !important; 
+    color: #ffffff !important;
+    
+} */
+
 .calendar-day.text-mode .workout-label {
     align-self: center !important;
-    /* centers this child horizontally */
     display: flex;
-    font-size: 0.75em;
-    font-weight: 700;
-    line-height: 1.2;
-    word-break: break-word;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: #6d757c;
-
+    margin-top: 4px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    /* background: rgba(255, 255, 255, 0.7); */
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); */
 }
 
 
