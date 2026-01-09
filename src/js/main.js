@@ -133,6 +133,9 @@ function startWorkout(type, date = null, templateData = null) {
     if (templateData) {
         // Use custom template
         exercises = JSON.parse(JSON.stringify(templateData.exercises));
+    } else if (storage.isCreatingNewTemplate) {
+        // Creating NEW template - start EMPTY
+        exercises = [];
     } else {
         // Check if it's a custom workout type (including warmup/cooldown)
         const customType = storage.customWorkoutTypes.find(t => t.id === type);
@@ -762,13 +765,13 @@ function renderWorkoutActions() {
         `;
     } else if (storage.isEditingWorkoutType) {
         // We're working on a template (from home screen, not logging to a date)
-        
+
         // Only show "Save" button if editing an EXISTING SAVED template
         // NOT for Default, Previous, or new templates
-        const isEditingExistingTemplate = storage.selectedTemplate && 
-                                          storage.selectedTemplate.name && 
-                                          storage.selectedTemplate.name !== 'Previous' &&
-                                          storage.selectedTemplate.name !== 'Default';
+        const isEditingExistingTemplate = storage.selectedTemplate &&
+            storage.selectedTemplate.name &&
+            storage.selectedTemplate.name !== 'Previous' &&
+            storage.selectedTemplate.name !== 'Default';
 
         if (isEditingExistingTemplate) {
             // Editing an existing saved template - show both "Save" and "Save as"
@@ -784,7 +787,7 @@ function renderWorkoutActions() {
             container.innerHTML = `
                 <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
                 <div class="action-buttons">
-                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as Template</button>
+                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
                 </div>
             `;
         }
@@ -884,7 +887,116 @@ function deleteExercise(idx) {
     autoSave();
 }
 
+function prefillExerciseData() {
+    const exerciseName = document.getElementById('exerciseName').value.trim();
+    if (!exerciseName) return;
+    
+    const currentType = storage.currentWorkout.type;
+    
+    // Search for the most recent workout with this exercise
+    let latestExercise = null;
+    let latestDate = null;
+    
+    storage.workouts.forEach(w => {
+        if (w.type === currentType && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name === exerciseName) {
+                    const workoutDate = new Date(w.date);
+                    if (!latestDate || workoutDate > latestDate) {
+                        latestDate = workoutDate;
+                        latestExercise = ex;
+                    }
+                }
+            });
+        }
+    });
+    
+    // If found, prefill the values
+    if (latestExercise) {
+        document.getElementById('exerciseSets').value = latestExercise.sets;
+        document.getElementById('exerciseReps').value = latestExercise.reps;
+        document.getElementById('exerciseWeight').value = latestExercise.weight === 'BW' ? 0 : latestExercise.weight;
+    }
+}
+
+function toggleExerciseDropdown() {
+    const select = document.getElementById('exerciseSelect');
+    if (select.style.display === 'none') {
+        select.style.display = 'block';
+    } else {
+        select.style.display = 'none';
+    }
+}
+
+function handleExerciseSelection() {
+    const select = document.getElementById('exerciseSelect');
+    const exerciseName = select.value;
+    
+    if (!exerciseName) return;
+    
+    // Put the selected name in the text input
+    document.getElementById('exerciseName').value = exerciseName;
+    
+    // Prefill data
+    prefillExerciseData();
+    
+    // Reset select back to placeholder
+    select.selectedIndex = 0;
+    
+    // Hide the dropdown
+    select.style.display = 'none';
+}
+
 function openAddExercise() {
+    // Get all exercise names from workouts AND templates of the SAME TYPE
+    const currentType = storage.currentWorkout.type;
+    const allExerciseNames = new Set();
+    
+    // Get from previous workouts
+    storage.workouts.forEach(w => {
+        if (w.type === currentType && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name) allExerciseNames.add(ex.name);
+            });
+        }
+    });
+    
+    // Get from templates
+    if (storage.templates[currentType]) {
+        storage.templates[currentType].forEach(template => {
+            if (template.exercises) {
+                template.exercises.forEach(ex => {
+                    if (ex.name) allExerciseNames.add(ex.name);
+                });
+            }
+        });
+    }
+    
+    // Get from default templates
+    if (defaultTemplates[currentType]) {
+        defaultTemplates[currentType].forEach(name => {
+            allExerciseNames.add(name);
+        });
+    }
+    
+    // Populate select dropdown
+    const select = document.getElementById('exerciseSelect');
+    if (select) {
+        select.innerHTML = '<option value="">-- Select from history or type below --</option>';
+        Array.from(allExerciseNames).sort().forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    }
+    
+    // Reset form
+    document.getElementById('exerciseName').value = '';
+    document.getElementById('exerciseSets').value = '3';
+    document.getElementById('exerciseReps').value = '10';
+    document.getElementById('exerciseWeight').value = '0';
+    
     document.getElementById('exerciseModal').classList.add('active');
 }
 
@@ -1127,7 +1239,7 @@ function toggleCalendarView() {
 function renderCalendar() {
 
     // Restore expanded state if saved
-    
+
     if (storage.isDetailsExpanded && !isDetailsExpanded) {
         isDetailsExpanded = true;
         const section = document.getElementById('workoutDetailsSection');
@@ -1711,21 +1823,21 @@ function renderStats() {
 
 `;
 
-const statsCompare = container.querySelector('.stats-compare');
-statsCompare.addEventListener('click', () => {
-    
-    // Hidden debug unlock
-    let debugClickCount = 0;
-    container.addEventListener('click', () => {
-        debugClickCount++;
-        if (debugClickCount === 7) {
-            document.querySelectorAll('.debug-btns').forEach(btn => {
-                btn.style.display = 'inline-block';
-            });
-            debugClickCount = 0;
-        }
+    const statsCompare = container.querySelector('.stats-compare');
+    statsCompare.addEventListener('click', () => {
+
+        // Hidden debug unlock
+        let debugClickCount = 0;
+        container.addEventListener('click', () => {
+            debugClickCount++;
+            if (debugClickCount === 7) {
+                document.querySelectorAll('.debug-btns').forEach(btn => {
+                    btn.style.display = 'inline-block';
+                });
+                debugClickCount = 0;
+            }
+        });
     });
-});
 
 
 
@@ -1830,7 +1942,7 @@ function renderWeekView() {
         }
 
         dayDiv.style.cursor = 'pointer';
-        
+
         // Render based on mode (no weekday inside cell)
         if (storage.calendarTextMode) {
             // Text mode: number + workout label
