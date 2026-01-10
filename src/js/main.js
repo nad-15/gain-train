@@ -522,7 +522,7 @@ function renderExercises() {
             title="Select from history">
         <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
     </button>
-    <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 100%; left: 0; width: 130%; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
         <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto;">
     <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
     <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
