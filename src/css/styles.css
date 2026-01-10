@@ -2238,3 +2238,156 @@ margin-top: 0;
 }
 
 
+.detail-tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    color: #6c757d;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.detail-tool-btn:hover {
+    color: #2d3436;
+    transform: scale(1.1);
+}
+
+.detail-tool-btn:active {
+    transform: scale(0.95);
+}
+
+.detail-tool-btn .material-symbols-outlined,
+.detail-tool-btn .material-icons {
+    font-size: 20px !important;
+}
+/* Workout Action Grid - Single Row */
+.workout-action-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    padding: 15px;
+}
+
+.workout-action-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    color: #6c757d;
+}
+
+.workout-action-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 2px;
+    background: linear-gradient(135deg, currentColor, transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.3;
+}
+
+.workout-action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.85) 100%);
+}
+
+.workout-action-card:active {
+    transform: translateY(0);
+}
+
+.workout-action-card .material-symbols-outlined {
+    font-size: 20px !important;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    flex-shrink: 0;
+}
+
+.workout-action-card:hover .material-symbols-outlined {
+    transform: scale(1.1);
+}
+
+.workout-action-card .action-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: inherit;
+    white-space: nowrap;
+}
+
+/* Primary action (Log/Update) */
+.workout-action-card.primary {
+    background: linear-gradient(135deg, rgba(45, 164, 78, 0.15) 0%, rgba(45, 164, 78, 0.05) 100%);
+    color: #2da44e;
+}
+
+.workout-action-card.primary::before {
+    opacity: 0.4;
+}
+
+/* Danger action (Delete) */
+.workout-action-card.danger {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 107, 107, 0.05) 100%);
+    color: #ff6b6b;
+}
+
+.workout-action-card.danger::before {
+    opacity: 0.4;
+}
+
+/* Update Add Exercise button to match */
+.add-exercise-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: calc(100% - 30px);
+    margin: 15px;
+    padding: 14px;
+    background: #1a1d1f;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: -0.01em;
+}
+
+.add-exercise-btn .material-symbols-outlined {
+    font-size: 20px !important;
+}
+
+.add-exercise-btn:hover {
+    background: #000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.add-exercise-btn:active {
+    transform: scale(0.98);
+}

@@ -789,41 +789,107 @@ function renderWorkoutActions() {
     } else if (storage.isEditingWorkoutType) {
         // We're working on a template (from home screen, not logging to a date)
 
-        // Only show "Save" button if editing an EXISTING SAVED template
-        // NOT for Default, Previous, or new templates
         const isEditingExistingTemplate = storage.selectedTemplate &&
             storage.selectedTemplate.name &&
             storage.selectedTemplate.name !== 'Previous' &&
             storage.selectedTemplate.name !== 'Default';
 
-        if (isEditingExistingTemplate) {
-            // Editing an existing saved template - show both "Save" and "Save as"
-            container.innerHTML = `
-                <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
-                <div class="action-buttons">
-                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
-                    <button class="finish-btn" onclick="saveWorkoutTypeEdit()">Save</button>
-                </div>
-            `;
-        } else {
-            // Default/Previous or creating new - only "Save as Template"
-            container.innerHTML = `
-                <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
-                <div class="action-buttons">
-                    <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
-                </div>
-            `;
-        }
+if (isEditingExistingTemplate) {
+    // Editing an existing saved template - show Save, Save as, and Log
+    container.innerHTML = `
+        <button class="add-exercise-btn" onclick="openAddExercise()">
+            <span class="material-symbols-outlined">add_circle</span>
+            Add Exercise
+        </button>
+        <div class="workout-action-grid">
+            <button class="workout-action-card" onclick="openSaveTemplate()">
+                <span class="material-symbols-outlined">bookmark_add</span>
+                <span class="action-label">Save as</span>
+            </button>
+            <button class="workout-action-card" onclick="saveWorkoutTypeEdit()">
+                <span class="material-symbols-outlined">save</span>
+                <span class="action-label">Save</span>
+            </button>
+            <button class="workout-action-card primary" onclick="logWorkoutToday()">
+                <span class="material-symbols-outlined">calendar_add_on</span>
+                <span class="action-label">Log</span>
+            </button>
+        </div>
+    `;
+} else {
+    // Default/Previous or creating new - show Save as and Log
+    container.innerHTML = `
+        <button class="add-exercise-btn" onclick="openAddExercise()">
+            <span class="material-symbols-outlined">add_circle</span>
+            Add Exercise
+        </button>
+        <div class="workout-action-grid">
+            <button class="workout-action-card" onclick="openSaveTemplate()">
+                <span class="material-symbols-outlined">bookmark_add</span>
+                <span class="action-label">Save as</span>
+            </button>
+            <button class="workout-action-card primary" onclick="logWorkoutToday()">
+                <span class="material-symbols-outlined">calendar_add_on</span>
+                <span class="action-label">Log</span>
+            </button>
+        </div>
+    `;
+}
     } else {
-        // We're logging a workout to a specific date
-        container.innerHTML = `
-            <button class="add-exercise-btn" onclick="openAddExercise()">Add Exercise</button>
-            <div class="action-buttons">
-                <button class="save-template-btn" onclick="openSaveTemplate()">Save as</button>
-                <button class="finish-btn" onclick="finishWorkout()">Log</button>
-            </div>
-        `;
-    }
+    // We're viewing/editing a workout from calendar OR logging a new one
+    // Check if we're editing an existing workout (has an ID in workouts array)
+    const isExistingWorkout = storage.workouts.find(w => w.id === storage.currentWorkout.id);
+    
+if (isExistingWorkout) {
+    // Editing existing workout from calendar
+    container.innerHTML = `
+        <button class="add-exercise-btn" onclick="openAddExercise()">
+            <span class="material-symbols-outlined">add_circle</span>
+            Add Exercise
+        </button>
+        <div class="workout-action-grid">
+            <button class="workout-action-card" onclick="openSaveTemplate()">
+                <span class="material-symbols-outlined">bookmark_add</span>
+                <span class="action-label">Save as</span>
+            </button>
+            <button class="workout-action-card primary" onclick="updateCurrentWorkout()">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span class="action-label">Update</span>
+            </button>
+            <button class="workout-action-card danger" onclick="deleteWorkout()">
+                <span class="material-symbols-outlined">delete</span>
+                <span class="action-label">Delete</span>
+            </button>
+        </div>
+    `;
+} else {
+    // Logging a new workout to a specific date
+    container.innerHTML = `
+        <button class="add-exercise-btn" onclick="openAddExercise()">
+            <span class="material-symbols-outlined">add_circle</span>
+            Add Exercise
+        </button>
+        <div class="workout-action-grid">
+            <button class="workout-action-card" onclick="openSaveTemplate()">
+                <span class="material-symbols-outlined">bookmark_add</span>
+                <span class="action-label">Save as</span>
+            </button>
+            <button class="workout-action-card primary" onclick="finishWorkout()">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span class="action-label">Log</span>
+            </button>
+        </div>
+    `;
+}
+}
+}
+
+function updateCurrentWorkout() {
+    autoSave(); // This will update the existing workout
+    alert('Workout updated! 💾');
+    storage.currentWorkout = null;
+    storage.editingExerciseIndex = null;
+    showScreen('calendar');
 }
 
 // function saveWorkoutTypeEdit() {
@@ -891,6 +957,40 @@ function saveWorkoutTypeEdit() {
     storage.selectedTemplate = null;
     storage.editingExerciseIndex = null;
     showScreen('home');
+}
+
+function logWorkoutToday() {
+    const today = new Date();
+    const todayStr = today.toDateString();
+
+    // Check if ANY workout/rest already exists for today
+    const existingEntry = storage.workouts.find(w =>
+        new Date(w.date).toDateString() === todayStr
+    );
+
+    if (existingEntry) {
+        alert('Already logged for today! Check calendar 📅');
+        return;
+    }
+
+    // Save current workout to today
+    storage.currentWorkout.date = today.toISOString();
+    storage.currentWorkout.id = Date.now();
+
+    storage.workouts.push({ ...storage.currentWorkout });
+    storage.saveWorkouts();
+
+    alert('Workout logged for today! 💪');
+
+    // Clean up
+    storage.isEditingWorkoutType = false;
+    storage.isCreatingNewTemplate = false;
+    storage.currentWorkout = null;
+    storage.isViewMode = false;
+    storage.selectedTemplate = null;
+    storage.editingExerciseIndex = null;
+
+    showScreen('calendar');
 }
 
 function deleteExercise(idx) {
@@ -1211,7 +1311,7 @@ function viewWorkout(workoutId) {
     if (!workout) return;
 
     storage.currentWorkout = JSON.parse(JSON.stringify(workout));
-    storage.isViewMode = true;
+    storage.isViewMode = false; // Make it always editable
 
     // Get display name
     let displayName;
@@ -1451,18 +1551,34 @@ function showWorkoutDetails(date, workout) {
         // ,
         // year: 'numeric'
     });
+
     const deleteBtn = document.getElementById("deleteWorkoutBtn");
+    const changeBtn = document.getElementById("changeWorkoutBtn");
+
     if (workout) {
+        // Show delete button
         deleteBtn.innerHTML = `<span class="material-symbols-outlined">delete</span>`;
         deleteBtn.onclick = (e) => {
             e.stopPropagation();
             deleteWorkoutFromCalendar(workout.id);
         };
         deleteBtn.style.display = 'flex';
+
+        // Show change workout button
+        changeBtn.innerHTML = `<span class="material-symbols-outlined">sync_alt</span>`;
+        changeBtn.onclick = (e) => {
+            e.stopPropagation();
+            changeWorkoutForDate(date, workout.id);
+        };
+        changeBtn.style.display = 'flex';
     } else {
         deleteBtn.innerHTML = '';
         deleteBtn.style.display = 'none';
+        changeBtn.innerHTML = '';
+        changeBtn.style.display = 'none';
     }
+
+
     dateLabel.innerHTML = `
   <span>${dateStr}</span>
 `;
@@ -1513,6 +1629,23 @@ bath_bedrock
             </div>
         `;
     }
+}
+
+function changeWorkoutForDate(date, oldWorkoutId) {
+    // Store the date and old workout ID
+    storage.changeWorkoutDate = date;
+    storage.changeWorkoutOldId = oldWorkoutId;
+
+    // Show workout selector
+    const dateStr = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    document.getElementById('selectedDateDisplay').textContent = dateStr;
+    renderCustomWorkoutsInModal();
+    document.getElementById('selectWorkoutModal').classList.add('active');
 }
 
 function toggleExpand() {
@@ -1668,17 +1801,34 @@ function cleanupDuplicates() {
 function startWorkoutForDate(type) {
     closeSelectWorkout();
 
-    const selectedDateStr = storage.selectedDate.toDateString();
+    // Check if we're changing an existing workout
+    if (storage.changeWorkoutDate && storage.changeWorkoutOldId) {
+        // Delete old workout
+        const idx = storage.workouts.findIndex(w => w.id === storage.changeWorkoutOldId);
+        if (idx >= 0) {
+            storage.workouts.splice(idx, 1);
+            storage.saveWorkouts();
+        }
 
-    // Check for existing entry on selected date
-    const existingEntry = storage.workouts.find(w =>
-        new Date(w.date).toDateString() === selectedDateStr
-    );
+        // Use the change workout date
+        storage.selectedDate = storage.changeWorkoutDate;
 
-    if (existingEntry) {
-        alert('Already logged for this day! Delete it first if you want to replace it.');
-        return;
+        // Clear the change workout state
+        storage.changeWorkoutDate = null;
+        storage.changeWorkoutOldId = null;
+    } else {
+        // Normal flow - check for existing entry
+        const selectedDateStr = storage.selectedDate.toDateString();
+        const existingEntry = storage.workouts.find(w =>
+            new Date(w.date).toDateString() === selectedDateStr
+        );
+
+        if (existingEntry) {
+            alert('Already logged for this day! Delete it first if you want to replace it.');
+            return;
+        }
     }
+
 
     if (type === 'rest') {
         storage.workouts.push({

@@ -171,16 +171,19 @@
                         <span id="selectedDateLabel"></span>
                     </div>
 
-                    <div class="workout-details-tools">
-                        <button class="detail-tool-btn" onclick="event.stopPropagation(); toggleExpand()">
-                            <span id="expandIcon" class="material-symbols-outlined">
-                                more_up
-                            </span>
-                        </button>
-                        <button class="detail-tool-btn" id="deleteWorkoutBtn">
-                            <!-- This will be populated by JavaScript -->
-                        </button>
-                    </div>
+<div class="workout-details-tools">
+    <button class="detail-tool-btn" id="changeWorkoutBtn" style="display: none;">
+        <!-- This will be populated by JavaScript -->
+    </button>
+    <button class="detail-tool-btn" id="deleteWorkoutBtn" style="display: none;">
+        <!-- This will be populated by JavaScript -->
+    </button>
+    <button class="detail-tool-btn" onclick="event.stopPropagation(); toggleExpand()">
+        <span id="expandIcon" class="material-symbols-outlined">
+            more_up
+        </span>
+    </button>
+</div>
 
                 </div>
 
