@@ -608,9 +608,25 @@ function renderExercises() {
             // EDIT MODE - Full editable form
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <input type="text" class="exercise-name-input" value="${ex.name}" 
-                           onchange="updateExerciseName(${idx}, this.value)"
-                           style="flex: 1; margin-right: 10px; padding: 6px; font-weight: 600; font-size: 0.95em;">
+<div style="flex: 1; margin-right: 10px; position: relative;">
+    <input type="text" 
+           class="exercise-name-input" 
+           id="exerciseName-${idx}"
+           value="${ex.name}" 
+           onchange="updateExerciseName(${idx}, this.value)"
+           style="width: 100%; padding: 6px; font-weight: 600; font-size: 0.95em;">
+    <select id="exerciseSelect-${idx}" 
+            onchange="handleExerciseSelectionInEdit(${idx})" 
+            style="display: none; margin-top: 4px; width: 100%; padding: 6px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 0.85em;">
+        <option value="">-- Select from history --</option>
+    </select>
+</div>
+<button class="icon-action-btn" 
+        onclick="toggleExerciseDropdownInEdit(${idx})" 
+        style="margin-right: 8px;"
+        title="History">
+    <span class="material-symbols-outlined" style="font-size: 18px;">history</span>
+</button>
                 <div style="width: 80px; display: flex; gap: 8px; "> 
                     <button class="icon-action-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
                             onclick="toggleEdit(${idx})"
@@ -710,6 +726,116 @@ function renderExercises() {
 
         container.appendChild(div);
     });
+}
+
+function toggleExerciseDropdownInEdit(idx) {
+    const select = document.getElementById(`exerciseSelect-${idx}`);
+    
+    // If opening dropdown, populate it first
+    if (select.style.display === 'none') {
+        populateExerciseDropdown(idx);
+        select.style.display = 'block';
+    } else {
+        select.style.display = 'none';
+    }
+}
+
+function populateExerciseDropdown(idx) {
+    const currentType = storage.currentWorkout.type;
+    const allExerciseNames = new Set();
+    
+    // Get from previous workouts
+    storage.workouts.forEach(w => {
+        if (w.type === currentType && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name) allExerciseNames.add(ex.name);
+            });
+        }
+    });
+    
+    // Get from templates
+    if (storage.templates[currentType]) {
+        storage.templates[currentType].forEach(template => {
+            if (template.exercises) {
+                template.exercises.forEach(ex => {
+                    if (ex.name) allExerciseNames.add(ex.name);
+                });
+            }
+        });
+    }
+    
+    // Get from default templates
+    if (defaultTemplates[currentType]) {
+        defaultTemplates[currentType].forEach(name => {
+            allExerciseNames.add(name);
+        });
+    }
+    
+    // Populate select dropdown
+    const select = document.getElementById(`exerciseSelect-${idx}`);
+    if (select) {
+        select.innerHTML = '<option value="">-- Select from history --</option>';
+        Array.from(allExerciseNames).sort().forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    }
+}
+
+function handleExerciseSelectionInEdit(idx) {
+    const select = document.getElementById(`exerciseSelect-${idx}`);
+    const exerciseName = select.value;
+    
+    if (!exerciseName) return;
+    
+    // Update the exercise name input
+    const nameInput = document.getElementById(`exerciseName-${idx}`);
+    nameInput.value = exerciseName;
+    
+    // Update the exercise name in storage
+    storage.currentWorkout.exercises[idx].name = exerciseName;
+    
+    // Prefill data from history
+    prefillExerciseDataInEdit(idx, exerciseName);
+    
+    // Reset select and hide
+    select.selectedIndex = 0;
+    select.style.display = 'none';
+    
+    // Re-render to show updated values
+    renderExercises();
+    autoSave();
+}
+
+function prefillExerciseDataInEdit(idx, exerciseName) {
+    const currentType = storage.currentWorkout.type;
+    
+    // Search for the most recent workout with this exercise
+    let latestExercise = null;
+    let latestDate = null;
+    
+    storage.workouts.forEach(w => {
+        if (w.type === currentType && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name === exerciseName) {
+                    const workoutDate = new Date(w.date);
+                    if (!latestDate || workoutDate > latestDate) {
+                        latestDate = workoutDate;
+                        latestExercise = ex;
+                    }
+                }
+            });
+        }
+    });
+    
+    // If found, prefill the values
+    if (latestExercise) {
+        storage.currentWorkout.exercises[idx].sets = latestExercise.sets;
+        storage.currentWorkout.exercises[idx].reps = latestExercise.reps;
+        storage.currentWorkout.exercises[idx].weight = latestExercise.weight;
+    }
 }
 
 function toggleEdit(idx) {
