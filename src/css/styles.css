@@ -132,6 +132,7 @@ body {
     align-items: center;
     justify-content: flex-start;
     position: relative;
+    padding: 5px;
     /* needed for absolute positioning of delete-container */
 
 }
@@ -2238,6 +2239,7 @@ margin-top: 0;
 
 .detail-tool-btn:active {
     transform: scale(0.95);
+    background: none !important;
 }
 
 .detail-tool-btn .material-symbols-outlined,
