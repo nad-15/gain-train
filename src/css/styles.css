@@ -2256,7 +2256,7 @@ margin-top: 0;
 
 .detail-tool-btn .material-symbols-outlined,
 .detail-tool-btn .material-icons {
-    font-size: 16px !important;
+    font-size: 18px !important;
 }
 /* Workout Action Grid - Single Row */
 .workout-action-grid {
@@ -2383,4 +2383,38 @@ margin-top: 0;
 
 .add-exercise-btn .material-symbols-outlined {
     font-size: 20px !important;
+}
+
+
+.exercise-type-tabs {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.exercise-type-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.exercise-tab {
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.exercise-tab:hover {
+    background: #f8f9fa;
+    color: #1a1d1f;
+}
+
+.exercise-tab.active {
+    background: #1a1d1f;
+    color: white;
 }

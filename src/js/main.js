@@ -508,24 +508,36 @@ function renderExercises() {
             // EDIT MODE - Full editable form
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="flex: 1; margin-right: 10px; position: relative;">
-                        <input type="text" 
-                            class="exercise-name-input" 
-                            id="exerciseName-${idx}"
-                            value="${ex.name}" 
-                            onchange="updateExerciseName(${idx}, this.value)"
-                            style="width: 100%; padding: 10px 40px 10px 12px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid transparent; transition: border-color 0.2s ease;">
-                        <button type="button" 
-                                onclick="toggleExerciseDropdownInEdit(${idx})" 
-                                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"
-                                title="Select from history">
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
-                        </button>
-                        <select id="exerciseSelect-${idx}" 
-                                onchange="handleExerciseSelectionInEdit(${idx})" 
-                                style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; width: 100%; padding: 4px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.85em; background: white; z-index: 10; max-height: 200px; overflow-y: auto;">
-                        </select>
-                    </div>
+<div style="flex: 1; margin-right: 10px; position: relative;">
+    <input type="text" 
+           class="exercise-name-input" 
+           id="exerciseName-${idx}"
+           value="${ex.name}" 
+           onchange="updateExerciseName(${idx}, this.value)"
+           style="width: 100%; padding: 10px 40px 10px 12px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid transparent; transition: border-color 0.2s ease;">
+    <button type="button" 
+            onclick="toggleExerciseDropdownInEdit(${idx})" 
+            style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"
+            title="Select from history">
+        <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
+    </button>
+    <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto;">
+            <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
+            <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
+            <button class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
+            <button class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
+            <button class="exercise-tab" data-type="upper" onclick="switchExerciseTabInEdit(${idx}, 'upper')">Upper</button>
+            <button class="exercise-tab" data-type="lower" onclick="switchExerciseTabInEdit(${idx}, 'lower')">Lower</button>
+            <button class="exercise-tab" data-type="whole" onclick="switchExerciseTabInEdit(${idx}, 'whole')">Whole</button>
+        </div>
+        <select id="exerciseSelect-${idx}" 
+                onchange="handleExerciseSelectionInEdit(${idx})" 
+                size="8"
+                style="width: 100%; padding: 8px; border: none; font-size: 0.85em; max-height: 240px; outline: none;">
+        </select>
+    </div>
+</div>
 
                     <div style="display: flex; gap: 4px; align-items: center;"> 
                         <button class="detail-tool-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
@@ -629,18 +641,79 @@ function renderExercises() {
 }
 
 function toggleExerciseDropdownInEdit(idx) {
-    const select = document.getElementById(`exerciseSelect-${idx}`);
+    const container = document.getElementById(`exerciseDropdownContainer-${idx}`);
     
-    // If opening dropdown, populate it first
-    if (select.style.display === 'none') {
-        populateExerciseDropdown(idx);
-        select.style.display = 'block';
-        select.size = Math.min(select.options.length, 8); // Show as list
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        // Load current type by default
+        switchExerciseTabInEdit(idx, 'current');
     } else {
-        select.style.display = 'none';
+        container.style.display = 'none';
     }
 }
 
+function switchExerciseTabInEdit(idx, type) {
+    const container = document.getElementById(`exerciseDropdownContainer-${idx}`);
+    
+    // Update active tab
+    container.querySelectorAll('.exercise-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    container.querySelector(`.exercise-tab[data-type="${type}"]`).classList.add('active');
+    
+    // Load exercises for selected type
+    const targetType = type === 'current' ? storage.currentWorkout.type : type;
+    loadExercisesForTypeInEdit(idx, targetType);
+}
+
+function loadExercisesForTypeInEdit(idx, type) {
+    const allExerciseNames = new Set();
+    
+    // Get from previous workouts
+    storage.workouts.forEach(w => {
+        if (w.type === type && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name) allExerciseNames.add(ex.name);
+            });
+        }
+    });
+    
+    // Get from templates
+    if (storage.templates[type]) {
+        storage.templates[type].forEach(template => {
+            if (template.exercises) {
+                template.exercises.forEach(ex => {
+                    if (ex.name) allExerciseNames.add(ex.name);
+                });
+            }
+        });
+    }
+    
+    // Get from default templates
+    if (defaultTemplates[type]) {
+        defaultTemplates[type].forEach(name => {
+            allExerciseNames.add(name);
+        });
+    }
+    
+    // Populate select dropdown
+    const select = document.getElementById(`exerciseSelect-${idx}`);
+    select.innerHTML = '';
+    
+    if (allExerciseNames.size === 0) {
+        const option = document.createElement('option');
+        option.textContent = 'No exercises found';
+        option.disabled = true;
+        select.appendChild(option);
+    } else {
+        Array.from(allExerciseNames).sort().forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    }
+}
 function populateExerciseDropdown(idx) {
     const currentType = storage.currentWorkout.type;
     const allExerciseNames = new Set();
@@ -701,15 +774,13 @@ function handleExerciseSelectionInEdit(idx) {
     // Prefill data from history
     prefillExerciseDataInEdit(idx, exerciseName);
     
-    // Reset select and hide
-    select.selectedIndex = 0;
-    select.style.display = 'none';
+    // Hide the dropdown container
+    document.getElementById(`exerciseDropdownContainer-${idx}`).style.display = 'none';
     
     // Re-render to show updated values
     renderExercises();
     autoSave();
 }
-
 function prefillExerciseDataInEdit(idx, exerciseName) {
     const currentType = storage.currentWorkout.type;
     
@@ -1070,16 +1141,74 @@ function prefillExerciseData() {
 }
 
 function toggleExerciseDropdown() {
-    const select = document.getElementById('exerciseSelect');
-    if (select.style.display === 'none') {
-        // Populate first if not already done
-        if (select.options.length <= 1) {
-            populateExerciseDropdownMain();
-        }
-        select.style.display = 'block';
-        select.size = Math.min(select.options.length, 8); // Show as list, not dropdown
+    const container = document.getElementById('exerciseDropdownContainer');
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        // Load current type by default
+        switchExerciseTab('current');
     } else {
-        select.style.display = 'none';
+        container.style.display = 'none';
+    }
+}
+
+function switchExerciseTab(type) {
+    // Update active tab
+    document.querySelectorAll('.exercise-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelector(`.exercise-tab[data-type="${type}"]`).classList.add('active');
+    
+    // Load exercises for selected type
+    const targetType = type === 'current' ? storage.currentWorkout.type : type;
+    loadExercisesForType(targetType);
+}
+
+function loadExercisesForType(type) {
+    const allExerciseNames = new Set();
+    
+    // Get from previous workouts
+    storage.workouts.forEach(w => {
+        if (w.type === type && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name) allExerciseNames.add(ex.name);
+            });
+        }
+    });
+    
+    // Get from templates
+    if (storage.templates[type]) {
+        storage.templates[type].forEach(template => {
+            if (template.exercises) {
+                template.exercises.forEach(ex => {
+                    if (ex.name) allExerciseNames.add(ex.name);
+                });
+            }
+        });
+    }
+    
+    // Get from default templates
+    if (defaultTemplates[type]) {
+        defaultTemplates[type].forEach(name => {
+            allExerciseNames.add(name);
+        });
+    }
+    
+    // Populate select dropdown
+    const select = document.getElementById('exerciseSelect');
+    select.innerHTML = '';
+    
+    if (allExerciseNames.size === 0) {
+        const option = document.createElement('option');
+        option.textContent = 'No exercises found';
+        option.disabled = true;
+        select.appendChild(option);
+    } else {
+        Array.from(allExerciseNames).sort().forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+        });
     }
 }
 
@@ -1135,6 +1264,9 @@ function handleExerciseSelection() {
 
     // Prefill data
     prefillExerciseData();
+
+        document.getElementById('exerciseDropdownContainer').style.display = 'none';
+
 
     // Reset select back to placeholder
     select.selectedIndex = 0;
