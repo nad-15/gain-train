@@ -1171,10 +1171,56 @@ function prefillExerciseData() {
 function toggleExerciseDropdown() {
     const select = document.getElementById('exerciseSelect');
     if (select.style.display === 'none') {
+        // Populate first if not already done
+        if (select.options.length <= 1) {
+            populateExerciseDropdownMain();
+        }
         select.style.display = 'block';
+        select.size = Math.min(select.options.length, 8); // Show as list, not dropdown
     } else {
         select.style.display = 'none';
     }
+}
+
+function populateExerciseDropdownMain() {
+    const currentType = storage.currentWorkout.type;
+    const allExerciseNames = new Set();
+    
+    // Get from previous workouts
+    storage.workouts.forEach(w => {
+        if (w.type === currentType && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name) allExerciseNames.add(ex.name);
+            });
+        }
+    });
+    
+    // Get from templates
+    if (storage.templates[currentType]) {
+        storage.templates[currentType].forEach(template => {
+            if (template.exercises) {
+                template.exercises.forEach(ex => {
+                    if (ex.name) allExerciseNames.add(ex.name);
+                });
+            }
+        });
+    }
+    
+    // Get from default templates
+    if (defaultTemplates[currentType]) {
+        defaultTemplates[currentType].forEach(name => {
+            allExerciseNames.add(name);
+        });
+    }
+    
+    const select = document.getElementById('exerciseSelect');
+    select.innerHTML = ''; // Remove placeholder
+    Array.from(allExerciseNames).sort().forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+    });
 }
 
 function handleExerciseSelection() {
@@ -2415,12 +2461,79 @@ function selectColor(color) {
     document.querySelector(`.color-option[data-color="${color}"]`).classList.add('selected');
 }
 
-function addCustomExercise() {
-    const exerciseName = prompt('Enter exercise name:');
-    if (!exerciseName) return;
+// Handle type selection
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelector = document.getElementById('customExerciseTypeSelector');
+    if (typeSelector) {
+        typeSelector.addEventListener('change', function() {
+            const selectedType = this.value;
+            if (!selectedType) {
+                document.getElementById('customExerciseNameSelector').style.display = 'none';
+                return;
+            }
+            loadExercisesForCustomType(selectedType);
+        });
+    }
+});
+
+function loadExercisesForCustomType(type) {
+    const allExercises = new Set();
+    
+    // Get from workouts
+    storage.workouts.forEach(w => {
+        if (w.type === type && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name) allExercises.add(ex.name);
+            });
+        }
+    });
+    
+    // Get from templates
+    if (storage.templates[type]) {
+        storage.templates[type].forEach(template => {
+            if (template.exercises) {
+                template.exercises.forEach(ex => {
+                    if (ex.name) allExercises.add(ex.name);
+                });
+            }
+        });
+    }
+    
+    // Get from defaults
+    if (defaultTemplates[type]) {
+        defaultTemplates[type].forEach(name => {
+            allExercises.add(name);
+        });
+    }
+    
+    // Populate exercise selector
+    const exerciseSelector = document.getElementById('customExerciseNameSelector');
+    exerciseSelector.innerHTML = '<option value="">Select exercise...</option>';
+    
+    Array.from(allExercises).sort().forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        exerciseSelector.appendChild(option);
+    });
+    
+    exerciseSelector.style.display = 'block';
+}
+
+function addSelectedCustomExercise() {
+    const exerciseName = document.getElementById('customExerciseNameSelector').value;
+    if (!exerciseName) {
+        alert('Please select a workout type and exercise first!');
+        return;
+    }
 
     storage.customExercises.push(exerciseName);
     renderCustomExercises();
+    
+    // Reset selectors
+    document.getElementById('customExerciseTypeSelector').value = '';
+    document.getElementById('customExerciseNameSelector').style.display = 'none';
+    document.getElementById('customExerciseNameSelector').value = '';
 }
 
 function renderCustomExercises() {

@@ -149,17 +149,17 @@
                         </div>
                     </div>
                     <div class="calendar-container">
-    <div class="calendar-weekday-header" id="calendarWeekdayHeader">
-        <div class="weekday-header-item">Sun</div>
-        <div class="weekday-header-item">Mon</div>
-        <div class="weekday-header-item">Tue</div>
-        <div class="weekday-header-item">Wed</div>
-        <div class="weekday-header-item">Thu</div>
-        <div class="weekday-header-item">Fri</div>
-        <div class="weekday-header-item">Sat</div>
-    </div>
-    <div class="calendar" id="calendarGrid"></div>
-</div>
+                        <div class="calendar-weekday-header" id="calendarWeekdayHeader">
+                            <div class="weekday-header-item">Sun</div>
+                            <div class="weekday-header-item">Mon</div>
+                            <div class="weekday-header-item">Tue</div>
+                            <div class="weekday-header-item">Wed</div>
+                            <div class="weekday-header-item">Thu</div>
+                            <div class="weekday-header-item">Fri</div>
+                            <div class="weekday-header-item">Sat</div>
+                        </div>
+                        <div class="calendar" id="calendarGrid"></div>
+                    </div>
                 </div>
 
             </div>
@@ -171,19 +171,19 @@
                         <span id="selectedDateLabel"></span>
                     </div>
 
-<div class="workout-details-tools">
-    <button class="detail-tool-btn" id="changeWorkoutBtn" style="display: none;">
-        <!-- This will be populated by JavaScript -->
-    </button>
-    <button class="detail-tool-btn" id="deleteWorkoutBtn" style="display: none;">
-        <!-- This will be populated by JavaScript -->
-    </button>
-    <button class="detail-tool-btn" onclick="event.stopPropagation(); toggleExpand()">
-        <span id="expandIcon" class="material-symbols-outlined">
-            more_up
-        </span>
-    </button>
-</div>
+                    <div class="workout-details-tools">
+                        <button class="detail-tool-btn" id="changeWorkoutBtn" style="display: none;">
+                            <!-- This will be populated by JavaScript -->
+                        </button>
+                        <button class="detail-tool-btn" id="deleteWorkoutBtn" style="display: none;">
+                            <!-- This will be populated by JavaScript -->
+                        </button>
+                        <button class="detail-tool-btn" onclick="event.stopPropagation(); toggleExpand()">
+                            <span id="expandIcon" class="material-symbols-outlined">
+                                more_up
+                            </span>
+                        </button>
+                    </div>
 
                 </div>
 
@@ -239,17 +239,16 @@
     <div id="exerciseModal" class="modal">
         <div class="modal-content">
             <h2>Add Exercise</h2>
-<div class="form-group">
+            <div class="form-group">
     <label>Exercise Name</label>
-    <div style="display: flex; gap: 8px; align-items: center;">
-        <button type="button" class="icon-action-btn" onclick="toggleExerciseDropdown()" style="flex-shrink: 0;">
-            <span class="material-symbols-outlined">history</span>
+    <div style="position: relative;">
+        <input type="text" id="exerciseName" placeholder="e.g., Bench Press" style="width: 100%; padding: 11px 40px 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem;">
+        <button type="button" onclick="toggleExerciseDropdown()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 20px; color: #6c757d;">expand_more</span>
         </button>
-        <input type="text" id="exerciseName" placeholder="e.g., Bench Press" style="flex: 1;">
+<select id="exerciseSelect" onchange="handleExerciseSelection()" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; width: 100%; padding: 4px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem; background: white; z-index: 10; max-height: 240px; overflow-y: auto;">
+</select>
     </div>
-    <select id="exerciseSelect" onchange="handleExerciseSelection()" style="display: none; margin-top: 8px; width: 100%; padding: 8px; border: 2px solid #e9ecef; border-radius: 8px;">
-        <option value="">-- Select from history --</option>
-    </select>
 </div>
             <div class="form-group">
                 <label>Sets</label>
@@ -406,14 +405,26 @@
                         onclick="selectColor('#00acc1')"></button>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Default Exercises (Optional)</label>
-                <div id="customExercisesList" style="margin-bottom: 10px;"></div>
-                <button class="modal-btn save" style="width: 100%; margin-bottom: 10px;" onclick="addCustomExercise()">
-                    <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-                    <span>Add Exercise</span>
-                </button>
-            </div>
+<div class="form-group">
+    <label>Default Exercises (Optional)</label>
+    <div id="customExercisesList" style="margin-bottom: 10px;"></div>
+    <select id="customExerciseTypeSelector" style="width: 100%; padding: 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem; margin-bottom: 10px;">
+        <option value="">Select workout type...</option>
+        <option value="push">Push</option>
+        <option value="pull">Pull</option>
+        <option value="legs">Legs</option>
+        <option value="upper">Upper Body</option>
+        <option value="lower">Lower Body</option>
+        <option value="whole">Whole Body</option>
+    </select>
+    <select id="customExerciseNameSelector" style="display: none; width: 100%; padding: 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem; margin-bottom: 10px;">
+        <option value="">Select exercise...</option>
+    </select>
+    <button class="modal-btn save" style="width: 100%; margin-bottom: 10px;" onclick="addSelectedCustomExercise()">
+        <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+        <span>Add Exercise</span>
+    </button>
+</div>
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeCustomWorkout()">Cancel</button>
                 <button class="modal-btn save" onclick="saveCustomWorkout()">Create</button>
