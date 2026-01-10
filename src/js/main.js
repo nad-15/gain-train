@@ -491,106 +491,6 @@ function autoSave() {
 }
 
 
-// function renderExercises() {
-//     const container = document.getElementById('exerciseList');
-//     container.innerHTML = '';
-
-//     if (!storage.currentWorkout || !storage.currentWorkout.exercises) return;
-
-//     storage.currentWorkout.exercises.forEach((ex, idx) => {
-//         const div = document.createElement('div');
-//         div.className = 'exercise-item';
-
-//         if (storage.isViewMode) {
-//             // View mode - simple format
-//             div.innerHTML = `
-//                 <div class="exercise-name" style="margin-bottom: 8px;">${ex.name}</div>
-//                 <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
-//                     ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
-//                 </div>
-//                 ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
-//             `;
-//         } else {
-//             // Edit mode - new redesigned layout
-//             div.innerHTML = `
-//                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-//                     <input type="text" class="exercise-name-input" value="${ex.name}" 
-//                            onchange="updateExerciseName(${idx}, this.value)"
-//                            style="flex: 1; margin-right: 10px; padding: 6px; font-weight: 600; font-size: 0.95em;">
-//                     <button class="delete-exercise" onclick="deleteExercise(${idx})">
-
-//                         <span class="material-icons" style="font-size: 20px; color: #4e4b4bff;">delete</span>
-
-
-
-//                     </button>
-//                 </div>
-
-//                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px;">
-//                     <!-- SETS -->
-//                     <div style="text-align: center;">
-//                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">SETS</div>
-//                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-//                             <button class="control-btn minus" onclick="changeValue(${idx}, 'sets', -1)">−</button>
-//                             <input type="number" class="value-input" value="${ex.sets}" 
-//                                    onchange="updateValue(${idx}, 'sets', this.value)" min="1"
-//                                    style="width: 45px;">
-//                             <button class="control-btn plus" onclick="changeValue(${idx}, 'sets', 1)">+</button>
-//                         </div>
-//                     </div>
-
-//                     <!-- REPS -->
-//                     <div style="text-align: center;">
-//                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">REPS</div>
-//                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-//                             <button class="control-btn minus" onclick="changeValue(${idx}, 'reps', -1)">−</button>
-//                             <input type="number" class="value-input" value="${ex.reps}" 
-//                                    onchange="updateValue(${idx}, 'reps', this.value)" min="1"
-//                                    style="width: 45px;">
-//                             <button class="control-btn plus" onclick="changeValue(${idx}, 'reps', 1)">+</button>
-//                         </div>
-//                     </div>
-
-//                     <!-- KG -->
-//                     <div style="text-align: center;">
-// <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;"> 
-//     <div style="font-size: 0.75em; font-weight: 600; color: #6c757d;">KG</div>
-
-//     <label style="display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 0.6em; color: #6c757d;">
-//         <input 
-//             type="checkbox"
-//             style="zoom: 0.7;"
-//             ${ex.weight === 'BW' ? 'checked' : ''} 
-//             onchange="toggleBodyweight(${idx}, this.checked)"
-//         >
-//         BW
-//     </label>
-// </div>
-
-
-
-
-//                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-//                             <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
-//                             <input type="text" class="value-input" value="${ex.weight}" 
-//                                    onchange="updateValue(${idx}, 'weight', this.value)" 
-//                                    ${ex.weight === 'BW' ? 'disabled' : ''}
-//                                    style="width: 45px;">
-//                             <button class="control-btn plus" onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>+</button>
-//                         </div>
-//                     </div>
-//                 </div>
-
-//                 <textarea class="notes-input" 
-//                           placeholder="Notes (optional)" 
-//                           oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)"
-//                           rows="1">${ex.notes || ''}</textarea>
-//             `;
-//         }
-
-//         container.appendChild(div);
-//     });
-// }
 
 function renderExercises() {
     const container = document.getElementById('exerciseList');
@@ -608,38 +508,38 @@ function renderExercises() {
             // EDIT MODE - Full editable form
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-<div style="flex: 1; margin-right: 10px; position: relative;">
-    <input type="text" 
-           class="exercise-name-input" 
-           id="exerciseName-${idx}"
-           value="${ex.name}" 
-           onchange="updateExerciseName(${idx}, this.value)"
-           style="width: 100%; padding: 6px; font-weight: 600; font-size: 0.95em;">
-    <select id="exerciseSelect-${idx}" 
-            onchange="handleExerciseSelectionInEdit(${idx})" 
-            style="display: none; margin-top: 4px; width: 100%; padding: 6px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 0.85em;">
-        <option value="">-- Select from history --</option>
-    </select>
-</div>
-<button class="icon-action-btn" 
-        onclick="toggleExerciseDropdownInEdit(${idx})" 
-        style="margin-right: 8px;"
-        title="History">
-    <span class="material-symbols-outlined" style="font-size: 18px;">history</span>
-</button>
-                <div style="width: 80px; display: flex; gap: 8px; "> 
-                    <button class="icon-action-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
-                            onclick="toggleEdit(${idx})"
-                            title="${isEditing ? 'Save' : 'Edit'}">
-                        <span class="material-icons edit-icon">edit</span>
-                        <span class="material-icons save-icon">check</span>
-                    </button>
+                    <div style="flex: 1; margin-right: 10px; position: relative;">
+                        <input type="text" 
+                            class="exercise-name-input" 
+                            id="exerciseName-${idx}"
+                            value="${ex.name}" 
+                            onchange="updateExerciseName(${idx}, this.value)"
+                            style="width: 100%; padding: 10px 40px 10px 12px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid transparent; transition: border-color 0.2s ease;">
+                        <button type="button" 
+                                onclick="toggleExerciseDropdownInEdit(${idx})" 
+                                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"
+                                title="Select from history">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
+                        </button>
+                        <select id="exerciseSelect-${idx}" 
+                                onchange="handleExerciseSelectionInEdit(${idx})" 
+                                style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; width: 100%; padding: 4px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.85em; background: white; z-index: 10; max-height: 200px; overflow-y: auto;">
+                        </select>
+                    </div>
 
+                    <div style="display: flex; gap: 4px; align-items: center;"> 
+                        <button class="detail-tool-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
+                                onclick="toggleEdit(${idx})"
+                                title="${isEditing ? 'Save' : 'Edit'}">
+                            <span class="material-icons edit-icon">edit</span>
+                            <span class="material-icons save-icon">check</span>
+                        </button>
 
-                    <button class="icon-action-btn delete-btn" onclick="deleteExercise(${idx})" title="Delete">
-                        <span class="material-icons" style="font-size: 20px;">delete</span>
-                    </button>
-                                    </div>
+                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})" title="Delete">
+                            <span class="material-icons" style="font-size: 18px;">delete</span>
+                        </button>
+                    </div>
+
                 </div>
                 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px;">
@@ -702,20 +602,20 @@ function renderExercises() {
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <div class="exercise-name">${ex.name}</div>
-                    <div style="display: flex; gap: 8px; ">
-                    <div style="width: 80px; display: flex; gap: 8px; "> 
-                        <button class="icon-action-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
-                                onclick="toggleEdit(${idx})"
-                                title="${isEditing ? 'Save' : 'Edit'}">
-                            <span class="material-icons edit-icon">edit</span>
-                            <span class="material-icons save-icon">check</span>
-                        </button>
 
-                        <button class="icon-action-btn delete-btn" onclick="deleteExercise(${idx})" title="Delete">
-                            <span class="material-icons" style="font-size: 20px;">delete</span>
-                        </button>
-                                            </div>  
-                    </div>
+
+<div style="display: flex; gap: 4px; align-items: center;"> 
+    <button class="detail-tool-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
+            onclick="toggleEdit(${idx})"
+            title="${isEditing ? 'Save' : 'Edit'}">
+        <span class="material-icons edit-icon">edit</span>
+        <span class="material-icons save-icon">check</span>
+    </button>
+
+    <button class="detail-tool-btn" onclick="deleteExercise(${idx})" title="Delete">
+        <span class="material-icons" style="font-size: 18px;">delete</span>
+    </button>
+</div>
                 </div>
                 <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
                     ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
@@ -735,6 +635,7 @@ function toggleExerciseDropdownInEdit(idx) {
     if (select.style.display === 'none') {
         populateExerciseDropdown(idx);
         select.style.display = 'block';
+        select.size = Math.min(select.options.length, 8); // Show as list
     } else {
         select.style.display = 'none';
     }
@@ -774,7 +675,7 @@ function populateExerciseDropdown(idx) {
     // Populate select dropdown
     const select = document.getElementById(`exerciseSelect-${idx}`);
     if (select) {
-        select.innerHTML = '<option value="">-- Select from history --</option>';
+        select.innerHTML = ''; // Remove placeholder - show exercises immediately
         Array.from(allExerciseNames).sort().forEach(name => {
             const option = document.createElement('option');
             option.value = name;

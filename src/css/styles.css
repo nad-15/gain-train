@@ -2200,9 +2200,7 @@ margin-top: 0;
     transform: scale(0.7);
 }
 
-.material-icons.edit-icon {
-       color: #4c6ef5 !important; 
-}
+
 
 .toggle-edit-btn.editing .edit-icon {
     opacity: 0;
@@ -2210,12 +2208,25 @@ margin-top: 0;
  
 }
 
-.toggle-edit-btn.editing .save-icon {
-    opacity: 1;
-    font-weight: bold;
-    transform: scale(1);
-        color: #2da44e; /* green */
+.material-icons.edit-icon {
+    color: #6c757d !important; 
 }
+
+.detail-tool-btn:hover .material-icons.edit-icon {
+    color: #4c6ef5 !important;
+}
+
+.toggle-edit-btn.editing .material-icons.save-icon {
+    opacity: 1;
+    transform: scale(1);
+    color: #2da44e;
+}
+
+.toggle-edit-btn:hover.editing .material-icons.save-icon {
+    color: #2da44e !important;
+}
+
+
 
 
 .detail-tool-btn {
