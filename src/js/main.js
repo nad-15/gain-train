@@ -186,6 +186,7 @@ function startWorkout(type, date = null, templateData = null) {
 function selectWorkoutType(type) {
     storage.selectedWorkoutType = type;
     showTemplateSelector(type);
+    console.log('Selected workout type:', type);
 }
 
 // function showWorkoutTypePreview(type, templateData = null) {
@@ -521,16 +522,19 @@ function renderExercises() {
             title="Select from history">
         <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
     </button>
-    <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
         <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto;">
-            <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
-            <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
-            <button class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
-            <button class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
-            <button class="exercise-tab" data-type="upper" onclick="switchExerciseTabInEdit(${idx}, 'upper')">Upper</button>
-            <button class="exercise-tab" data-type="lower" onclick="switchExerciseTabInEdit(${idx}, 'lower')">Lower</button>
-            <button class="exercise-tab" data-type="whole" onclick="switchExerciseTabInEdit(${idx}, 'whole')">Whole</button>
-        </div>
+    <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
+    <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
+    <button class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
+    <button class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
+    <button class="exercise-tab" data-type="upper" onclick="switchExerciseTabInEdit(${idx}, 'upper')">Upper</button>
+    <button class="exercise-tab" data-type="lower" onclick="switchExerciseTabInEdit(${idx}, 'lower')">Lower</button>
+    <button class="exercise-tab" data-type="whole" onclick="switchExerciseTabInEdit(${idx}, 'whole')">Whole</button>
+    ${storage.customWorkoutTypes.map(custom => 
+        `<button class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>`
+    ).join('')}
+</div>
         <select id="exerciseSelect-${idx}" 
                 onchange="handleExerciseSelectionInEdit(${idx})" 
                 size="8"
@@ -759,6 +763,12 @@ function populateExerciseDropdown(idx) {
 }
 
 function handleExerciseSelectionInEdit(idx) {
+
+
+
+
+
+
     const select = document.getElementById(`exerciseSelect-${idx}`);
     const exerciseName = select.value;
     
@@ -1276,55 +1286,32 @@ function handleExerciseSelection() {
 }
 
 function openAddExercise() {
-    // Get all exercise names from workouts AND templates of the SAME TYPE
-    const currentType = storage.currentWorkout.type;
-    const allExerciseNames = new Set();
-
-    // Get from previous workouts
-    storage.workouts.forEach(w => {
-        if (w.type === currentType && w.exercises) {
-            w.exercises.forEach(ex => {
-                if (ex.name) allExerciseNames.add(ex.name);
-            });
-        }
-    });
-
-    // Get from templates
-    if (storage.templates[currentType]) {
-        storage.templates[currentType].forEach(template => {
-            if (template.exercises) {
-                template.exercises.forEach(ex => {
-                    if (ex.name) allExerciseNames.add(ex.name);
-                });
-            }
-        });
-    }
-
-    // Get from default templates
-    if (defaultTemplates[currentType]) {
-        defaultTemplates[currentType].forEach(name => {
-            allExerciseNames.add(name);
-        });
-    }
-
-    // Populate select dropdown
-    const select = document.getElementById('exerciseSelect');
-    if (select) {
-        select.innerHTML = '<option value="">-- Select from history or type below --</option>';
-        Array.from(allExerciseNames).sort().forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            select.appendChild(option);
-        });
-    }
-
     // Reset form
     document.getElementById('exerciseName').value = '';
     document.getElementById('exerciseSets').value = '3';
     document.getElementById('exerciseReps').value = '10';
     document.getElementById('exerciseWeight').value = '0';
-
+    
+    // Add custom workout types to tabs
+    const tabsContainer = document.getElementById('exerciseTabsMain');
+    
+    // Remove old custom tabs first
+    tabsContainer.querySelectorAll('[data-custom="true"]').forEach(tab => tab.remove());
+    
+    // Add custom workout type tabs
+    storage.customWorkoutTypes.forEach(custom => {
+        const btn = document.createElement('button');
+        btn.className = 'exercise-tab';
+        btn.setAttribute('data-type', custom.id);
+        btn.setAttribute('data-custom', 'true');
+        btn.textContent = custom.name;
+        btn.onclick = () => switchExerciseTab(custom.id);
+        tabsContainer.appendChild(btn);
+    });
+    
+    // Hide dropdown container by default
+    document.getElementById('exerciseDropdownContainer').style.display = 'none';
+    
     document.getElementById('exerciseModal').classList.add('active');
 }
 

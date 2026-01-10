@@ -240,23 +240,23 @@
         <div class="modal-content">
             <h2>Add Exercise</h2>
             <div class="form-group">
-   <div class="form-group">
     <label>Exercise Name</label>
     <div style="position: relative;">
         <input type="text" id="exerciseName" placeholder="e.g., Bench Press" style="width: 100%; padding: 11px 40px 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem;">
         <button type="button" onclick="toggleExerciseDropdown()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;">
             <span class="material-symbols-outlined" style="font-size: 20px; color: #6c757d;">expand_more</span>
         </button>
-        <div id="exerciseDropdownContainer" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto;">
-                <button class="exercise-tab active" data-type="current" onclick="switchExerciseTab('current')">Current</button>
-                <button class="exercise-tab" data-type="push" onclick="switchExerciseTab('push')">Push</button>
-                <button class="exercise-tab" data-type="pull" onclick="switchExerciseTab('pull')">Pull</button>
-                <button class="exercise-tab" data-type="legs" onclick="switchExerciseTab('legs')">Legs</button>
-                <button class="exercise-tab" data-type="upper" onclick="switchExerciseTab('upper')">Upper</button>
-                <button class="exercise-tab" data-type="lower" onclick="switchExerciseTab('lower')">Lower</button>
-                <button class="exercise-tab" data-type="whole" onclick="switchExerciseTab('whole')">Whole</button>
-            </div>
+        <div id="exerciseDropdownContainer" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div class="exercise-type-tabs" id="exerciseTabsMain" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto;">
+    <button class="exercise-tab active" data-type="current" onclick="switchExerciseTab('current')">Current</button>
+    <button class="exercise-tab" data-type="push" onclick="switchExerciseTab('push')">Push</button>
+    <button class="exercise-tab" data-type="pull" onclick="switchExerciseTab('pull')">Pull</button>
+    <button class="exercise-tab" data-type="legs" onclick="switchExerciseTab('legs')">Legs</button>
+    <button class="exercise-tab" data-type="upper" onclick="switchExerciseTab('upper')">Upper</button>
+    <button class="exercise-tab" data-type="lower" onclick="switchExerciseTab('lower')">Lower</button>
+    <button class="exercise-tab" data-type="whole" onclick="switchExerciseTab('whole')">Whole</button>
+    <!-- Custom types will be added dynamically here -->
+</div>
             <select id="exerciseSelect" onchange="handleExerciseSelection()" size="8" style="width: 100%; padding: 8px; border: none; font-size: 0.9375rem; max-height: 240px; outline: none;">
             </select>
         </div>
