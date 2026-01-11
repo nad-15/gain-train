@@ -85,7 +85,8 @@ const storage = {
     selectedTemplate: null,
     currentWeekOffset: 0,
     isCreatingNewTemplate: false,
-    editingExerciseIndex: null  // ADD THIS NEW LINE
+    editingExerciseIndex: null,
+    originalExerciseSnapshot: null // Holds the data for canceling
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -591,8 +592,6 @@ function renderExercises() {
                                 color: #6c757d;
                             }
                             .exercise-tab.active {
-                                border-bottom: 2px solid #4c6ef5;
-                                color: #4c6ef5;
                                 font-weight: bold;
                             }
                         </style>
@@ -616,27 +615,21 @@ function renderExercises() {
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; height: 40px;">
-                    <div style="flex: 1; margin-right: 10px; position: relative;">
-                        <input type="text" 
-                               class="exercise-name-input" 
-                               id="exerciseName-${idx}"
-                               value="${ex.name}" 
-                               onchange="updateExerciseName(${idx}, this.value)"
-                               style="width: 100%; padding: 10px 40px 10px 12px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid #eee;">
-                        
-                        <button type="button" 
-                                onclick="toggleExerciseDropdownInEdit(${idx})" 
-                                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex;">
-                            <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
-                        </button>
-                    </div>
+                    <div style="flex: 1; margin-right: 10px; position: relative; display: flex; align-items: center;">
+                    <button type="button" onclick="toggleExerciseDropdownInEdit(${idx})" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; margin-right: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
+                    </button>
+    
+                    <input type="text" class="exercise-name-input" id="exerciseName-${idx}" value="${ex.name}" onchange="updateExerciseName(${idx}, this.value)" style="flex: 1; padding: 10px 0px 10px 4px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid #eee;">
+                </div>
 
                     <div style="display: flex; gap: 4px; align-items: center;"> 
                         <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})">
                             <span class="material-icons save-icon">check</span>
                         </button>
-                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})">
-                            <span class="material-icons" style="font-size: 18px;">delete</span>
+                        
+                        <button class="detail-tool-btn cancel-edit" onclick="cancelEdit(${idx})">
+                            <span class="material-icons cancel-edit-icon" style="font-size: 18px;">close</span>
                         </button>
                     </div>
                 </div>
@@ -887,32 +880,37 @@ function prefillExerciseDataInEdit(idx, exerciseName) {
 
 function toggleEdit(idx) {
     if (storage.editingExerciseIndex === idx) {
-        // Exiting edit mode - check for duplicates before saving
+        // SAVING: Check for errors before closing
         const currentExercise = storage.currentWorkout.exercises[idx];
-        const currentName = currentExercise.name.trim().toLowerCase();
         
-        // Check if another exercise has the same name (case-insensitive)
-        const hasDuplicate = storage.currentWorkout.exercises.some((ex, i) => {
-            return i !== idx && ex.name.trim().toLowerCase() === currentName;
-        });
-        
-        if (hasDuplicate) {
-            alert(`"${currentExercise.name}" already exists in this workout! Please use a different name.`);
-            return; // Don't exit edit mode
-        }
-        
-        // Check if name is empty or just whitespace
         if (!currentExercise.name.trim()) {
             alert('Exercise name cannot be empty!');
-            return; // Don't exit edit mode
+            return;
         }
-        
-        // All good - save and exit edit mode
+
+        // Clear backup and save
         storage.editingExerciseIndex = null;
+        storage.originalExerciseSnapshot = null; 
         autoSave();
     } else {
-        storage.editingExerciseIndex = idx; // enter edit
+        // ENTERING EDIT MODE: Create a deep copy snapshot
+        storage.originalExerciseSnapshot = JSON.parse(JSON.stringify(storage.currentWorkout.exercises[idx]));
+        storage.editingExerciseIndex = idx;
     }
+    renderExercises();
+}
+
+// ADD THIS NEW FUNCTION DIRECTLY BELOW toggleEdit
+function cancelEdit(idx) {
+    if (storage.originalExerciseSnapshot) {
+        // RESTORE: Put the old data back (trashes current typing)
+        storage.currentWorkout.exercises[idx] = storage.originalExerciseSnapshot;
+    }
+    
+    // Reset state
+    storage.editingExerciseIndex = null;
+    storage.originalExerciseSnapshot = null;
+    
     renderExercises();
 }
 
