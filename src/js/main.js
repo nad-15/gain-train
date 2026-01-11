@@ -575,7 +575,7 @@ function renderExercises() {
             div.innerHTML = `
                 <div id="exerciseDropdownContainer-${idx}" 
                      style="display: none; position: absolute; top: 52px; left: 0; width: 100%; 
-                            height: 150px; background: white; border: 1px solid #e9ecef; 
+                            height: 250px; background: white; border: 1px solid #e9ecef; 
                             border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; 
                             box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow: hidden;">
                     
