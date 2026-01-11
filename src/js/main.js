@@ -3210,22 +3210,23 @@ function renderYearHeatmap() {
     heatmapSection.innerHTML = `
         <div class="year-heatmap-header">
             <div class="year-heatmap-title">
-                <span class="material-symbols-outlined">calendar_view_month</span>
-                <h3>${totalDays} workouts in ${currentHeatmapYear}</h3>
+                <span class="material-symbols-outlined">key_visualizer</span>
+                <h5 style="color: #6c757d;">${totalDays} workouts in ${currentHeatmapYear}</h5>
             </div>
             <div class="year-nav">
                 <button onclick="changeHeatmapYear(-1)">
                     <span class="material-symbols-outlined">chevron_left</span>
                 </button>
-                <span>${currentHeatmapYear}</span>
+                <span style="color: #6c757d; font-size: .83em;">${currentHeatmapYear}</span>
                 <button onclick="changeHeatmapYear(1)" ${currentHeatmapYear >= new Date().getFullYear() ? 'disabled' : ''}>
                     <span class="material-symbols-outlined">chevron_right</span>
                 </button>
             </div>
         </div>
         <div class="heatmap-container">
+                    <div class="heatmap-months" id="heatmapMonths"></div>
             <div class="heatmap-grid" id="heatmapGrid"></div>
-            <div class="heatmap-months" id="heatmapMonths"></div>
+
         </div>
         <div class="heatmap-legend">
             <span>Rest</span>

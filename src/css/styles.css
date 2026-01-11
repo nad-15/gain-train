@@ -1968,18 +1968,19 @@ margin-top: 0;
 .year-nav {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 4px;
 }
 
 .year-nav button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: #f8f9fa;
-    color: #6c757d;
-    border: 1px solid #e9ecef;
+    width: .8em;
+    height: .8em;
+    background: none;
+    /* color: #6c757d; */
+
+    border:none;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.15s ease;
