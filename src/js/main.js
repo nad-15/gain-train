@@ -59,6 +59,31 @@ const storage = {
         localStorage.setItem('isDetailsExpanded', value);
     },
 
+    get weightLogs() {
+        if (!this._weightLogs) {
+            this._weightLogs = JSON.parse(localStorage.getItem('weightLogs') || '[]');
+        }
+        return this._weightLogs;
+    },
+
+    set weightLogs(value) {
+        this._weightLogs = value;
+        localStorage.setItem('weightLogs', JSON.stringify(value));
+    },
+
+    saveWeightLogs() {
+        localStorage.setItem('weightLogs', JSON.stringify(this._weightLogs));
+    },
+
+    get currentGraphType() {
+        const saved = localStorage.getItem('currentGraphType');
+        return saved || 'workouts';
+    },
+
+    set currentGraphType(value) {
+        localStorage.setItem('currentGraphType', value);
+    },
+
     saveWorkouts() {
         localStorage.setItem('workouts', JSON.stringify(this._workouts));
     },
@@ -336,19 +361,19 @@ function showTemplateSelector(type) {
             container.appendChild(defaultBtn);
         }
 
-// Get the reference date - either selected date or today
-const referenceDate = storage.isFromCalendar && storage.selectedDate 
-    ? new Date(storage.selectedDate) 
-    : new Date();
+        // Get the reference date - either selected date or today
+        const referenceDate = storage.isFromCalendar && storage.selectedDate
+            ? new Date(storage.selectedDate)
+            : new Date();
 
-const previousWorkouts = storage.workouts
-    .filter(w => {
-        const workoutDate = new Date(w.date);
-        return w.type === type && 
-               w.exercises?.length && 
-               workoutDate < referenceDate; // Only past workouts
-    })
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+        const previousWorkouts = storage.workouts
+            .filter(w => {
+                const workoutDate = new Date(w.date);
+                return w.type === type &&
+                    w.exercises?.length &&
+                    workoutDate < referenceDate; // Only past workouts
+            })
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
 
         if (previousWorkouts.length) {
             const lastWorkout = previousWorkouts[0];
@@ -461,21 +486,21 @@ const previousWorkouts = storage.workouts
 function editTemplateName(type, idx) {
     const currentName = storage.templates[type][idx].name;
     const newName = prompt('Enter new template name:', currentName);
-    
+
     if (newName === null) return; // User cancelled
-    
+
     const trimmedName = newName.trim();
     if (!trimmedName) {
         alert('Template name cannot be empty!');
         return;
     }
-    
+
     // Update the template name in storage
     const templates = storage.templates;
     templates[type][idx].name = trimmedName;
     storage.templates = templates;
     storage.saveTemplates();
-    
+
     // Refresh the template selector to show the new name
     showTemplateSelector(type);
 }
@@ -483,22 +508,22 @@ function editTemplateName(type, idx) {
 function saveTemplateName(type, idx) {
     const nameSpan = document.getElementById(`template-name-${type}-${idx}`);
     const nameInput = document.getElementById(`template-input-${type}-${idx}`);
-    
+
     if (nameSpan && nameInput) {
         const newName = nameInput.value.trim();
-        
+
         if (!newName) {
             alert('Template name cannot be empty!');
             nameInput.value = storage.templates[type][idx].name;
             return;
         }
-        
+
         // Update the template name in storage
         const templates = storage.templates;
         templates[type][idx].name = newName;
         storage.templates = templates;
         storage.saveTemplates();
-        
+
         // Update the display
         nameSpan.textContent = newName;
         nameSpan.style.display = 'inline';
@@ -568,7 +593,7 @@ function renderExercises() {
     storage.currentWorkout.exercises.forEach((ex, idx) => {
         const div = document.createElement('div');
         div.className = 'exercise-item';
-        div.style.position = 'relative'; 
+        div.style.position = 'relative';
 
         const isEditing = storage.editingExerciseIndex === idx;
 
@@ -578,7 +603,7 @@ function renderExercises() {
                      style="display: none; position: absolute; top: 52px; left: 0; width: 100%; 
                             height: 250px; background: white; border: 1px solid #e9ecef; 
                             border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; 
-                            box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow: hidden;">
+                            box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow-y: auto;">
                     
                     <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none;">
                         <style>
@@ -602,16 +627,17 @@ function renderExercises() {
                         <button class="exercise-tab" data-type="upper" onclick="switchExerciseTabInEdit(${idx}, 'upper')">Upper</button>
                         <button class="exercise-tab" data-type="lower" onclick="switchExerciseTabInEdit(${idx}, 'lower')">Lower</button>
                         <button class="exercise-tab" data-type="whole" onclick="switchExerciseTabInEdit(${idx}, 'whole')">Whole</button>
-                        ${storage.customWorkoutTypes.map(custom => 
-                            `<button class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>`
-                        ).join('')}
+                        ${storage.customWorkoutTypes.map(custom =>
+                `<button class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>`
+            ).join('')}
                     </div>
 
-                    <select id="exerciseSelect-${idx}" 
-                            onchange="handleExerciseSelectionInEdit(${idx})" 
-                            size="100" 
-                            style="width: 100%; height: 100%; flex-grow: 1; border: none; font-size: 0.9em; outline: none; background: transparent; padding: 8px; overflow-y: auto;">
-                    </select>
+<select id="exerciseSelect-${idx}" 
+        onchange="handleExerciseSelectionInEdit(${idx})" 
+        size="10" 
+        style="width: 100%; height: auto; flex-grow: 1; border: none; font-size: 0.9em; outline: none; background: transparent; padding: 8px;">
+</select>
+
                 </div>
                 <div style="display: flex; align-items: center; width: 100%; gap: 8px;">
 
@@ -697,7 +723,7 @@ function renderExercises() {
 
 function toggleExerciseDropdownInEdit(idx) {
     const container = document.getElementById(`exerciseDropdownContainer-${idx}`);
-    
+
     if (container.style.display === 'none') {
         container.style.display = 'block';
         // Load current type by default
@@ -709,13 +735,13 @@ function toggleExerciseDropdownInEdit(idx) {
 
 function switchExerciseTabInEdit(idx, type) {
     const container = document.getElementById(`exerciseDropdownContainer-${idx}`);
-    
+
     // Update active tab
     container.querySelectorAll('.exercise-tab').forEach(tab => {
         tab.classList.remove('active');
     });
     container.querySelector(`.exercise-tab[data-type="${type}"]`).classList.add('active');
-    
+
     // Load exercises for selected type
     const targetType = type === 'current' ? storage.currentWorkout.type : type;
     loadExercisesForTypeInEdit(idx, targetType);
@@ -723,7 +749,7 @@ function switchExerciseTabInEdit(idx, type) {
 
 function loadExercisesForTypeInEdit(idx, type) {
     const allExerciseNames = new Set();
-    
+
     // Get from previous workouts
     storage.workouts.forEach(w => {
         if (w.type === type && w.exercises) {
@@ -732,7 +758,7 @@ function loadExercisesForTypeInEdit(idx, type) {
             });
         }
     });
-    
+
     // Get from templates
     if (storage.templates[type]) {
         storage.templates[type].forEach(template => {
@@ -743,18 +769,18 @@ function loadExercisesForTypeInEdit(idx, type) {
             }
         });
     }
-    
+
     // Get from default templates
     if (defaultTemplates[type]) {
         defaultTemplates[type].forEach(name => {
             allExerciseNames.add(name);
         });
     }
-    
+
     // Populate select dropdown
     const select = document.getElementById(`exerciseSelect-${idx}`);
     select.innerHTML = '';
-    
+
     if (allExerciseNames.size === 0) {
         const option = document.createElement('option');
         option.textContent = 'No exercises found';
@@ -772,7 +798,7 @@ function loadExercisesForTypeInEdit(idx, type) {
 // function populateExerciseDropdown(idx) {
 //     const currentType = storage.currentWorkout.type;
 //     const allExerciseNames = new Set();
-    
+
 //     // Get from previous workouts
 //     storage.workouts.forEach(w => {
 //         if (w.type === currentType && w.exercises) {
@@ -781,7 +807,7 @@ function loadExercisesForTypeInEdit(idx, type) {
 //             });
 //         }
 //     });
-    
+
 //     // Get from templates
 //     if (storage.templates[currentType]) {
 //         storage.templates[currentType].forEach(template => {
@@ -792,14 +818,14 @@ function loadExercisesForTypeInEdit(idx, type) {
 //             }
 //         });
 //     }
-    
+
 //     // Get from default templates
 //     if (defaultTemplates[currentType]) {
 //         defaultTemplates[currentType].forEach(name => {
 //             allExerciseNames.add(name);
 //         });
 //     }
-    
+
 //     // Populate select dropdown
 //     const select = document.getElementById(`exerciseSelect-${idx}`);
 //     if (select) {
@@ -822,33 +848,33 @@ function handleExerciseSelectionInEdit(idx) {
 
     const select = document.getElementById(`exerciseSelect-${idx}`);
     const exerciseName = select.value;
-    
+
     if (!exerciseName) return;
-    
+
     // Update the exercise name input
     const nameInput = document.getElementById(`exerciseName-${idx}`);
     nameInput.value = exerciseName;
-    
+
     // Update the exercise name in storage
     storage.currentWorkout.exercises[idx].name = exerciseName;
-    
+
     // Prefill data from history
     prefillExerciseDataInEdit(idx, exerciseName);
-    
+
     // Hide the dropdown container
     document.getElementById(`exerciseDropdownContainer-${idx}`).style.display = 'none';
-    
+
     // Re-render to show updated values
     renderExercises();
     autoSave();
 }
 function prefillExerciseDataInEdit(idx, exerciseName) {
     const currentType = storage.currentWorkout.type;
-    
+
     // Search for the most recent workout with this exercise
     let latestExercise = null;
     let latestDate = null;
-    
+
     storage.workouts.forEach(w => {
         if (w.type === currentType && w.exercises) {
             w.exercises.forEach(ex => {
@@ -862,7 +888,7 @@ function prefillExerciseDataInEdit(idx, exerciseName) {
             });
         }
     });
-    
+
     // If found, prefill the values
     if (latestExercise) {
         storage.currentWorkout.exercises[idx].sets = latestExercise.sets;
@@ -885,7 +911,7 @@ function toggleEdit(idx) {
     if (storage.editingExerciseIndex === idx) {
         // SAVING: Check for errors before closing
         const currentExercise = storage.currentWorkout.exercises[idx];
-        
+
         if (!currentExercise.name.trim()) {
             alert('Exercise name cannot be empty!');
             return;
@@ -893,7 +919,7 @@ function toggleEdit(idx) {
 
         // Clear backup and save
         storage.editingExerciseIndex = null;
-        storage.originalExerciseSnapshot = null; 
+        storage.originalExerciseSnapshot = null;
         autoSave();
     } else {
         // ENTERING EDIT MODE: Create a deep copy snapshot
@@ -909,11 +935,11 @@ function cancelEdit(idx) {
         // RESTORE: Put the old data back (trashes current typing)
         storage.currentWorkout.exercises[idx] = storage.originalExerciseSnapshot;
     }
-    
+
     // Reset state
     storage.editingExerciseIndex = null;
     storage.originalExerciseSnapshot = null;
-    
+
     renderExercises();
 }
 
@@ -989,9 +1015,9 @@ function renderWorkoutActions() {
             storage.selectedTemplate.name !== 'Previous' &&
             storage.selectedTemplate.name !== 'Default';
 
-if (isEditingExistingTemplate) {
-    // Editing an existing saved template - show Save, Save as, and Log
-    container.innerHTML = `
+        if (isEditingExistingTemplate) {
+            // Editing an existing saved template - show Save, Save as, and Log
+            container.innerHTML = `
         <button class="add-exercise-btn" onclick="openAddExercise()">
             <span class="material-symbols-outlined">add_circle</span>
             Add Exercise
@@ -1011,9 +1037,9 @@ if (isEditingExistingTemplate) {
             </button>
         </div>
     `;
-} else {
-    // Default/Previous or creating new - show Save as and Log
-    container.innerHTML = `
+        } else {
+            // Default/Previous or creating new - show Save as and Log
+            container.innerHTML = `
         <button class="add-exercise-btn" onclick="openAddExercise()">
             <span class="material-symbols-outlined">add_circle</span>
             Add Exercise
@@ -1029,15 +1055,15 @@ if (isEditingExistingTemplate) {
             </button>
         </div>
     `;
-}
+        }
     } else {
-    // We're viewing/editing a workout from calendar OR logging a new one
-    // Check if we're editing an existing workout (has an ID in workouts array)
-    const isExistingWorkout = storage.workouts.find(w => w.id === storage.currentWorkout.id);
-    
-if (isExistingWorkout) {
-    // Editing existing workout from calendar
-    container.innerHTML = `
+        // We're viewing/editing a workout from calendar OR logging a new one
+        // Check if we're editing an existing workout (has an ID in workouts array)
+        const isExistingWorkout = storage.workouts.find(w => w.id === storage.currentWorkout.id);
+
+        if (isExistingWorkout) {
+            // Editing existing workout from calendar
+            container.innerHTML = `
         <button class="add-exercise-btn" onclick="openAddExercise()">
             <span class="material-symbols-outlined">add_circle</span>
             Add Exercise
@@ -1057,9 +1083,9 @@ if (isExistingWorkout) {
             </button>
         </div>
     `;
-} else {
-    // Logging a new workout to a specific date
-    container.innerHTML = `
+        } else {
+            // Logging a new workout to a specific date
+            container.innerHTML = `
         <button class="add-exercise-btn" onclick="openAddExercise()">
             <span class="material-symbols-outlined">add_circle</span>
             Add Exercise
@@ -1075,8 +1101,8 @@ if (isExistingWorkout) {
             </button>
         </div>
     `;
-}
-}
+        }
+    }
 }
 
 function updateCurrentWorkout() {
@@ -1254,7 +1280,7 @@ function deleteExercise(idx) {
 //         tab.classList.remove('active');
 //     });
 //     document.querySelector(`.exercise-tab[data-type="${type}"]`).classList.add('active');
-    
+
 //     // Load exercises for selected type
 //     const targetType = type === 'current' ? storage.currentWorkout.type : type;
 //     loadExercisesForType(targetType);
@@ -1262,7 +1288,7 @@ function deleteExercise(idx) {
 
 // function loadExercisesForType(type) {
 //     const allExerciseNames = new Set();
-    
+
 //     // Get from previous workouts
 //     storage.workouts.forEach(w => {
 //         if (w.type === type && w.exercises) {
@@ -1271,7 +1297,7 @@ function deleteExercise(idx) {
 //             });
 //         }
 //     });
-    
+
 //     // Get from templates
 //     if (storage.templates[type]) {
 //         storage.templates[type].forEach(template => {
@@ -1282,18 +1308,18 @@ function deleteExercise(idx) {
 //             }
 //         });
 //     }
-    
+
 //     // Get from default templates
 //     if (defaultTemplates[type]) {
 //         defaultTemplates[type].forEach(name => {
 //             allExerciseNames.add(name);
 //         });
 //     }
-    
+
 //     // Populate select dropdown
 //     const select = document.getElementById('exerciseSelect');
 //     select.innerHTML = '';
-    
+
 //     if (allExerciseNames.size === 0) {
 //         const option = document.createElement('option');
 //         option.textContent = 'No exercises found';
@@ -1312,7 +1338,7 @@ function deleteExercise(idx) {
 // function populateExerciseDropdownMain() {
 //     const currentType = storage.currentWorkout.type;
 //     const allExerciseNames = new Set();
-    
+
 //     // Get from previous workouts
 //     storage.workouts.forEach(w => {
 //         if (w.type === currentType && w.exercises) {
@@ -1321,7 +1347,7 @@ function deleteExercise(idx) {
 //             });
 //         }
 //     });
-    
+
 //     // Get from templates
 //     if (storage.templates[currentType]) {
 //         storage.templates[currentType].forEach(template => {
@@ -1332,14 +1358,14 @@ function deleteExercise(idx) {
 //             }
 //         });
 //     }
-    
+
 //     // Get from default templates
 //     if (defaultTemplates[currentType]) {
 //         defaultTemplates[currentType].forEach(name => {
 //             allExerciseNames.add(name);
 //         });
 //     }
-    
+
 //     const select = document.getElementById('exerciseSelect');
 //     select.innerHTML = ''; // Remove placeholder
 //     Array.from(allExerciseNames).sort().forEach(name => {
@@ -1378,13 +1404,13 @@ function deleteExercise(idx) {
 //     document.getElementById('exerciseSets').value = '3';
 //     document.getElementById('exerciseReps').value = '10';
 //     document.getElementById('exerciseWeight').value = '0';
-    
+
 //     // Add custom workout types to tabs
 //     const tabsContainer = document.getElementById('exerciseTabsMain');
-    
+
 //     // Remove old custom tabs first
 //     tabsContainer.querySelectorAll('[data-custom="true"]').forEach(tab => tab.remove());
-    
+
 //     // Add custom workout type tabs
 //     storage.customWorkoutTypes.forEach(custom => {
 //         const btn = document.createElement('button');
@@ -1395,10 +1421,10 @@ function deleteExercise(idx) {
 //         btn.onclick = () => switchExerciseTab(custom.id);
 //         tabsContainer.appendChild(btn);
 //     });
-    
+
 //     // Hide dropdown container by default
 //     document.getElementById('exerciseDropdownContainer').style.display = 'none';
-    
+
 //     document.getElementById('exerciseModal').classList.add('active');
 // }
 
@@ -1411,13 +1437,13 @@ function deleteExercise(idx) {
 //         weight: 0,
 //         notes: ''
 //     };
-    
+
 //     // Add to current workout
 //     storage.currentWorkout.exercises.push(newExercise);
-    
+
 //     // Set it to editing mode immediately
 //     storage.editingExerciseIndex = storage.currentWorkout.exercises.length - 1;
-    
+
 //     // Re-render to show the new exercise in edit mode
 //     renderExercises();
 // }
@@ -1470,12 +1496,12 @@ function deleteExercise(idx) {
 
 // function openAddExercise() {
 //     const currentType = storage.currentWorkout.type;
-    
+
 //     // Get the reference date - either selected date or today
 //     const referenceDate = storage.isFromCalendar && storage.selectedDate 
 //         ? new Date(storage.selectedDate) 
 //         : new Date();
-    
+
 //     // Find the most recent workout of this type BEFORE the reference date
 //     const previousWorkouts = storage.workouts
 //         .filter(w => {
@@ -1485,9 +1511,9 @@ function deleteExercise(idx) {
 //                    workoutDate < referenceDate;
 //         })
 //         .sort((a, b) => new Date(b.date) - new Date(a.date));
-    
+
 //     let newExercise;
-    
+
 //     if (previousWorkouts.length > 0 && previousWorkouts[0].exercises.length > 0) {
 //         // Use the first exercise from the most recent workout as template
 //         const templateExercise = previousWorkouts[0].exercises[0];
@@ -1508,13 +1534,13 @@ function deleteExercise(idx) {
 //             notes: ''
 //         };
 //     }
-    
+
 //     // Add to current workout
 //     storage.currentWorkout.exercises.push(newExercise);
-    
+
 //     // Set it to editing mode immediately
 //     storage.editingExerciseIndex = storage.currentWorkout.exercises.length - 1;
-    
+
 //     // Re-render to show the new exercise in edit mode
 //     renderExercises();
 // }
@@ -1528,13 +1554,13 @@ function openAddExercise() {
         weight: 0,
         notes: ''
     };
-    
+
     // Add to current workout
     storage.currentWorkout.exercises.push(newExercise);
-    
+
     // Set it to editing mode immediately
     storage.editingExerciseIndex = storage.currentWorkout.exercises.length - 1;
-    
+
     // Re-render to show the new exercise in edit mode
     renderExercises();
 }
@@ -1811,7 +1837,7 @@ function createCalendarDay(day, date, isOtherMonth) {
     dayDiv.className = 'calendar-day';
 
     dayDiv.className = 'calendar-day';
-dayDiv.dataset.date = date.toISOString(); // ADD THIS LINE
+    dayDiv.dataset.date = date.toISOString(); // ADD THIS LINE
 
     if (isOtherMonth) {
         dayDiv.classList.add('other-month');
@@ -2035,17 +2061,17 @@ function toggleExpand() {
         // Calculate the week offset so the week view shows the selected date
         const today = new Date();
         const selected = selectedCalendarDate || today;
-        
+
         // Find Sunday of today's week
         const startOfTodayWeek = new Date(today);
         startOfTodayWeek.setDate(today.getDate() - today.getDay());
         startOfTodayWeek.setHours(0, 0, 0, 0);
-        
+
         // Find Sunday of the selected date's week
         const startOfSelectedWeek = new Date(selected);
         startOfSelectedWeek.setDate(selected.getDate() - selected.getDay());
         startOfSelectedWeek.setHours(0, 0, 0, 0);
-        
+
         // Calculate the difference in weeks and update the offset
         const diffInDays = Math.round((startOfSelectedWeek - startOfTodayWeek) / (1000 * 60 * 60 * 24));
         storage.currentWeekOffset = diffInDays / 7;
@@ -2054,13 +2080,13 @@ function toggleExpand() {
     } else {
         section.classList.remove('expanded');
         icon.textContent = 'more_up'; // Keeping your original icon
-        
+
         // When collapsing, ensure the month grid matches the selected date
         if (selectedCalendarDate) {
             storage.currentMonth = selectedCalendarDate.getMonth();
             storage.currentYear = selectedCalendarDate.getFullYear();
         }
-        
+
         renderCalendar();
     }
 }
@@ -2100,17 +2126,17 @@ function changeMonth(delta) {
             storage.currentYear--;
         }
 
-const today = new Date();
-    let dateToSelect;
+        const today = new Date();
+        let dateToSelect;
 
-    // Check if the month we just swiped to is the ACTUAL current month
-    if (storage.currentMonth === today.getMonth() && storage.currentYear === today.getFullYear()) {
-        dateToSelect = today; // Select today's date
-    } else {
-        dateToSelect = new Date(storage.currentYear, storage.currentMonth, 1); // Select the 1st
-    }
+        // Check if the month we just swiped to is the ACTUAL current month
+        if (storage.currentMonth === today.getMonth() && storage.currentYear === today.getFullYear()) {
+            dateToSelect = today; // Select today's date
+        } else {
+            dateToSelect = new Date(storage.currentYear, storage.currentMonth, 1); // Select the 1st
+        }
 
-    selectedCalendarDate = dateToSelect;
+        selectedCalendarDate = dateToSelect;
         renderCalendar();
     }
 }
@@ -2427,6 +2453,14 @@ function renderStats() {
     // Render year heatmap
     setTimeout(() => renderYearHeatmap(), 200);
 
+    // Restore graph type and show weight section if needed
+    setTimeout(() => {
+        const currentType = storage.currentGraphType;
+        if (currentType === 'weight') {
+            switchGraphType('weight');
+        }
+    }, 150);
+
 }
 
 // ===== WEEK VIEW FUNCTIONS =====
@@ -2568,14 +2602,14 @@ function updateWeekHeader(startOfWeek) {
 
 function changeWeek(delta) {
     storage.currentWeekOffset += delta;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Calculate Sunday of the new week
     const startOfNewWeek = new Date(today);
     startOfNewWeek.setDate(today.getDate() - today.getDay() + (storage.currentWeekOffset * 7));
-    
+
     // Calculate Saturday of the new week
     const endOfNewWeek = new Date(startOfNewWeek);
     endOfNewWeek.setDate(startOfNewWeek.getDate() + 6);
@@ -2586,7 +2620,7 @@ function changeWeek(delta) {
     } else {
         selectedCalendarDate = startOfNewWeek;
     }
-    
+
     renderWeekView();
 }
 
@@ -2639,20 +2673,20 @@ function changeMonth(delta) {
     } else {
         selectedCalendarDate = new Date(storage.currentYear, storage.currentMonth, 1);
     }
-    
+
     renderCalendar();
 }
 
 function changeWeek(delta) {
     storage.currentWeekOffset += delta;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Calculate Sunday of the new week
     const startOfNewWeek = new Date(today);
     startOfNewWeek.setDate(today.getDate() - today.getDay() + (storage.currentWeekOffset * 7));
-    
+
     // Calculate Saturday of the new week
     const endOfNewWeek = new Date(startOfNewWeek);
     endOfNewWeek.setDate(startOfNewWeek.getDate() + 6);
@@ -2663,7 +2697,7 @@ function changeWeek(delta) {
     } else {
         selectedCalendarDate = startOfNewWeek;
     }
-    
+
     renderWeekView();
 }
 
@@ -2688,8 +2722,8 @@ function handleSwipeDetails(startX, endX, startY, endY) {
 function moveSelection(days) {
     const currentDate = new Date(selectedCalendarDate || new Date());
     currentDate.setDate(currentDate.getDate() + days);
-    currentDate.setHours(0,0,0,0);
-    
+    currentDate.setHours(0, 0, 0, 0);
+
     const isExpanded = document.getElementById('workoutDetailsSection').classList.contains('expanded');
 
     if (isExpanded) {
@@ -2697,8 +2731,8 @@ function moveSelection(days) {
         const today = new Date();
         const startVisible = new Date(today);
         startVisible.setDate(today.getDate() - today.getDay() + (storage.currentWeekOffset * 7));
-        startVisible.setHours(0,0,0,0);
-        
+        startVisible.setHours(0, 0, 0, 0);
+
         const endVisible = new Date(startVisible);
         endVisible.setDate(startVisible.getDate() + 6);
 
@@ -2722,7 +2756,7 @@ function moveSelection(days) {
     }
 
     // Automatically trigger the click on the new date to refresh the details content
-    const workout = storage.workouts.find(w => 
+    const workout = storage.workouts.find(w =>
         new Date(w.date).toDateString() === currentDate.toDateString()
     );
     showWorkoutDetails(currentDate, workout);
@@ -2821,10 +2855,10 @@ function selectColor(color) {
 }
 
 // Handle type selection
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const typeSelector = document.getElementById('customExerciseTypeSelector');
     if (typeSelector) {
-        typeSelector.addEventListener('change', function() {
+        typeSelector.addEventListener('change', function () {
             const selectedType = this.value;
             if (!selectedType) {
                 document.getElementById('customExerciseNameSelector').style.display = 'none';
@@ -2837,7 +2871,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function loadExercisesForCustomType(type) {
     const allExercises = new Set();
-    
+
     // Get from workouts
     storage.workouts.forEach(w => {
         if (w.type === type && w.exercises) {
@@ -2846,7 +2880,7 @@ function loadExercisesForCustomType(type) {
             });
         }
     });
-    
+
     // Get from templates
     if (storage.templates[type]) {
         storage.templates[type].forEach(template => {
@@ -2857,25 +2891,25 @@ function loadExercisesForCustomType(type) {
             }
         });
     }
-    
+
     // Get from defaults
     if (defaultTemplates[type]) {
         defaultTemplates[type].forEach(name => {
             allExercises.add(name);
         });
     }
-    
+
     // Populate exercise selector
     const exerciseSelector = document.getElementById('customExerciseNameSelector');
     exerciseSelector.innerHTML = '<option value="">Select exercise...</option>';
-    
+
     Array.from(allExercises).sort().forEach(name => {
         const option = document.createElement('option');
         option.value = name;
         option.textContent = name;
         exerciseSelector.appendChild(option);
     });
-    
+
     exerciseSelector.style.display = 'block';
 }
 
@@ -2888,7 +2922,7 @@ function addSelectedCustomExercise() {
 
     storage.customExercises.push(exerciseName);
     renderCustomExercises();
-    
+
     // Reset selectors
     document.getElementById('customExerciseTypeSelector').value = '';
     document.getElementById('customExerciseNameSelector').style.display = 'none';
@@ -3578,4 +3612,218 @@ function changeHeatmapYear(delta) {
 function autoResizeTextarea(textarea) {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
+}
+
+// ===== WEIGHT TRACKING =====
+
+function switchGraphType(type) {
+    storage.currentGraphType = type;
+
+    // Update button styles
+    document.querySelectorAll('.chart-toggle-btn').forEach(btn => {
+        if (btn.dataset.type === type) {
+            btn.style.background = '#2da44e';
+            btn.style.color = 'white';
+            btn.classList.add('active');
+        } else {
+            btn.style.background = 'white';
+            btn.style.color = '#6c757d';
+            btn.classList.remove('active');
+        }
+    });
+
+    // Show/hide weight logging section
+    const weightSection = document.getElementById('weightLoggingSection');
+    if (type === 'weight') {
+        weightSection.style.display = 'block';
+        updateLatestWeight();
+    } else {
+        weightSection.style.display = 'none';
+    }
+
+    // Update chart title
+    document.getElementById('chartTitle').textContent =
+        type === 'workouts' ? 'Weekly Progress' : 'Weight Progress';
+
+    // Re-render the appropriate chart
+    if (type === 'workouts') {
+        renderWeeklyChart();
+    } else {
+        renderWeightChart();
+    }
+}
+
+function logWeight() {
+    const input = document.getElementById('weightInput');
+    const weight = parseFloat(input.value);
+
+    if (!weight || weight <= 0) {
+        alert('Please enter a valid weight!');
+        return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toDateString();
+
+    // Check if weight already logged today
+    const existingIndex = storage.weightLogs.findIndex(log =>
+        new Date(log.date).toDateString() === todayStr
+    );
+
+    if (existingIndex >= 0) {
+        if (confirm('Weight already logged for today. Update it?')) {
+            storage.weightLogs[existingIndex].weight = weight;
+        } else {
+            return;
+        }
+    } else {
+        storage.weightLogs.push({
+            date: today.toISOString(),
+            weight: weight
+        });
+    }
+
+    storage.saveWeightLogs();
+    input.value = '';
+    alert('Weight logged! 📊');
+    updateLatestWeight();
+    renderWeightChart();
+}
+
+function updateLatestWeight() {
+    const latestDiv = document.getElementById('latestWeight');
+    if (!latestDiv) return;
+
+    if (storage.weightLogs.length === 0) {
+        latestDiv.textContent = 'No weight logged yet';
+        return;
+    }
+
+    const sorted = [...storage.weightLogs].sort((a, b) =>
+        new Date(b.date) - new Date(a.date)
+    );
+
+    const latest = sorted[0];
+    const date = new Date(latest.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+    });
+
+    latestDiv.innerHTML = `Latest: <strong>${latest.weight} kg</strong> (${date})`;
+}
+
+function renderWeightChart() {
+    const canvas = document.getElementById('weeklyChart');
+    if (!canvas) return;
+
+    const sortedLogs = [...storage.weightLogs].sort((a, b) =>
+        new Date(a.date) - new Date(b.date)
+    );
+
+    if (sortedLogs.length === 0) {
+        canvas.style.display = 'block';
+        canvas.style.height = '200px';
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Segoe UI';
+        ctx.fillStyle = '#6c757d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No weight data yet', canvas.width / 2, 100);
+        return;
+    }
+
+    // Prepare data
+    const labels = sortedLogs.map(log => {
+        const date = new Date(log.date);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+
+    const weights = sortedLogs.map(log => log.weight);
+
+    // Destroy existing chart
+    if (weeklyChart) {
+        weeklyChart.destroy();
+    }
+
+    // Set dynamic width
+    const wrapper = document.getElementById('chartWrapper');
+    const minWidth = sortedLogs.length > 12 ? sortedLogs.length * 60 : wrapper.parentElement.offsetWidth;
+    wrapper.style.width = Math.max(minWidth, wrapper.parentElement.offsetWidth) + 'px';
+
+    // Create chart
+    const ctx = canvas.getContext('2d');
+    weeklyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Weight (kg)',
+                data: weights,
+                borderColor: '#4c6ef5',
+                backgroundColor: 'rgba(76, 110, 245, 0.2)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#4c6ef5',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(45, 52, 54, 0.9)',
+                    padding: 12,
+                    titleFont: {
+                        size: 13,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 12
+                    },
+                    callbacks: {
+                        label: function (context) {
+                            return `Weight: ${context.parsed.y} kg`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function (value) {
+                            return value + ' kg';
+                        },
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        color: '#6c757d',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
 }

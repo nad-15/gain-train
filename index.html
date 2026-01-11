@@ -118,7 +118,7 @@
                                 arrow_back
                             </span>
                         </button>
-                        <h2 id="workoutTitle">Workout</h2>
+                        <h2 style="font-size: 18px;" id="workoutTitle">Workout</h2>
                     </div>
 
                     <div class="workout-date" id="workoutDate"></div>
@@ -209,21 +209,56 @@
                     </div>
                 </div> -->
 
-                <!-- Weekly Graph -->
+                <!-- Weekly/Weight Graph -->
                 <div style="padding: 15px; padding-bottom: 0;">
                     <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 10px;">
                         <div
-                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid rgba(0, 0, 0, 0.06);">
-                            <span class="material-symbols-outlined"
-                                style="font-size: 24px; color: #2d3436;">show_chart</span>
-                            <h3 style="margin: 0; font-size: 1.1em; font-weight: 700; color: #2d3436;">Weekly Progress
-                            </h3>
+                            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid rgba(0, 0, 0, 0.06);">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="material-symbols-outlined"
+                                    style="font-size: 24px; color: #2d3436;">show_chart</span>
+                                <h3 style="margin: 0; font-size: 1.1em; font-weight: 700; color: #2d3436;"
+                                    id="chartTitle">Weekly Progress</h3>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="chart-toggle-btn active" data-type="workouts"
+                                    onclick="switchGraphType('workouts')"
+                                    style="padding: 6px 12px; border: 1px solid #e9ecef; border-radius: 6px; background: #2da44e; color: white; cursor: pointer; font-size: 0.8em; font-weight: 600; transition: all 0.2s;">
+                                    Workouts
+                                </button>
+                                <button class="chart-toggle-btn" data-type="weight" onclick="switchGraphType('weight')"
+                                    style="padding: 6px 12px; border: 1px solid #e9ecef; border-radius: 6px; background: white; color: #6c757d; cursor: pointer; font-size: 0.8em; font-weight: 600; transition: all 0.2s;">
+                                    Weight
+                                </button>
+                            </div>
                         </div>
                         <div style="overflow-x: auto; overflow-y: hidden;">
                             <div id="chartWrapper" style="min-width: 100%;">
                                 <canvas id="weeklyChart" style="max-height: 300px;"></canvas>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Weight Logging Section -->
+                <div id="weightLoggingSection" style="padding: 15px; display: none;">
+                    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 20px;">
+                        <h3 style="margin: 0 0 16px 0; font-size: 1.1em; font-weight: 700; color: #2d3436;">Log Weight
+                        </h3>
+                        <div style="display: flex; gap: 10px; align-items: flex-end;">
+                            <div style="flex: 1;">
+                                <label
+                                    style="display: block; margin-bottom: 8px; font-weight: 600; color: #1a1d1f; font-size: 0.875rem;">Weight
+                                    (kg)</label>
+                                <input type="number" id="weightInput" placeholder="e.g., 75.5" step="0.1"
+                                    style="width: 100%; padding: 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem;">
+                            </div>
+                            <button onclick="logWeight()"
+                                style="padding: 11px 20px; border: none; border-radius: 10px; background: #2da44e; color: white; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                Log
+                            </button>
+                        </div>
+                        <div id="latestWeight" style="margin-top: 12px; font-size: 0.875rem; color: #6c757d;"></div>
                     </div>
                 </div>
 
@@ -240,28 +275,41 @@
         <div class="modal-content">
             <h2>Add Exercise</h2>
             <div class="form-group">
-    <label>Exercise Name</label>
-    <div style="position: relative;">
-        <input type="text" id="exerciseName" placeholder="e.g., Bench Press" style="width: 100%; padding: 11px 40px 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem;">
-        <button type="button" onclick="toggleExerciseDropdown()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;">
-            <span class="material-symbols-outlined" style="font-size: 20px; color: #6c757d;">expand_more</span>
-        </button>
-        <div id="exerciseDropdownContainer" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <div class="exercise-type-tabs" id="exerciseTabsMain" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto;">
-    <button class="exercise-tab active" data-type="current" onclick="switchExerciseTab('current')">Current</button>
-    <button class="exercise-tab" data-type="push" onclick="switchExerciseTab('push')">Push</button>
-    <button class="exercise-tab" data-type="pull" onclick="switchExerciseTab('pull')">Pull</button>
-    <button class="exercise-tab" data-type="legs" onclick="switchExerciseTab('legs')">Legs</button>
-    <button class="exercise-tab" data-type="upper" onclick="switchExerciseTab('upper')">Upper</button>
-    <button class="exercise-tab" data-type="lower" onclick="switchExerciseTab('lower')">Lower</button>
-    <button class="exercise-tab" data-type="whole" onclick="switchExerciseTab('whole')">Whole</button>
-    <!-- Custom types will be added dynamically here -->
-</div>
-            <select id="exerciseSelect" onchange="handleExerciseSelection()" size="8" style="width: 100%; padding: 8px; border: none; font-size: 0.9375rem; max-height: 240px; outline: none;">
-            </select>
-        </div>
-    </div>
-</div>
+                <label>Exercise Name</label>
+                <div style="position: relative;">
+                    <input type="text" id="exerciseName" placeholder="e.g., Bench Press"
+                        style="width: 100%; padding: 11px 40px 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem;">
+                    <button type="button" onclick="toggleExerciseDropdown()"
+                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined"
+                            style="font-size: 20px; color: #6c757d;">expand_more</span>
+                    </button>
+                    <div id="exerciseDropdownContainer"
+                        style="display: none; position: absolute; top: 100%; left: 0; width: 100%; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <div class="exercise-type-tabs" id="exerciseTabsMain"
+                            style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto;">
+                            <button class="exercise-tab active" data-type="current"
+                                onclick="switchExerciseTab('current')">Current</button>
+                            <button class="exercise-tab" data-type="push"
+                                onclick="switchExerciseTab('push')">Push</button>
+                            <button class="exercise-tab" data-type="pull"
+                                onclick="switchExerciseTab('pull')">Pull</button>
+                            <button class="exercise-tab" data-type="legs"
+                                onclick="switchExerciseTab('legs')">Legs</button>
+                            <button class="exercise-tab" data-type="upper"
+                                onclick="switchExerciseTab('upper')">Upper</button>
+                            <button class="exercise-tab" data-type="lower"
+                                onclick="switchExerciseTab('lower')">Lower</button>
+                            <button class="exercise-tab" data-type="whole"
+                                onclick="switchExerciseTab('whole')">Whole</button>
+                            <!-- Custom types will be added dynamically here -->
+                        </div>
+                        <select id="exerciseSelect" onchange="handleExerciseSelection()" size="8"
+                            style="width: 100%; padding: 8px; border: none; font-size: 0.9375rem; max-height: 240px; outline: none;">
+                        </select>
+                    </div>
+                </div>
+            </div>
             <div class="form-group">
                 <label>Sets</label>
                 <input type="number" id="exerciseSets" value="3" min="1">
@@ -417,26 +465,29 @@
                         onclick="selectColor('#00acc1')"></button>
                 </div>
             </div>
-<div class="form-group">
-    <label>Default Exercises (Optional)</label>
-    <div id="customExercisesList" style="margin-bottom: 10px;"></div>
-    <select id="customExerciseTypeSelector" style="width: 100%; padding: 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem; margin-bottom: 10px;">
-        <option value="">Select workout type...</option>
-        <option value="push">Push</option>
-        <option value="pull">Pull</option>
-        <option value="legs">Legs</option>
-        <option value="upper">Upper Body</option>
-        <option value="lower">Lower Body</option>
-        <option value="whole">Whole Body</option>
-    </select>
-    <select id="customExerciseNameSelector" style="display: none; width: 100%; padding: 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem; margin-bottom: 10px;">
-        <option value="">Select exercise...</option>
-    </select>
-    <button class="modal-btn save" style="width: 100%; margin-bottom: 10px;" onclick="addSelectedCustomExercise()">
-        <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-        <span>Add Exercise</span>
-    </button>
-</div>
+            <div class="form-group">
+                <label>Default Exercises (Optional)</label>
+                <div id="customExercisesList" style="margin-bottom: 10px;"></div>
+                <select id="customExerciseTypeSelector"
+                    style="width: 100%; padding: 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem; margin-bottom: 10px;">
+                    <option value="">Select workout type...</option>
+                    <option value="push">Push</option>
+                    <option value="pull">Pull</option>
+                    <option value="legs">Legs</option>
+                    <option value="upper">Upper Body</option>
+                    <option value="lower">Lower Body</option>
+                    <option value="whole">Whole Body</option>
+                </select>
+                <select id="customExerciseNameSelector"
+                    style="display: none; width: 100%; padding: 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem; margin-bottom: 10px;">
+                    <option value="">Select exercise...</option>
+                </select>
+                <button class="modal-btn save" style="width: 100%; margin-bottom: 10px;"
+                    onclick="addSelectedCustomExercise()">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                    <span>Add Exercise</span>
+                </button>
+            </div>
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeCustomWorkout()">Cancel</button>
                 <button class="modal-btn save" onclick="saveCustomWorkout()">Create</button>
