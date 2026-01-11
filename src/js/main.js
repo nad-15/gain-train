@@ -502,7 +502,6 @@ function autoSave() {
 }
 
 
-
 function renderExercises() {
     const container = document.getElementById('exerciseList');
     container.innerHTML = '';
@@ -512,7 +511,6 @@ function renderExercises() {
     storage.currentWorkout.exercises.forEach((ex, idx) => {
         const div = document.createElement('div');
         div.className = 'exercise-item';
-        // Set position relative so the dropdown fills this specific item
         div.style.position = 'relative'; 
 
         const isEditing = storage.editingExerciseIndex === idx;
@@ -521,21 +519,43 @@ function renderExercises() {
             div.innerHTML = `
                 <div id="exerciseDropdownContainer-${idx}" 
                      style="display: none; position: absolute; top: 52px; left: 0; width: 100%; 
-                            height: calc(100% - 52px); background: white; border: 1px solid #e9ecef; 
+                            height: 150px; background: white; border: 1px solid #e9ecef; 
                             border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; 
-                            box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column;">
+                            box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow: hidden;">
                     
-                    <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0;">
+                    <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none;">
+                        <style>
+                            .exercise-tab {
+                                padding: 6px 12px;
+                                border: 1px solid transparent;
+                                background: none;
+                                font-size: 0.8em;
+                                cursor: pointer;
+                                white-space: nowrap;
+                                color: #6c757d;
+                            }
+                            .exercise-tab.active {
+                                border-bottom: 2px solid #4c6ef5;
+                                color: #4c6ef5;
+                                font-weight: bold;
+                            }
+                        </style>
                         <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
                         <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
                         <button class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
                         <button class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
-                        </div>
+                        <button class="exercise-tab" data-type="upper" onclick="switchExerciseTabInEdit(${idx}, 'upper')">Upper</button>
+                        <button class="exercise-tab" data-type="lower" onclick="switchExerciseTabInEdit(${idx}, 'lower')">Lower</button>
+                        <button class="exercise-tab" data-type="whole" onclick="switchExerciseTabInEdit(${idx}, 'whole')">Whole</button>
+                        ${storage.customWorkoutTypes.map(custom => 
+                            `<button class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>`
+                        ).join('')}
+                    </div>
 
                     <select id="exerciseSelect-${idx}" 
                             onchange="handleExerciseSelectionInEdit(${idx})" 
-                            size="5"
-                            style="width: 100%; flex: 1; border: none; font-size: 0.85em; outline: none; background: transparent; padding: 8px;">
+                            size="100" 
+                            style="width: 100%; height: 100%; flex-grow: 1; border: none; font-size: 0.9em; outline: none; background: transparent; padding: 8px; overflow-y: auto;">
                     </select>
                 </div>
 
@@ -619,7 +639,6 @@ function renderExercises() {
                 ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
             `;
         }
-
         container.appendChild(div);
     });
 }
@@ -698,49 +717,49 @@ function loadExercisesForTypeInEdit(idx, type) {
         });
     }
 }
-function populateExerciseDropdown(idx) {
-    const currentType = storage.currentWorkout.type;
-    const allExerciseNames = new Set();
+// function populateExerciseDropdown(idx) {
+//     const currentType = storage.currentWorkout.type;
+//     const allExerciseNames = new Set();
     
-    // Get from previous workouts
-    storage.workouts.forEach(w => {
-        if (w.type === currentType && w.exercises) {
-            w.exercises.forEach(ex => {
-                if (ex.name) allExerciseNames.add(ex.name);
-            });
-        }
-    });
+//     // Get from previous workouts
+//     storage.workouts.forEach(w => {
+//         if (w.type === currentType && w.exercises) {
+//             w.exercises.forEach(ex => {
+//                 if (ex.name) allExerciseNames.add(ex.name);
+//             });
+//         }
+//     });
     
-    // Get from templates
-    if (storage.templates[currentType]) {
-        storage.templates[currentType].forEach(template => {
-            if (template.exercises) {
-                template.exercises.forEach(ex => {
-                    if (ex.name) allExerciseNames.add(ex.name);
-                });
-            }
-        });
-    }
+//     // Get from templates
+//     if (storage.templates[currentType]) {
+//         storage.templates[currentType].forEach(template => {
+//             if (template.exercises) {
+//                 template.exercises.forEach(ex => {
+//                     if (ex.name) allExerciseNames.add(ex.name);
+//                 });
+//             }
+//         });
+//     }
     
-    // Get from default templates
-    if (defaultTemplates[currentType]) {
-        defaultTemplates[currentType].forEach(name => {
-            allExerciseNames.add(name);
-        });
-    }
+//     // Get from default templates
+//     if (defaultTemplates[currentType]) {
+//         defaultTemplates[currentType].forEach(name => {
+//             allExerciseNames.add(name);
+//         });
+//     }
     
-    // Populate select dropdown
-    const select = document.getElementById(`exerciseSelect-${idx}`);
-    if (select) {
-        select.innerHTML = ''; // Remove placeholder - show exercises immediately
-        Array.from(allExerciseNames).sort().forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            select.appendChild(option);
-        });
-    }
-}
+//     // Populate select dropdown
+//     const select = document.getElementById(`exerciseSelect-${idx}`);
+//     if (select) {
+//         select.innerHTML = ''; // Remove placeholder - show exercises immediately
+//         Array.from(allExerciseNames).sort().forEach(name => {
+//             const option = document.createElement('option');
+//             option.value = name;
+//             option.textContent = name;
+//             select.appendChild(option);
+//         });
+//     }
+// }
 
 function handleExerciseSelectionInEdit(idx) {
 
@@ -841,16 +860,16 @@ function toggleEdit(idx) {
     renderExercises();
 }
 
-function editExercise(idx) {
-    storage.editingExerciseIndex = idx;
-    renderExercises();
-}
+// function editExercise(idx) {
+//     storage.editingExerciseIndex = idx;
+//     renderExercises();
+// }
 
-function saveExercise(idx) {
-    storage.editingExerciseIndex = null;
-    renderExercises();
-    autoSave();
-}
+// function saveExercise(idx) {
+//     storage.editingExerciseIndex = null;
+//     renderExercises();
+//     autoSave();
+// }
 
 function updateExerciseName(exIdx, newName) {
     storage.currentWorkout.exercises[exIdx].name = newName;
