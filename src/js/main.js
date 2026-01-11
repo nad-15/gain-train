@@ -2030,6 +2030,18 @@ function changeMonth(delta) {
             storage.currentMonth = 11;
             storage.currentYear--;
         }
+
+const today = new Date();
+    let dateToSelect;
+
+    // Check if the month we just swiped to is the ACTUAL current month
+    if (storage.currentMonth === today.getMonth() && storage.currentYear === today.getFullYear()) {
+        dateToSelect = today; // Select today's date
+    } else {
+        dateToSelect = new Date(storage.currentYear, storage.currentMonth, 1); // Select the 1st
+    }
+
+    selectedCalendarDate = dateToSelect;
         renderCalendar();
     }
 }
@@ -2487,6 +2499,25 @@ function updateWeekHeader(startOfWeek) {
 
 function changeWeek(delta) {
     storage.currentWeekOffset += delta;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Calculate Sunday of the new week
+    const startOfNewWeek = new Date(today);
+    startOfNewWeek.setDate(today.getDate() - today.getDay() + (storage.currentWeekOffset * 7));
+    
+    // Calculate Saturday of the new week
+    const endOfNewWeek = new Date(startOfNewWeek);
+    endOfNewWeek.setDate(startOfNewWeek.getDate() + 6);
+
+    // Select Today if it's in this week, otherwise select Sunday
+    if (today >= startOfNewWeek && today <= endOfNewWeek) {
+        selectedCalendarDate = today;
+    } else {
+        selectedCalendarDate = startOfNewWeek;
+    }
+    
     renderWeekView();
 }
 
@@ -2504,72 +2535,127 @@ let touchEndY = 0;
 function handleSwipe(startX, endX, startY, endY) {
     const dx = endX - startX;
     const dy = endY - startY;
-
     const minSwipeDistance = 50;
-    if (Math.abs(dx) < minSwipeDistance) return; // too short
+    if (Math.abs(dx) < minSwipeDistance) return;
 
     const slope = Math.abs(dy / dx);
-    const maxAllowedSlope = Math.tan(30 * Math.PI / 180); // ~0.577 (~30°)
+    const maxAllowedSlope = Math.tan(30 * Math.PI / 180);
+    if (slope > maxAllowedSlope) return;
 
-    if (slope > maxAllowedSlope) return; // too vertical - let scroll work
+    // Check if we are in Weekly View (Expanded) or Monthly View
+    const isExpanded = document.getElementById('workoutDetailsSection').classList.contains('expanded');
 
-    // Valid horizontal swipe detected
-    if (dx < 0) {
-        // Swipe left → next
-        changeMonth(1);
-    } else {
-        // Swipe right → previous
-        changeMonth(-1);
+    if (dx < 0) { // Swipe Left -> Next
+        isExpanded ? changeWeek(1) : changeMonth(1);
+    } else { // Swipe Right -> Previous
+        isExpanded ? changeWeek(-1) : changeMonth(-1);
     }
 }
+
+// 2. Updated changeMonth with Auto-Select Logic
+function changeMonth(delta) {
+    storage.currentMonth += delta;
+    if (storage.currentMonth > 11) {
+        storage.currentMonth = 0;
+        storage.currentYear++;
+    } else if (storage.currentMonth < 0) {
+        storage.currentMonth = 11;
+        storage.currentYear--;
+    }
+
+    const today = new Date();
+    // Select Today if it's the current month, otherwise the 1st
+    if (storage.currentMonth === today.getMonth() && storage.currentYear === today.getFullYear()) {
+        selectedCalendarDate = today;
+    } else {
+        selectedCalendarDate = new Date(storage.currentYear, storage.currentMonth, 1);
+    }
+    
+    renderCalendar();
+}
+
+function changeWeek(delta) {
+    storage.currentWeekOffset += delta;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Calculate Sunday of the new week
+    const startOfNewWeek = new Date(today);
+    startOfNewWeek.setDate(today.getDate() - today.getDay() + (storage.currentWeekOffset * 7));
+    
+    // Calculate Saturday of the new week
+    const endOfNewWeek = new Date(startOfNewWeek);
+    endOfNewWeek.setDate(startOfNewWeek.getDate() + 6);
+
+    // Select Today if it's in this week, otherwise select Sunday
+    if (today >= startOfNewWeek && today <= endOfNewWeek) {
+        selectedCalendarDate = today;
+    } else {
+        selectedCalendarDate = startOfNewWeek;
+    }
+    
+    renderWeekView();
+}
+
 function handleSwipeDetails(startX, endX, startY, endY) {
     const dx = endX - startX;
     const dy = endY - startY;
-
     const minSwipeDistance = 50;
-    if (Math.abs(dx) < minSwipeDistance) return; // too short
+    if (Math.abs(dx) < minSwipeDistance) return;
 
     const slope = Math.abs(dy / dx);
-    const maxAllowedSlope = Math.tan(30 * Math.PI / 180); // ~0.577 (~30°)
+    const maxAllowedSlope = Math.tan(30 * Math.PI / 180);
+    if (slope > maxAllowedSlope) return;
 
-    if (slope > maxAllowedSlope) return; // too vertical - let scroll work
-
-    // Valid horizontal swipe detected - navigate day by day
-    if (!selectedCalendarDate) return; // No date selected
-    
-    const currentDate = new Date(selectedCalendarDate);
-    
+    // In BOTH views, swiping the details section moves day-by-day
     if (dx < 0) {
-        // Swipe left → next day
-        currentDate.setDate(currentDate.getDate() + 1);
+        moveSelection(1); // Next Day
     } else {
-        // Swipe right → previous day
-        currentDate.setDate(currentDate.getDate() - 1);
+        moveSelection(-1); // Previous Day
     }
+}
+
+function moveSelection(days) {
+    const currentDate = new Date(selectedCalendarDate || new Date());
+    currentDate.setDate(currentDate.getDate() + days);
+    currentDate.setHours(0,0,0,0);
     
-    // Find the workout for the new date
-    const workout = storage.workouts.find(w =>
-        new Date(w.date).toDateString() === currentDate.toDateString()
-    );
-    
-    // Update the calendar to show this date's month if needed
-    if (currentDate.getMonth() !== storage.currentMonth || 
-        currentDate.getFullYear() !== storage.currentYear) {
-        storage.currentMonth = currentDate.getMonth();
-        storage.currentYear = currentDate.getFullYear();
+    const isExpanded = document.getElementById('workoutDetailsSection').classList.contains('expanded');
+
+    if (isExpanded) {
+        // Update week offset if we move out of the currently visible 7 days
+        const today = new Date();
+        const startVisible = new Date(today);
+        startVisible.setDate(today.getDate() - today.getDay() + (storage.currentWeekOffset * 7));
+        startVisible.setHours(0,0,0,0);
+        
+        const endVisible = new Date(startVisible);
+        endVisible.setDate(startVisible.getDate() + 6);
+
+        if (currentDate < startVisible || currentDate > endVisible) {
+            // Calculate how many weeks away the new date is
+            const diffTime = currentDate - startVisible;
+            const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+            storage.currentWeekOffset += diffWeeks;
+        }
+        selectedCalendarDate = currentDate;
+        renderWeekView();
+    } else {
+        // Normal Month View logic
+        if (currentDate.getMonth() !== storage.currentMonth || currentDate.getFullYear() !== storage.currentYear) {
+            storage.currentMonth = currentDate.getMonth();
+            storage.currentYear = currentDate.getFullYear();
+            renderCalendar();
+        }
+        selectedCalendarDate = currentDate;
         renderCalendar();
     }
-    
-    // Find and click the calendar day to update selection
-    const calendarDays = document.querySelectorAll('.calendar-day');
-    calendarDays.forEach(dayDiv => {
-        const dayDate = new Date(dayDiv.dataset.date || '');
-        if (dayDate.toDateString() === currentDate.toDateString()) {
-            dayDiv.click();
-        }
-    });
-    
-    // Show workout details for the new date
+
+    // Automatically trigger the click on the new date to refresh the details content
+    const workout = storage.workouts.find(w => 
+        new Date(w.date).toDateString() === currentDate.toDateString()
+    );
     showWorkoutDetails(currentDate, workout);
 }
 
