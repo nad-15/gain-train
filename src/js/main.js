@@ -401,18 +401,27 @@ const previousWorkouts = storage.workouts
         const btn = document.createElement('button');
         btn.className = 'workout-btn ' + type;
         btn.innerHTML = `
-        <div class="workout-btn-content">
-            <span class="material-symbols-outlined workout-btn-icon">bookmark</span>
-            <span class="template-name">${template.name}</span>
-        </div>
-        <button
-            class="delete-template-btn"
-            onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})"
-            aria-label="Delete template"
-        >
-            <span class="material-symbols-outlined">close</span>
-        </button>
-    `;
+            <div class="workout-btn-content">
+                <span class="material-symbols-outlined workout-btn-icon">bookmark</span>
+                <span class="template-name">${template.name}</span>
+            </div>
+            <div class="template-actions">
+                <button
+                    class="edit-template-btn"
+                    onclick="event.stopPropagation(); editTemplateName('${type}', ${idx})"
+                    aria-label="Edit template"
+                >
+                    <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button
+                    class="delete-template-btn"
+                    onclick="event.stopPropagation(); deleteTemplate('${type}', ${idx})"
+                    aria-label="Delete template"
+                >
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        `;
 
         // btn.onclick = () => {
         //     closeTemplateSelector();
@@ -448,6 +457,53 @@ const previousWorkouts = storage.workouts
     modal.classList.add('active');
 }
 
+function editTemplateName(type, idx) {
+    const currentName = storage.templates[type][idx].name;
+    const newName = prompt('Enter new template name:', currentName);
+    
+    if (newName === null) return; // User cancelled
+    
+    const trimmedName = newName.trim();
+    if (!trimmedName) {
+        alert('Template name cannot be empty!');
+        return;
+    }
+    
+    // Update the template name in storage
+    const templates = storage.templates;
+    templates[type][idx].name = trimmedName;
+    storage.templates = templates;
+    storage.saveTemplates();
+    
+    // Refresh the template selector to show the new name
+    showTemplateSelector(type);
+}
+
+function saveTemplateName(type, idx) {
+    const nameSpan = document.getElementById(`template-name-${type}-${idx}`);
+    const nameInput = document.getElementById(`template-input-${type}-${idx}`);
+    
+    if (nameSpan && nameInput) {
+        const newName = nameInput.value.trim();
+        
+        if (!newName) {
+            alert('Template name cannot be empty!');
+            nameInput.value = storage.templates[type][idx].name;
+            return;
+        }
+        
+        // Update the template name in storage
+        const templates = storage.templates;
+        templates[type][idx].name = newName;
+        storage.templates = templates;
+        storage.saveTemplates();
+        
+        // Update the display
+        nameSpan.textContent = newName;
+        nameSpan.style.display = 'inline';
+        nameInput.style.display = 'none';
+    }
+}
 
 function closeTemplateSelector() {
     document.getElementById('templateSelectorModal').classList.remove('active');

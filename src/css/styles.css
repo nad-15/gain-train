@@ -2422,3 +2422,35 @@ margin-top: 0;
     background: #1a1d1f;
     color: white;
 }
+/* Template actions container */
+.template-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+/* Edit template button - matches your existing delete button style */
+.edit-template-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #4c6ef5;
+    color: #fff;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.edit-template-btn .material-symbols-outlined {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.edit-template-btn:hover {
+    background: #3b5bdb;
+}
+
+/* Keep your existing .delete-template-btn styles intact */
