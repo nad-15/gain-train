@@ -4,6 +4,7 @@ const storage = {
     _templates: null,
     _customWorkoutTypes: null,
 
+
     get workouts() {
         if (!this._workouts) {
             this._workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
@@ -96,6 +97,7 @@ const storage = {
         localStorage.setItem('customWorkoutTypes', JSON.stringify(this._customWorkoutTypes));
     },
 
+    editingWeightIndex: null,
     currentWorkout: null,
     currentMonth: new Date().getMonth(),
     currentYear: new Date().getFullYear(),
@@ -3636,7 +3638,12 @@ function switchGraphType(type) {
     const weightSection = document.getElementById('weightLoggingSection');
     if (type === 'weight') {
         weightSection.style.display = 'block';
-        updateLatestWeight();
+
+        // Set today's date as default
+        const today = new Date();
+        document.getElementById('weightDateInput').valueAsDate = today;
+
+        renderWeightHistory();
     } else {
         weightSection.style.display = 'none';
     }
@@ -3654,63 +3661,162 @@ function switchGraphType(type) {
 }
 
 function logWeight() {
-    const input = document.getElementById('weightInput');
-    const weight = parseFloat(input.value);
+    const dateInput = document.getElementById('weightDateInput');
+    const weightInput = document.getElementById('weightInput');
+    const weight = parseFloat(weightInput.value);
 
     if (!weight || weight <= 0) {
         alert('Please enter a valid weight!');
         return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toDateString();
-
-    // Check if weight already logged today
-    const existingIndex = storage.weightLogs.findIndex(log =>
-        new Date(log.date).toDateString() === todayStr
-    );
-
-    if (existingIndex >= 0) {
-        if (confirm('Weight already logged for today. Update it?')) {
-            storage.weightLogs[existingIndex].weight = weight;
-        } else {
-            return;
-        }
-    } else {
-        storage.weightLogs.push({
-            date: today.toISOString(),
-            weight: weight
-        });
-    }
-
-    storage.saveWeightLogs();
-    input.value = '';
-    alert('Weight logged! 📊');
-    updateLatestWeight();
-    renderWeightChart();
-}
-
-function updateLatestWeight() {
-    const latestDiv = document.getElementById('latestWeight');
-    if (!latestDiv) return;
-
-    if (storage.weightLogs.length === 0) {
-        latestDiv.textContent = 'No weight logged yet';
+    if (!dateInput.value) {
+        alert('Please select a date!');
         return;
     }
 
-    const sorted = [...storage.weightLogs].sort((a, b) =>
+    const selectedDate = new Date(dateInput.value);
+    selectedDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+    const dateStr = selectedDate.toDateString();
+
+    // Check if weight already logged for this date
+    const existingIndex = storage.weightLogs.findIndex(log =>
+        new Date(log.date).toDateString() === dateStr
+    );
+
+    if (existingIndex >= 0) {
+        storage.weightLogs[existingIndex].weight = weight;
+        alert('Weight updated! 📊');
+    } else {
+        storage.weightLogs.push({
+            date: selectedDate.toISOString(),
+            weight: weight
+        });
+        alert('Weight logged! 📊');
+    }
+
+    storage.saveWeightLogs();
+    weightInput.value = '';
+
+    // Reset to today's date
+    document.getElementById('weightDateInput').valueAsDate = new Date();
+
+    renderWeightHistory();
+    renderWeightChart();
+}
+
+function renderWeightHistory() {
+    const container = document.getElementById('weightHistoryList');
+    if (!container) return;
+
+    if (storage.weightLogs.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d; font-size: 0.75rem;">No weight logged yet</div>';
+        return;
+    }
+
+    // Sort by date descending (most recent first)
+    const sortedLogs = [...storage.weightLogs].sort((a, b) =>
         new Date(b.date) - new Date(a.date)
     );
 
-    const latest = sorted[0];
-    const date = new Date(latest.date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
+    let html = '';
+    sortedLogs.forEach((log, idx) => {
+        const date = new Date(log.date);
+        const dateStr = date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        const isEditing = storage.editingWeightIndex === idx;
+        if (isEditing) {
+            html += `
+        <div style="display: flex; gap: 4px; align-items: center; padding: 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 4px; flex-wrap: wrap;">
+            <input type="date" id="editWeightDate-${idx}" value="${date.toISOString().split('T')[0]}" 
+                style="flex: 1; min-width: 100px; padding: 6px 4px; border: 1px solid #e9ecef; border-radius: 6px; font-size: 0.75rem;">
+            <input type="number" id="editWeight-${idx}" value="${log.weight}" step="0.1" 
+                style="width: 60px; padding: 6px 4px; border: 1px solid #e9ecef; border-radius: 6px; font-size: 0.75rem;">
+            
+            <div style="display: flex; gap: 4px; margin-left: auto;">
+                <button onclick="saveWeightEdit(${idx})" style="padding: 6px 8px; border: none; border-radius: 6px; background: #2da44e; color: white; cursor: pointer; display: flex; align-items: center;">
+                    <span class="material-symbols-outlined" style="font-size: 16px !important;">check</span>
+                </button>
+                <button onclick="cancelWeightEdit()" style="padding: 6px 8px; border: none; border-radius: 6px; background: #ff6b6b; color: white; cursor: pointer; display: flex; align-items: center;">
+                    <span class="material-symbols-outlined" style="font-size: 16px !important;">close</span>
+                </button>
+            </div>
+        </div>
+    `;
+        } else {
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #f1f3f5;">
+                    <div style="flex: 1;">
+                        <span style="font-size: 0.8125rem; font-weight: 600; color: #1a1d1f;">${log.weight} kg</span>
+                        <span style="font-size: 0.75rem; color: #6c757d; margin-left: 8px;">${dateStr}</span>
+                    </div>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="editWeight(${idx})" style="padding: 4px; border: none; background: none; cursor: pointer; color: #6c757d; display: flex; align-items: center;">
+                            <span class="material-symbols-outlined" style="font-size: 16px !important;">edit</span>
+                        </button>
+                        <button onclick="deleteWeight(${idx})" style="padding: 4px; border: none; background: none; cursor: pointer; color: #ff6b6b; display: flex; align-items: center;">
+                            <span class="material-symbols-outlined" style="font-size: 16px !important;">delete</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
     });
 
-    latestDiv.innerHTML = `Latest: <strong>${latest.weight} kg</strong> (${date})`;
+    container.innerHTML = html;
+}
+
+function editWeight(idx) {
+    storage.editingWeightIndex = idx;
+    renderWeightHistory();
+}
+
+function cancelWeightEdit() {
+    storage.editingWeightIndex = null;
+    renderWeightHistory();
+}
+
+function saveWeightEdit(idx) {
+    const dateInput = document.getElementById(`editWeightDate-${idx}`);
+    const weightInput = document.getElementById(`editWeight-${idx}`);
+
+    const weight = parseFloat(weightInput.value);
+    if (!weight || weight <= 0) {
+        alert('Please enter a valid weight!');
+        return;
+    }
+
+    if (!dateInput.value) {
+        alert('Please select a date!');
+        return;
+    }
+
+    const selectedDate = new Date(dateInput.value);
+    selectedDate.setHours(12, 0, 0, 0);
+
+    // Update the log
+    storage.weightLogs[idx].date = selectedDate.toISOString();
+    storage.weightLogs[idx].weight = weight;
+
+    storage.saveWeightLogs();
+    storage.editingWeightIndex = null;
+
+    renderWeightHistory();
+    renderWeightChart();
+}
+
+function deleteWeight(idx) {
+    if (!confirm('Delete this weight entry?')) return;
+
+    storage.weightLogs.splice(idx, 1);
+    storage.saveWeightLogs();
+
+    renderWeightHistory();
+    renderWeightChart();
 }
 
 function renderWeightChart() {
