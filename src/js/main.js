@@ -1984,17 +1984,40 @@ function toggleExpand() {
 
     if (isDetailsExpanded) {
         section.classList.add('expanded');
-        icon.textContent = 'more_down';
-        // Initialize to current week
-        storage.currentWeekOffset = 0;
+        icon.textContent = 'more_down'; // Keeping your original icon
+
+        // Calculate the week offset so the week view shows the selected date
+        const today = new Date();
+        const selected = selectedCalendarDate || today;
+        
+        // Find Sunday of today's week
+        const startOfTodayWeek = new Date(today);
+        startOfTodayWeek.setDate(today.getDate() - today.getDay());
+        startOfTodayWeek.setHours(0, 0, 0, 0);
+        
+        // Find Sunday of the selected date's week
+        const startOfSelectedWeek = new Date(selected);
+        startOfSelectedWeek.setDate(selected.getDate() - selected.getDay());
+        startOfSelectedWeek.setHours(0, 0, 0, 0);
+        
+        // Calculate the difference in weeks and update the offset
+        const diffInDays = Math.round((startOfSelectedWeek - startOfTodayWeek) / (1000 * 60 * 60 * 24));
+        storage.currentWeekOffset = diffInDays / 7;
+
         renderWeekView();
     } else {
         section.classList.remove('expanded');
-        icon.textContent = 'more_up';
+        icon.textContent = 'more_up'; // Keeping your original icon
+        
+        // When collapsing, ensure the month grid matches the selected date
+        if (selectedCalendarDate) {
+            storage.currentMonth = selectedCalendarDate.getMonth();
+            storage.currentYear = selectedCalendarDate.getFullYear();
+        }
+        
         renderCalendar();
     }
 }
-
 function deleteWorkoutFromCalendar(workoutId) {
     if (!confirm('Are you sure you want to delete this workout?')) {
         return;
