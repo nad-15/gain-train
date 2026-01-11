@@ -512,136 +512,106 @@ function renderExercises() {
     storage.currentWorkout.exercises.forEach((ex, idx) => {
         const div = document.createElement('div');
         div.className = 'exercise-item';
+        // Set position relative so the dropdown fills this specific item
+        div.style.position = 'relative'; 
 
         const isEditing = storage.editingExerciseIndex === idx;
 
         if (isEditing) {
-            // EDIT MODE - Full editable form
             div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-<div style="flex: 1; margin-right: 10px; position: relative;">
-    <input type="text" 
-           class="exercise-name-input" 
-           id="exerciseName-${idx}"
-           value="${ex.name}" 
-           onchange="updateExerciseName(${idx}, this.value)"
-           style="width: 100%; padding: 10px 40px 10px 12px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid transparent; transition: border-color 0.2s ease;">
-    <button type="button" 
-            onclick="toggleExerciseDropdownInEdit(${idx})" 
-            style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"
-            title="Select from history">
-        <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
-    </button>
-    <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 100%; left: 0; width: 130%; margin-top: 4px; background: white; border: 2px solid #e9ecef; border-radius: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto;">
-    <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
-    <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
-    <button class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
-    <button class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
-    <button class="exercise-tab" data-type="upper" onclick="switchExerciseTabInEdit(${idx}, 'upper')">Upper</button>
-    <button class="exercise-tab" data-type="lower" onclick="switchExerciseTabInEdit(${idx}, 'lower')">Lower</button>
-    <button class="exercise-tab" data-type="whole" onclick="switchExerciseTabInEdit(${idx}, 'whole')">Whole</button>
-    ${storage.customWorkoutTypes.map(custom => 
-        `<button class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>`
-    ).join('')}
-</div>
-        <select id="exerciseSelect-${idx}" 
-                onchange="handleExerciseSelectionInEdit(${idx})" 
-                size="8"
-                style="width: 100%; padding: 8px; border: none; font-size: 0.85em; max-height: 240px; outline: none;">
-        </select>
-    </div>
-</div>
+                <div id="exerciseDropdownContainer-${idx}" 
+                     style="display: none; position: absolute; top: 52px; left: 0; width: 100%; 
+                            height: calc(100% - 52px); background: white; border: 1px solid #e9ecef; 
+                            border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; 
+                            box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column;">
+                    
+                    <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0;">
+                        <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
+                        <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
+                        <button class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
+                        <button class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
+                        </div>
 
-                    <div style="display: flex; gap: 4px; align-items: center;"> 
-                        <button class="detail-tool-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
-                                onclick="toggleEdit(${idx})"
-                                title="${isEditing ? 'Save' : 'Edit'}">
-                            <span class="material-icons edit-icon">edit</span>
-                            <span class="material-icons save-icon">check</span>
-                        </button>
+                    <select id="exerciseSelect-${idx}" 
+                            onchange="handleExerciseSelectionInEdit(${idx})" 
+                            size="5"
+                            style="width: 100%; flex: 1; border: none; font-size: 0.85em; outline: none; background: transparent; padding: 8px;">
+                    </select>
+                </div>
 
-                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})" title="Delete">
-                            <span class="material-icons" style="font-size: 18px;">delete</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; height: 40px;">
+                    <div style="flex: 1; margin-right: 10px; position: relative;">
+                        <input type="text" 
+                               class="exercise-name-input" 
+                               id="exerciseName-${idx}"
+                               value="${ex.name}" 
+                               onchange="updateExerciseName(${idx}, this.value)"
+                               style="width: 100%; padding: 10px 40px 10px 12px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid #eee;">
+                        
+                        <button type="button" 
+                                onclick="toggleExerciseDropdownInEdit(${idx})" 
+                                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
                         </button>
                     </div>
 
+                    <div style="display: flex; gap: 4px; align-items: center;"> 
+                        <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})">
+                            <span class="material-icons save-icon">check</span>
+                        </button>
+                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})">
+                            <span class="material-icons" style="font-size: 18px;">delete</span>
+                        </button>
+                    </div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px;">
-                    <!-- SETS -->
                     <div style="text-align: center;">
                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">SETS</div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <button class="control-btn minus" onclick="changeValue(${idx}, 'sets', -1)">−</button>
-                            <input type="number" class="value-input" value="${ex.sets}" 
-                                   onchange="updateValue(${idx}, 'sets', this.value)" min="1"
-                                   style="width: 45px;">
+                            <input type="number" class="value-input" value="${ex.sets}" onchange="updateValue(${idx}, 'sets', this.value)" style="width: 45px;">
                             <button class="control-btn plus" onclick="changeValue(${idx}, 'sets', 1)">+</button>
                         </div>
                     </div>
-                    
-                    <!-- REPS -->
                     <div style="text-align: center;">
                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">REPS</div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <button class="control-btn minus" onclick="changeValue(${idx}, 'reps', -1)">−</button>
-                            <input type="number" class="value-input" value="${ex.reps}" 
-                                   onchange="updateValue(${idx}, 'reps', this.value)" min="1"
-                                   style="width: 45px;">
+                            <input type="number" class="value-input" value="${ex.reps}" onchange="updateValue(${idx}, 'reps', this.value)" style="width: 45px;">
                             <button class="control-btn plus" onclick="changeValue(${idx}, 'reps', 1)">+</button>
                         </div>
                     </div>
-                    
-                    <!-- KG -->
                     <div style="text-align: center;">
                         <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;"> 
                             <div style="font-size: 0.75em; font-weight: 600; color: #6c757d;">KG</div>
-                            <label style="display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 0.6em; color: #6c757d;">
-                                <input 
-                                    type="checkbox"
-                                    style="zoom: 0.7;"
-                                    ${ex.weight === 'BW' ? 'checked' : ''} 
-                                    onchange="toggleBodyweight(${idx}, this.checked)"
-                                >
-                                BW
+                            <label style="display: flex; align-items: center; gap: 3px; font-size: 0.6em;">
+                                <input type="checkbox" style="zoom: 0.7;" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)"> BW
                             </label>
                         </div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
-                            <input type="text" class="value-input" value="${ex.weight}" 
-                                   onchange="updateValue(${idx}, 'weight', this.value)" 
-                                   ${ex.weight === 'BW' ? 'disabled' : ''}
-                                   style="width: 45px;">
+                            <input type="text" class="value-input" value="${ex.weight}" onchange="updateValue(${idx}, 'weight', this.value)" ${ex.weight === 'BW' ? 'disabled' : ''} style="width: 45px;">
                             <button class="control-btn plus" onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>+</button>
                         </div>
                     </div>
                 </div>
                 
-                <textarea class="notes-input" 
-                          placeholder="Notes (optional)" 
-                          oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)"
-                          rows="1">${ex.notes || ''}</textarea>
+                <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
             `;
         } else {
-            // VIEW MODE - Read-only display
+            // VIEW MODE
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <div class="exercise-name">${ex.name}</div>
-
-
-<div style="display: flex; gap: 4px; align-items: center;"> 
-    <button class="detail-tool-btn toggle-edit-btn ${isEditing ? 'editing' : ''}"
-            onclick="toggleEdit(${idx})"
-            title="${isEditing ? 'Save' : 'Edit'}">
-        <span class="material-icons edit-icon">edit</span>
-        <span class="material-icons save-icon">check</span>
-    </button>
-
-    <button class="detail-tool-btn" onclick="deleteExercise(${idx})" title="Delete">
-        <span class="material-icons" style="font-size: 18px;">delete</span>
-    </button>
-</div>
+                    <div style="display: flex; gap: 4px; align-items: center;"> 
+                        <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})">
+                            <span class="material-icons edit-icon">edit</span>
+                        </button>
+                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})">
+                            <span class="material-icons" style="font-size: 18px;">delete</span>
+                        </button>
+                    </div>
                 </div>
                 <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
                     ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
