@@ -613,17 +613,20 @@ function renderExercises() {
                             style="width: 100%; height: 100%; flex-grow: 1; border: none; font-size: 0.9em; outline: none; background: transparent; padding: 8px; overflow-y: auto;">
                     </select>
                 </div>
+                <div style="display: flex; align-items: center; width: 100%; gap: 8px;">
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; height: 40px;">
-                    <div style="flex: 1; margin-right: 10px; position: relative; display: flex; align-items: center;">
-                    <button type="button" onclick="toggleExerciseDropdownInEdit(${idx})" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; margin-right: 4px;">
+                    <button type="button" onclick="toggleExerciseDropdownInEdit(${idx})" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; flex-shrink: 0;">
                         <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
                     </button>
-    
-                    <input type="text" class="exercise-name-input" id="exerciseName-${idx}" value="${ex.name}" onchange="updateExerciseName(${idx}, this.value)" style="flex: 1; padding: 10px 0px 10px 4px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid #eee;">
-                </div>
+                    
+                    <input type="text" 
+                        class="exercise-name-input" 
+                        id="exerciseName-${idx}" 
+                        value="${ex.name}" 
+                        onchange="updateExerciseName(${idx}, this.value)" 
+                        style="flex: 1; min-width: 0; padding: 10px 0px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid #eee;">
 
-                    <div style="display: flex; gap: 4px; align-items: center;"> 
+                    <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;"> 
                         <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})">
                             <span class="material-icons save-icon">check</span>
                         </button>
