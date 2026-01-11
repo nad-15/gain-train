@@ -1764,6 +1764,9 @@ function createCalendarDay(day, date, isOtherMonth) {
     const dayDiv = document.createElement('div');
     dayDiv.className = 'calendar-day';
 
+    dayDiv.className = 'calendar-day';
+dayDiv.dataset.date = date.toISOString(); // ADD THIS LINE
+
     if (isOtherMonth) {
         dayDiv.classList.add('other-month');
     }
@@ -2519,6 +2522,56 @@ function handleSwipe(startX, endX, startY, endY) {
         changeMonth(-1);
     }
 }
+function handleSwipeDetails(startX, endX, startY, endY) {
+    const dx = endX - startX;
+    const dy = endY - startY;
+
+    const minSwipeDistance = 50;
+    if (Math.abs(dx) < minSwipeDistance) return; // too short
+
+    const slope = Math.abs(dy / dx);
+    const maxAllowedSlope = Math.tan(30 * Math.PI / 180); // ~0.577 (~30°)
+
+    if (slope > maxAllowedSlope) return; // too vertical - let scroll work
+
+    // Valid horizontal swipe detected - navigate day by day
+    if (!selectedCalendarDate) return; // No date selected
+    
+    const currentDate = new Date(selectedCalendarDate);
+    
+    if (dx < 0) {
+        // Swipe left → next day
+        currentDate.setDate(currentDate.getDate() + 1);
+    } else {
+        // Swipe right → previous day
+        currentDate.setDate(currentDate.getDate() - 1);
+    }
+    
+    // Find the workout for the new date
+    const workout = storage.workouts.find(w =>
+        new Date(w.date).toDateString() === currentDate.toDateString()
+    );
+    
+    // Update the calendar to show this date's month if needed
+    if (currentDate.getMonth() !== storage.currentMonth || 
+        currentDate.getFullYear() !== storage.currentYear) {
+        storage.currentMonth = currentDate.getMonth();
+        storage.currentYear = currentDate.getFullYear();
+        renderCalendar();
+    }
+    
+    // Find and click the calendar day to update selection
+    const calendarDays = document.querySelectorAll('.calendar-day');
+    calendarDays.forEach(dayDiv => {
+        const dayDate = new Date(dayDiv.dataset.date || '');
+        if (dayDate.toDateString() === currentDate.toDateString()) {
+            dayDiv.click();
+        }
+    });
+    
+    // Show workout details for the new date
+    showWorkoutDetails(currentDate, workout);
+}
 
 // Attach swipe listeners to calendar section
 const calendarSection = document.querySelector('.calendar-section');
@@ -2546,7 +2599,7 @@ if (detailsSection) {
     detailsSection.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         touchEndY = e.changedTouches[0].screenY;
-        handleSwipe(touchStartX, touchEndX, touchStartY, touchEndY);
+        handleSwipeDetails(touchStartX, touchEndX, touchStartY, touchEndY);
     }, { passive: true });
 }
 
