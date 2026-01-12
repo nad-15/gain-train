@@ -2463,6 +2463,7 @@ margin-top: 0;
 
 
 .workout-weight-section {
+    display: flex;
     margin: 0 15px 15px 15px;
     padding: 12px;
     background: #f8f9fa;
@@ -2500,4 +2501,11 @@ margin-top: 0;
     border: 1px solid #e9ecef;
     border-radius: 6px;
     font-size: 0.875rem;
+}
+
+#workoutWeightInput{
+    flex: 1;
+}
+.save-weight {
+    flex : 1;
 }
