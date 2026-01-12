@@ -2499,14 +2499,15 @@ margin-top: 0;
     flex: 1;
     padding: 8px;
     border: 1px solid #e9ecef;
+    min-width: 0; /* IMPORTANT: prevents the input from pushing past the container */
     border-radius: 6px;
     font-size: 0.875rem;
 }
 
-#workoutWeightInput{
-    flex: 1;
-}
-.save-weight {
-    flex : 1;
-    flex-shrink: 0;
+
+.save-weight-btn {
+    align-items: center;
+    background: #1a1d1f;
+    color: white;
+    border-radius: 6px;
 }

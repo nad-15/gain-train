@@ -1767,7 +1767,7 @@ function renderWorkoutWeight(workout) {
         container.innerHTML = `
             <div class="workout-weight-edit">
                 <input type="number" id="workoutWeightInput" placeholder="Log body weight (kg)" step="0.1">
-                <button class="modal-btn save save-weight" style="padding: 8px 16px; margin: 0;" onclick="logWorkoutWeight(${workout.id})">
+                <button class="save-weight-btn" style="padding: 8px 16px; margin: 0;" onclick="logWorkoutWeight(${workout.id})">
                     Log Weight
                 </button>
             </div>
