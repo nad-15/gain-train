@@ -1723,6 +1723,8 @@ function viewWorkout(workoutId) {
     document.getElementById('workoutDate').textContent =
         new Date(workout.date).toLocaleDateString();
 
+        renderWorkoutWeight(workout);
+
     // document.getElementById('viewModeIndicator').innerHTML = `
     //     <div class="view-mode">
     //         <div class="view-mode-label">✓ Completed Workout</div>
@@ -1733,7 +1735,105 @@ function viewWorkout(workoutId) {
     renderWorkoutActions();
     showScreen('workout');
 }
+function renderWorkoutWeight(workout) {
+    const container = document.getElementById('workoutWeightSection');
+    if (!workout || workout.type === 'rest') {
+        container.style.display = 'none';
+        return;
+    }
 
+    const workoutDate = new Date(workout.date).toDateString();
+    const weightLog = storage.weightLogs.find(log => 
+        new Date(log.date).toDateString() === workoutDate
+    );
+
+    container.style.display = 'block';
+
+    if (weightLog) {
+        // Show logged weight with edit option
+        container.innerHTML = `
+            <div class="workout-weight-display">
+                <span class="workout-weight-label">Body Weight:</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span class="workout-weight-value">${weightLog.weight} kg</span>
+                    <button class="detail-tool-btn" onclick="editWorkoutWeight(${workout.id})">
+                        <span class="material-icons">edit</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    } else {
+        // Show option to log weight
+        container.innerHTML = `
+            <div class="workout-weight-edit">
+                <input type="number" id="workoutWeightInput" placeholder="Log body weight (kg)" step="0.1">
+                <button class="modal-btn save" style="padding: 8px 16px; margin: 0;" onclick="logWorkoutWeight(${workout.id})">
+                    Log Weight
+                </button>
+            </div>
+        `;
+    }
+}
+
+function logWorkoutWeight(workoutId) {
+    const input = document.getElementById('workoutWeightInput');
+    const weight = parseFloat(input.value);
+
+    if (!weight || weight <= 0) {
+        alert('Please enter a valid weight!');
+        return;
+    }
+
+    const workout = storage.workouts.find(w => w.id === workoutId);
+    if (!workout) return;
+
+    const workoutDate = new Date(workout.date);
+    workoutDate.setHours(12, 0, 0, 0);
+
+    // Check if already logged for this date
+    const existingIndex = storage.weightLogs.findIndex(log =>
+        new Date(log.date).toDateString() === workoutDate.toDateString()
+    );
+
+    if (existingIndex >= 0) {
+        storage.weightLogs[existingIndex].weight = weight;
+    } else {
+        storage.weightLogs.push({
+            date: workoutDate.toISOString(),
+            weight: weight
+        });
+    }
+
+    storage.saveWeightLogs();
+    alert('Weight logged! 📊');
+    renderWorkoutWeight(workout);
+}
+
+function editWorkoutWeight(workoutId) {
+    const workout = storage.workouts.find(w => w.id === workoutId);
+    if (!workout) return;
+
+    const workoutDate = new Date(workout.date).toDateString();
+    const weightLog = storage.weightLogs.find(log =>
+        new Date(log.date).toDateString() === workoutDate
+    );
+
+    if (!weightLog) return;
+
+    const newWeight = prompt('Enter new weight (kg):', weightLog.weight);
+    if (newWeight === null) return;
+
+    const weight = parseFloat(newWeight);
+    if (!weight || weight <= 0) {
+        alert('Please enter a valid weight!');
+        return;
+    }
+
+    weightLog.weight = weight;
+    storage.saveWeightLogs();
+    alert('Weight updated! 📊');
+    renderWorkoutWeight(workout);
+}
 let selectedCalendarDate = null;
 let isDetailsExpanded = false;
 
@@ -3635,18 +3735,18 @@ function switchGraphType(type) {
     });
 
     // Show/hide weight logging section
-    const weightSection = document.getElementById('weightLoggingSection');
-    if (type === 'weight') {
-        weightSection.style.display = 'block';
+    // const weightSection = document.getElementById('weightLoggingSection');
+    // if (type === 'weight') {
+    //     weightSection.style.display = 'block';
 
-        // Set today's date as default
-        const today = new Date();
-        document.getElementById('weightDateInput').valueAsDate = today;
+    //     // Set today's date as default
+    //     const today = new Date();
+    //     document.getElementById('weightDateInput').valueAsDate = today;
 
-        renderWeightHistory();
-    } else {
-        weightSection.style.display = 'none';
-    }
+    //     renderWeightHistory();
+    // } else {
+    //     weightSection.style.display = 'none';
+    // }
 
     // Update chart title
     document.getElementById('chartTitle').textContent =

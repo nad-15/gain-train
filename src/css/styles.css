@@ -2462,3 +2462,42 @@ margin-top: 0;
 }
 
 
+.workout-weight-section {
+    margin: 0 15px 15px 15px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: none;
+}
+
+.workout-weight-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.workout-weight-label {
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.workout-weight-value {
+    color: #1a1d1f;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.workout-weight-edit {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.workout-weight-edit input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
