@@ -1723,7 +1723,7 @@ function viewWorkout(workoutId) {
     document.getElementById('workoutDate').textContent =
         new Date(workout.date).toLocaleDateString();
 
-        renderWorkoutWeight(workout);
+    renderWorkoutWeight(workout);
 
     // document.getElementById('viewModeIndicator').innerHTML = `
     //     <div class="view-mode">
@@ -1743,7 +1743,7 @@ function renderWorkoutWeight(workout) {
     }
 
     const workoutDate = new Date(workout.date).toDateString();
-    const weightLog = storage.weightLogs.find(log => 
+    const weightLog = storage.weightLogs.find(log =>
         new Date(log.date).toDateString() === workoutDate
     );
 
@@ -3724,7 +3724,11 @@ function switchGraphType(type) {
     // Update button styles
     document.querySelectorAll('.chart-toggle-btn').forEach(btn => {
         if (btn.dataset.type === type) {
-            btn.style.background = '#2da44e';
+            if (type === 'workouts') {
+                btn.style.background = '#2da44e';
+            } else {
+                btn.style.background = '#4c6ef5';
+            }
             btn.style.color = 'white';
             btn.classList.add('active');
         } else {
