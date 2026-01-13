@@ -3054,7 +3054,7 @@ function renderHomeScreen() {
             btn.innerHTML = `
                     <span class="material-symbols-outlined card-icon">fitness_center</span>
                     <span class="card-label">${custom.name}</span>
-                    <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 4px;">
+                    <div style=" display: flex; gap: 4px;">
                         <button onclick="event.stopPropagation(); renameCustomWorkoutType(${idx})" 
                                 style="background: #4c6ef5; color: white; border: none; padding: 4px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;">
                             <span class="material-symbols-outlined" style="font-size: 16px !important;">edit</span>
