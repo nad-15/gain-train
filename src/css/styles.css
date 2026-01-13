@@ -1086,13 +1086,19 @@ body {
 .calendar-day.lower:not(.text-mode):not(.today)::after,
 .calendar-day.whole:not(.text-mode):not(.today)::after {
 
-    content: 'asterisk';
+    content: 'fitness_center';
     font-family: 'Material Symbols Outlined';
     position: absolute;
     font-size: 1em !important;
     bottom: 2px;
     right: 2px;
     opacity: 0.6;
+
+        display: inline-block;   /* important */
+    transform: rotate(-45deg);
+    transform-origin: center;
+
+    
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
@@ -2513,26 +2519,26 @@ margin-top: 0;
 }
 /* Weight indicator on calendar cards */
 .calendar-day.has-weight:not(.text-mode)::before {
-    content: 'balance';
+    content: 'asterisk';
     font-family: 'Material Symbols';
     position: absolute;
     font-size: 0.8em !important;
     top: 2px;
     right: 2px;
     opacity: 0.6;
-    color: gray;
+    color: orangered;
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
 .calendar-day.has-weight.text-mode::before {
-    content: 'balance';
+    content: 'asterisk';
     font-family: 'Material Symbols';
     position: absolute;
     font-size: 0.8em !important;
     top: 2px;
     right: 2px;
     opacity: 0.5;
-    color: gray;
+    color: orangered;
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
