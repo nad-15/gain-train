@@ -150,7 +150,7 @@ body {
     font-weight: 600;
     color: #6c757d;
 
-    text-align: center;
+    /* text-align: center; */
     cursor: pointer;
 }
 

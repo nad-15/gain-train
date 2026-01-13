@@ -4080,13 +4080,16 @@ function logWeightFromCalendar() {
     if (!selectedCalendarDate) return;
     
     const dateStr = selectedCalendarDate.toDateString();
-    const existingLog = storage.weightLogs.find(log =>
+    // Find the index so we can delete it if weight is 0
+    const existingLogIndex = storage.weightLogs.findIndex(log =>
         new Date(log.date).toDateString() === dateStr
     );
     
+    const existingLog = existingLogIndex > -1 ? storage.weightLogs[existingLogIndex] : null;
     const currentWeight = existingLog ? existingLog.weight : '';
+    
     const promptText = existingLog 
-        ? `Update weight for ${selectedCalendarDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} (current: ${currentWeight}kg):`
+        ? `Update weight for ${selectedCalendarDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} (current: ${currentWeight}kg). Enter 0 to delete:`
         : `Log weight for ${selectedCalendarDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} (kg):`;
     
     const weight = prompt(promptText, currentWeight);
@@ -4094,25 +4097,39 @@ function logWeightFromCalendar() {
     if (weight === null) return; // User cancelled
     
     const parsedWeight = parseFloat(weight);
-    if (!parsedWeight || parsedWeight <= 0) {
+
+    // --- NEW LOGIC: DELETE IF 0 ---
+    if (parsedWeight === 0) {
+        if (existingLogIndex > -1) {
+            storage.weightLogs.splice(existingLogIndex, 1);
+            alert('Weight entry deleted! 🗑️');
+        } else {
+            return; // Nothing to delete
+        }
+    } 
+    // --- VALIDATION FOR NON-ZERO INPUT ---
+    else if (isNaN(parsedWeight) || parsedWeight < 0) {
         alert('Please enter a valid weight!');
         return;
+    } 
+    // --- UPDATE OR CREATE ---
+    else {
+        const logDate = new Date(selectedCalendarDate);
+        logDate.setHours(12, 0, 0, 0);
+        
+        if (existingLog) {
+            existingLog.weight = parsedWeight;
+            alert('Weight updated! 📊');
+        } else {
+            storage.weightLogs.push({
+                date: logDate.toISOString(),
+                weight: parsedWeight
+            });
+            alert('Weight logged! 📊');
+        }
     }
     
-    const logDate = new Date(selectedCalendarDate);
-    logDate.setHours(12, 0, 0, 0);
-    
-    if (existingLog) {
-        existingLog.weight = parsedWeight;
-        alert('Weight updated! 📊');
-    } else {
-        storage.weightLogs.push({
-            date: logDate.toISOString(),
-            weight: parsedWeight
-        });
-        alert('Weight logged! 📊');
-    }
-    
+    // Save the changes to localStorage
     storage.saveWeightLogs();
     
     // Refresh display
@@ -4121,8 +4138,8 @@ function logWeightFromCalendar() {
     );
     showWorkoutDetails(selectedCalendarDate, workout);
     
-    // Refresh calendar to show weight indicator
-    if (isDetailsExpanded) {
+    // Refresh calendar to update the orange asterisk indicator
+    if (storage.isDetailsExpanded) {
         renderWeekView();
     } else {
         renderCalendar();
