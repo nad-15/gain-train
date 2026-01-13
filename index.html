@@ -170,9 +170,14 @@
                 <div class="workout-section-header" onclick="toggleExpand()">
                     <div class="expand-handle">
                         <span id="selectedDateLabel"></span>
+                        <span id="weightDisplay" style="font-size: 0.7em; color: #6c757d; margin-left: 8px;"></span>
                     </div>
 
                     <div class="workout-details-tools">
+                        <button class="detail-tool-btn" id="logWeightBtn" style="display: none;"
+                            onclick="event.stopPropagation(); logWeightFromCalendar()">
+                            <span class="material-symbols-outlined">weight</span>
+                        </button>
                         <button class="detail-tool-btn" id="changeWorkoutBtn" style="display: none;">
                             <!-- This will be populated by JavaScript -->
                         </button>
@@ -242,7 +247,7 @@
                 </div>
 
                 <!-- Weight Logging Section -->
-<!-- <div id="weightLoggingSection" style="padding: 0 15px 15px; display: none; margin-top: 12px;">
+                <!-- <div id="weightLoggingSection" style="padding: 0 15px 15px; display: none; margin-top: 12px;">
     <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 12px 16px;">
         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
             <input type="date" id="weightDateInput"

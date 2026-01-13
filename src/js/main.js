@@ -113,7 +113,8 @@ const storage = {
     currentWeekOffset: 0,
     isCreatingNewTemplate: false,
     editingExerciseIndex: null,
-    originalExerciseSnapshot: null // Holds the data for canceling
+    originalExerciseSnapshot: null,
+    currentPB: null // Stores current Personal Best info for display
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -697,7 +698,13 @@ function renderExercises() {
                     </div>
                 </div>
                 
-                <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
+                ${storage.currentPB && storage.currentPB.exerciseIdx === idx ? `
+    <div class="pb-display">
+        <span class="material-symbols-outlined">emoji_events</span>
+        <span>PB: ${storage.currentPB.weight}kg × ${storage.currentPB.reps} reps (${storage.currentPB.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})</span>
+    </div>
+` : ''}
+<textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
             `;
         } else {
             // VIEW MODE
@@ -928,6 +935,8 @@ function toggleEdit(idx) {
         storage.originalExerciseSnapshot = JSON.parse(JSON.stringify(storage.currentWorkout.exercises[idx]));
         storage.editingExerciseIndex = idx;
     }
+    // Calculate and display PB for this exercise
+calculatePersonalBest(idx);
     renderExercises();
 }
 
@@ -1949,6 +1958,15 @@ function createCalendarDay(day, date, isOtherMonth) {
         new Date(w.date).toDateString() === date.toDateString()
     );
 
+    // Check if weight is logged for this date
+const hasWeight = storage.weightLogs.find(log =>
+    new Date(log.date).toDateString() === date.toDateString()
+);
+
+if (hasWeight) {
+    dayDiv.classList.add('has-weight');
+}
+
     // Get workout label
     let workoutLabel = '';
     if (workout) {
@@ -2052,6 +2070,12 @@ function showWorkoutDetails(date, workout) {
         // year: 'numeric'
     });
 
+    // Check for weight log
+const weightLog = storage.weightLogs.find(log =>
+    new Date(log.date).toDateString() === date.toDateString()
+);
+const weightDisplay = document.getElementById('weightDisplay');
+
     const deleteBtn = document.getElementById("deleteWorkoutBtn");
     const changeBtn = document.getElementById("changeWorkoutBtn");
 
@@ -2083,6 +2107,18 @@ function showWorkoutDetails(date, workout) {
   <span>${dateStr}</span>
 `;
 
+// Update weight display
+if (weightLog) {
+    weightDisplay.textContent = `• ${weightLog.weight}kg`;
+    weightDisplay.style.display = 'inline';
+} else {
+    weightDisplay.textContent = '';
+    weightDisplay.style.display = 'none';
+}
+
+// Show/hide weight button
+const logWeightBtn = document.getElementById('logWeightBtn');
+logWeightBtn.style.display = 'flex';
 
     // Show the section
     detailsSection.style.display = 'block';
@@ -4036,4 +4072,104 @@ function renderWeightChart() {
             }
         }
     });
+}
+
+// ===== WEIGHT LOGGING FROM CALENDAR =====
+
+function logWeightFromCalendar() {
+    if (!selectedCalendarDate) return;
+    
+    const dateStr = selectedCalendarDate.toDateString();
+    const existingLog = storage.weightLogs.find(log =>
+        new Date(log.date).toDateString() === dateStr
+    );
+    
+    const currentWeight = existingLog ? existingLog.weight : '';
+    const promptText = existingLog 
+        ? `Update weight for ${selectedCalendarDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} (current: ${currentWeight}kg):`
+        : `Log weight for ${selectedCalendarDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} (kg):`;
+    
+    const weight = prompt(promptText, currentWeight);
+    
+    if (weight === null) return; // User cancelled
+    
+    const parsedWeight = parseFloat(weight);
+    if (!parsedWeight || parsedWeight <= 0) {
+        alert('Please enter a valid weight!');
+        return;
+    }
+    
+    const logDate = new Date(selectedCalendarDate);
+    logDate.setHours(12, 0, 0, 0);
+    
+    if (existingLog) {
+        existingLog.weight = parsedWeight;
+        alert('Weight updated! 📊');
+    } else {
+        storage.weightLogs.push({
+            date: logDate.toISOString(),
+            weight: parsedWeight
+        });
+        alert('Weight logged! 📊');
+    }
+    
+    storage.saveWeightLogs();
+    
+    // Refresh display
+    const workout = storage.workouts.find(w =>
+        new Date(w.date).toDateString() === selectedCalendarDate.toDateString()
+    );
+    showWorkoutDetails(selectedCalendarDate, workout);
+    
+    // Refresh calendar to show weight indicator
+    if (isDetailsExpanded) {
+        renderWeekView();
+    } else {
+        renderCalendar();
+    }
+}
+
+// ===== PERSONAL BEST CALCULATION =====
+
+function calculatePersonalBest(exerciseIdx) {
+    const currentExercise = storage.currentWorkout.exercises[exerciseIdx];
+    const exerciseName = currentExercise.name.trim();
+    
+    if (!exerciseName || exerciseName === 'Exercise Name') return;
+    
+    const currentType = storage.currentWorkout.type;
+    let bestWeight = 0;
+    let bestReps = 0;
+    let bestDate = null;
+    
+    // Search through all workouts of the same type
+    storage.workouts.forEach(w => {
+        if (w.type === currentType && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name === exerciseName && ex.weight !== 'BW') {
+                    const weight = parseFloat(ex.weight) || 0;
+                    const reps = parseInt(ex.reps) || 0;
+                    
+                    // Priority: Weight first, then reps
+                    if (weight > bestWeight || (weight === bestWeight && reps > bestReps)) {
+                        bestWeight = weight;
+                        bestReps = reps;
+                        bestDate = new Date(w.date);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Store PB info for display in renderExercises
+    if (bestWeight > 0) {
+        storage.currentPB = {
+            exerciseIdx: exerciseIdx,
+            weight: bestWeight,
+            reps: bestReps,
+            date: bestDate
+        };
+    } else {
+        storage.currentPB = null;
+    }
 }

@@ -2511,3 +2511,47 @@ margin-top: 0;
     color: white;
     border-radius: 6px;
 }
+
+/* Weight indicator on calendar cards */
+.calendar-day.has-weight:not(.text-mode)::before {
+    content: 'monitoring_weight';
+    font-family: 'Material Symbols Outlined';
+    position: absolute;
+    font-size: 0.9em !important;
+    top: 2px;
+    right: 2px;
+    opacity: 0.6;
+    color: #4c6ef5;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.calendar-day.has-weight.text-mode::before {
+    content: 'balance';
+    font-family: 'Material Symbols Outlined';
+    position: absolute;
+    font-size: 0.65em !important;
+    top: 2px;
+    right: 2px;
+    opacity: 0.5;
+    color: #4c6ef5;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Personal Best display in exercise edit mode */
+.pb-display {
+    background: #e7f5ff;
+    border-left: 3px solid #4c6ef5;
+    padding: 8px 10px;
+    margin-top: 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    color: #1864ab;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pb-display .material-symbols-outlined {
+    font-size: 16px !important;
+    color: #4c6ef5;
+}
