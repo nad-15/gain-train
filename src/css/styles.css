@@ -2511,10 +2511,9 @@ margin-top: 0;
     color: white;
     border-radius: 6px;
 }
-
 /* Weight indicator on calendar cards */
 .calendar-day.has-weight:not(.text-mode)::before {
-    content: 'monitoring_weight';
+    content: 'balance';
     font-family: 'Material Symbols Outlined';
     position: absolute;
     font-size: 0.9em !important;
