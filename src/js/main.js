@@ -653,7 +653,7 @@ function renderExercises() {
                         id="exerciseName-${idx}" 
                         value="${ex.name}" 
                         onchange="updateExerciseName(${idx}, this.value)" 
-                        style="flex: 1; min-width: 0; padding: 10px 0px; font-weight: 600; font-size: 0.95rem; border: none; border-bottom: 1px solid #eee;">
+                        style="flex: 1; min-width: 0; padding: 10px 0px 3px; font-weight: 600; font-size: 0.95rem; border: none; margin-bottom: 7px ;border-bottom: 1px solid #eee;">
 
                     <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;"> 
                         <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})">
