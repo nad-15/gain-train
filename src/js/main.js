@@ -722,7 +722,7 @@ function renderExercises() {
                     </div>
                 </div>
                 <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
-                    ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}
+                    ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}
                 </div>
                 ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
             `;
@@ -2226,7 +2226,7 @@ if (storage.isSimplifiedView) {
             <div class="workout-detail-item">
                 <div class="workout-detail-title">${ex.name}</div>
                 <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
-                    <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}</span>
+                    <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</span>
                     ${pbInfo ? `
                         <span style="color: #4c6ef5; font-size: 0.75em; display: flex; align-items: center; gap: 4px;">
                             <span class="material-symbols-outlined" style="font-size: 14px !important;">emoji_events</span>
@@ -2235,6 +2235,7 @@ if (storage.isSimplifiedView) {
                         </span>
                     ` : ''}
                 </div>
+                ${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
             </div>
         `;
     });
@@ -2244,12 +2245,13 @@ if (storage.isSimplifiedView) {
         html += `
             <div class="workout-detail-item">
                 <div class="workout-detail-title">${ex.name}</div>
-                <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}</div>
-                ${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
+                <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</div>
+                
             </div>
         `;
     });
 }
+//${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
 
             detailsContent.innerHTML = html;
         }
@@ -4357,9 +4359,9 @@ function toggleSimplifiedView() {
     // Update icon
     const btn = document.getElementById('simplifiedViewBtn');
     if (storage.isSimplifiedView) {
-        btn.innerHTML = '<span class="material-symbols-outlined">visibility_off</span>';
-    } else {
         btn.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
+    } else {
+        btn.innerHTML = '<span class="material-symbols-outlined">visibility_off</span>';
     }
     
     // Refresh details
