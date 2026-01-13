@@ -111,6 +111,7 @@ const storage = {
     isFromCalendar: false,
     selectedTemplate: null,
     currentWeekOffset: 0,
+    isSimplifiedView: false,
     isCreatingNewTemplate: false,
     editingExerciseIndex: null,
     originalExerciseSnapshot: null,
@@ -929,15 +930,17 @@ function toggleEdit(idx) {
         // Clear backup and save
         storage.editingExerciseIndex = null;
         storage.originalExerciseSnapshot = null;
+        storage.currentPB = null; // Clear PB to force recalculation
         autoSave();
+        renderExercises(); // Force re-render after save
     } else {
         // ENTERING EDIT MODE: Create a deep copy snapshot
         storage.originalExerciseSnapshot = JSON.parse(JSON.stringify(storage.currentWorkout.exercises[idx]));
         storage.editingExerciseIndex = idx;
+        // Calculate and display PB for this exercise
+        calculatePersonalBest(idx);
+        renderExercises();
     }
-    // Calculate and display PB for this exercise
-calculatePersonalBest(idx);
-    renderExercises();
 }
 
 // ADD THIS NEW FUNCTION DIRECTLY BELOW toggleEdit
@@ -1959,13 +1962,13 @@ function createCalendarDay(day, date, isOtherMonth) {
     );
 
     // Check if weight is logged for this date
-const hasWeight = storage.weightLogs.find(log =>
-    new Date(log.date).toDateString() === date.toDateString()
-);
+    const hasWeight = storage.weightLogs.find(log =>
+        new Date(log.date).toDateString() === date.toDateString()
+    );
 
-if (hasWeight) {
-    dayDiv.classList.add('has-weight');
-}
+    if (hasWeight) {
+        dayDiv.classList.add('has-weight');
+    }
 
     // Get workout label
     let workoutLabel = '';
@@ -2071,10 +2074,10 @@ function showWorkoutDetails(date, workout) {
     });
 
     // Check for weight log
-const weightLog = storage.weightLogs.find(log =>
-    new Date(log.date).toDateString() === date.toDateString()
-);
-const weightDisplay = document.getElementById('weightDisplay');
+    const weightLog = storage.weightLogs.find(log =>
+        new Date(log.date).toDateString() === date.toDateString()
+    );
+    const weightDisplay = document.getElementById('weightDisplay');
 
     const deleteBtn = document.getElementById("deleteWorkoutBtn");
     const changeBtn = document.getElementById("changeWorkoutBtn");
@@ -2107,18 +2110,37 @@ const weightDisplay = document.getElementById('weightDisplay');
   <span>${dateStr}</span>
 `;
 
-// Update weight display
-if (weightLog) {
-    weightDisplay.textContent = `• ${weightLog.weight}kg`;
-    weightDisplay.style.display = 'inline';
-} else {
-    weightDisplay.textContent = '';
-    weightDisplay.style.display = 'none';
-}
+    // Update weight display
+    if (weightLog) {
+        weightDisplay.textContent = `• ${weightLog.weight}kg`;
+        weightDisplay.style.display = 'inline';
+    } else {
+        weightDisplay.textContent = '';
+        weightDisplay.style.display = 'none';
+    }
 
-// Show/hide weight button
-const logWeightBtn = document.getElementById('logWeightBtn');
-logWeightBtn.style.display = 'flex';
+    // Show/hide weight button
+    const logWeightBtn = document.getElementById('logWeightBtn');
+    logWeightBtn.style.display = 'flex';
+
+    // Add this right after the logWeightBtn.style.display = 'flex'; line
+const simplifiedViewBtn = document.getElementById('simplifiedViewBtn');
+if (!simplifiedViewBtn) {
+    // Create the button if it doesn't exist
+    const newBtn = document.createElement('button');
+    newBtn.id = 'simplifiedViewBtn';
+    newBtn.className = 'detail-tool-btn';
+    newBtn.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
+    newBtn.title = 'Toggle simplified view';
+    newBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleSimplifiedView();
+    };
+    document.querySelector('.workout-details-tools').insertBefore(
+        newBtn, 
+        document.querySelector('.workout-details-tools').lastElementChild
+    );
+}
 
     // Show the section
     detailsSection.style.display = 'block';
@@ -2142,15 +2164,92 @@ bath_bedrock
 
             `;
 
-            workout.exercises.forEach(ex => {
-                html += `
-                    <div class="workout-detail-item">
-                        <div class="workout-detail-title">${ex.name}</div>
-                        <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}</div>
-                        ${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
-                    </div>
-                `;
-            });
+           // Replace the section that starts with: workout.exercises.forEach(ex => {
+if (storage.isSimplifiedView) {
+    // SIMPLIFIED VIEW
+    workout.exercises.forEach(ex => {
+        // Calculate PB for this exercise
+        const currentType = workout.type;
+        let pbInfo = null;
+        
+        let bestWeight = null;
+        let bestReps = 0;
+        let bestSets = 0;
+        let bestDate = null;
+        
+        storage.workouts.forEach(w => {
+            if (w.type === currentType && w.exercises) {
+                w.exercises.forEach(exW => {
+                    if (exW.name === ex.name) {
+                        const weight = exW.weight === 'BW' ? 'BW' : parseFloat(exW.weight) || 0;
+                        const reps = parseInt(exW.reps) || 0;
+                        const sets = parseInt(exW.sets) || 0;
+                        
+                        let isBetter = false;
+                        
+                        if (bestWeight === null) {
+                            isBetter = true;
+                        } else if (weight === 'BW' && bestWeight === 'BW') {
+                            if (reps > bestReps || (reps === bestReps && sets > bestSets)) {
+                                isBetter = true;
+                            }
+                        } else if (weight !== 'BW' && bestWeight !== 'BW') {
+                            if (weight > bestWeight || (weight === bestWeight && reps > bestReps) || 
+                                (weight === bestWeight && reps === bestReps && sets > bestSets)) {
+                                isBetter = true;
+                            }
+                        } else if (weight !== 'BW' && bestWeight === 'BW') {
+                            isBetter = true;
+                        }
+                        
+                        if (isBetter) {
+                            bestWeight = weight;
+                            bestReps = reps;
+                            bestSets = sets;
+                            bestDate = new Date(w.date);
+                        }
+                    }
+                });
+            }
+        });
+        
+        if (bestWeight !== null) {
+            pbInfo = {
+                weight: bestWeight,
+                reps: bestReps,
+                sets: bestSets,
+                date: bestDate
+            };
+        }
+        
+        html += `
+            <div class="workout-detail-item">
+                <div class="workout-detail-title">${ex.name}</div>
+                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
+                    <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}</span>
+                    ${pbInfo ? `
+                        <span style="color: #4c6ef5; font-size: 0.75em; display: flex; align-items: center; gap: 4px;">
+                            <span class="material-symbols-outlined" style="font-size: 14px !important;">emoji_events</span>
+                            PB: ${pbInfo.sets}×${pbInfo.reps}×${pbInfo.weight === 'BW' ? 'BW' : pbInfo.weight + 'kg'} 
+                            (${pbInfo.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+} else {
+    // FULL VIEW (existing code)
+    workout.exercises.forEach(ex => {
+        html += `
+            <div class="workout-detail-item">
+                <div class="workout-detail-title">${ex.name}</div>
+                <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'Bodyweight' : ex.weight + ' kg'}</div>
+                ${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
+            </div>
+        `;
+    });
+}
 
             detailsContent.innerHTML = html;
         }
@@ -2946,19 +3045,26 @@ function renderHomeScreen() {
         customSection.style.display = 'block';
 
         // Add custom workout types
+        // Inside the forEach loop where custom workout cards are created:
         customTypes.forEach((custom, idx) => {
             const btn = document.createElement('button');
             btn.className = 'workout-card';
             btn.style.borderColor = custom.color;
             btn.style.color = custom.color;
             btn.innerHTML = `
-                <span class="material-symbols-outlined card-icon">fitness_center</span>
-                <span class="card-label">${custom.name}</span>
-                <button onclick="event.stopPropagation(); deleteCustomWorkoutType(${idx})" 
-                        style="position: absolute; top: 8px; right: 8px; background: #ff6b6b; color: white; border: none; padding: 4px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;">
-                        <span class="material-symbols-outlined">close_small</span>
+                    <span class="material-symbols-outlined card-icon">fitness_center</span>
+                    <span class="card-label">${custom.name}</span>
+                    <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 4px;">
+                        <button onclick="event.stopPropagation(); renameCustomWorkoutType(${idx})" 
+                                style="background: #4c6ef5; color: white; border: none; padding: 4px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;">
+                            <span class="material-symbols-outlined" style="font-size: 16px !important;">edit</span>
                         </button>
-            `;
+                        <button onclick="event.stopPropagation(); deleteCustomWorkoutType(${idx})" 
+                                style="background: #ff6b6b; color: white; border: none; padding: 4px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;">
+                            <span class="material-symbols-outlined" style="font-size: 16px !important;">close_small</span>
+                        </button>
+                    </div>
+                `;
             btn.style.position = 'relative';
             btn.onclick = () => selectWorkoutType(custom.id);
             customContainer.appendChild(btn);
@@ -3164,6 +3270,25 @@ function deleteCustomWorkoutType(idx) {
     delete defaultTemplates[deletedId];
 
     alert('Custom workout type deleted! 🗑️');
+    renderHomeScreen();
+}
+function renameCustomWorkoutType(idx) {
+    const customType = storage.customWorkoutTypes[idx];
+    const newName = prompt('Enter new workout name:', customType.name);
+    
+    if (newName === null) return; // User cancelled
+    
+    const trimmedName = newName.trim();
+    if (!trimmedName) {
+        alert('Workout name cannot be empty!');
+        return;
+    }
+    
+    // Update the name
+    customType.name = trimmedName;
+    storage.saveCustomWorkoutTypes();
+    
+    alert(`Workout renamed to "${trimmedName}"! ✏️`);
     renderHomeScreen();
 }
 
@@ -4078,24 +4203,24 @@ function renderWeightChart() {
 
 function logWeightFromCalendar() {
     if (!selectedCalendarDate) return;
-    
+
     const dateStr = selectedCalendarDate.toDateString();
     // Find the index so we can delete it if weight is 0
     const existingLogIndex = storage.weightLogs.findIndex(log =>
         new Date(log.date).toDateString() === dateStr
     );
-    
+
     const existingLog = existingLogIndex > -1 ? storage.weightLogs[existingLogIndex] : null;
     const currentWeight = existingLog ? existingLog.weight : '';
-    
-    const promptText = existingLog 
+
+    const promptText = existingLog
         ? `Update weight for ${selectedCalendarDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} (current: ${currentWeight}kg). Enter 0 to delete:`
         : `Log weight for ${selectedCalendarDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} (kg):`;
-    
+
     const weight = prompt(promptText, currentWeight);
-    
+
     if (weight === null) return; // User cancelled
-    
+
     const parsedWeight = parseFloat(weight);
 
     // --- NEW LOGIC: DELETE IF 0 ---
@@ -4106,17 +4231,17 @@ function logWeightFromCalendar() {
         } else {
             return; // Nothing to delete
         }
-    } 
+    }
     // --- VALIDATION FOR NON-ZERO INPUT ---
     else if (isNaN(parsedWeight) || parsedWeight < 0) {
         alert('Please enter a valid weight!');
         return;
-    } 
+    }
     // --- UPDATE OR CREATE ---
     else {
         const logDate = new Date(selectedCalendarDate);
         logDate.setHours(12, 0, 0, 0);
-        
+
         if (existingLog) {
             existingLog.weight = parsedWeight;
             alert('Weight updated! 📊');
@@ -4128,16 +4253,16 @@ function logWeightFromCalendar() {
             alert('Weight logged! 📊');
         }
     }
-    
+
     // Save the changes to localStorage
     storage.saveWeightLogs();
-    
+
     // Refresh display
     const workout = storage.workouts.find(w =>
         new Date(w.date).toDateString() === selectedCalendarDate.toDateString()
     );
     showWorkoutDetails(selectedCalendarDate, workout);
-    
+
     // Refresh calendar to update the orange asterisk indicator
     if (storage.isDetailsExpanded) {
         renderWeekView();
@@ -4147,46 +4272,101 @@ function logWeightFromCalendar() {
 }
 
 // ===== PERSONAL BEST CALCULATION =====
-
 function calculatePersonalBest(exerciseIdx) {
     const currentExercise = storage.currentWorkout.exercises[exerciseIdx];
     const exerciseName = currentExercise.name.trim();
-    
-    if (!exerciseName || exerciseName === 'Exercise Name') return;
-    
+
+    if (!exerciseName || exerciseName === 'Exercise Name') {
+        storage.currentPB = null;
+        return;
+    }
+
     const currentType = storage.currentWorkout.type;
-    let bestWeight = 0;
+    let bestWeight = null;
     let bestReps = 0;
+    let bestSets = 0;
     let bestDate = null;
-    
+
     // Search through all workouts of the same type
     storage.workouts.forEach(w => {
         if (w.type === currentType && w.exercises) {
             w.exercises.forEach(ex => {
-                if (ex.name === exerciseName && ex.weight !== 'BW') {
-                    const weight = parseFloat(ex.weight) || 0;
+                if (ex.name === exerciseName) {
+                    const weight = ex.weight === 'BW' ? 'BW' : parseFloat(ex.weight) || 0;
                     const reps = parseInt(ex.reps) || 0;
-                    
-                    // Priority: Weight first, then reps
-                    if (weight > bestWeight || (weight === bestWeight && reps > bestReps)) {
+                    const sets = parseInt(ex.sets) || 0;
+
+                    // Determine if this is better than current best
+                    let isBetter = false;
+
+                    if (bestWeight === null) {
+                        // First record found
+                        isBetter = true;
+                    } else if (weight === 'BW' && bestWeight === 'BW') {
+                        // Both bodyweight - compare reps, then sets
+                        if (reps > bestReps) {
+                            isBetter = true;
+                        } else if (reps === bestReps && sets > bestSets) {
+                            isBetter = true;
+                        }
+                    } else if (weight === 'BW' && bestWeight !== 'BW') {
+                        // Current is BW, best is weighted - skip
+                        isBetter = false;
+                    } else if (weight !== 'BW' && bestWeight === 'BW') {
+                        // Current is weighted, best is BW - weighted wins
+                        isBetter = true;
+                    } else {
+                        // Both weighted - compare weight, then reps, then sets
+                        if (weight > bestWeight) {
+                            isBetter = true;
+                        } else if (weight === bestWeight && reps > bestReps) {
+                            isBetter = true;
+                        } else if (weight === bestWeight && reps === bestReps && sets > bestSets) {
+                            isBetter = true;
+                        }
+                    }
+
+                    if (isBetter) {
                         bestWeight = weight;
                         bestReps = reps;
+                        bestSets = sets;
                         bestDate = new Date(w.date);
                     }
                 }
             });
         }
     });
-    
-    // Store PB info for display in renderExercises
-    if (bestWeight > 0) {
+
+    // Store PB info for display
+    if (bestWeight !== null) {
         storage.currentPB = {
             exerciseIdx: exerciseIdx,
             weight: bestWeight,
             reps: bestReps,
+            sets: bestSets,
             date: bestDate
         };
     } else {
         storage.currentPB = null;
+    }
+}
+
+function toggleSimplifiedView() {
+    storage.isSimplifiedView = !storage.isSimplifiedView;
+    
+    // Update icon
+    const btn = document.getElementById('simplifiedViewBtn');
+    if (storage.isSimplifiedView) {
+        btn.innerHTML = '<span class="material-symbols-outlined">visibility_off</span>';
+    } else {
+        btn.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
+    }
+    
+    // Refresh details
+    if (selectedCalendarDate) {
+        const workout = storage.workouts.find(w =>
+            new Date(w.date).toDateString() === selectedCalendarDate.toDateString()
+        );
+        showWorkoutDetails(selectedCalendarDate, workout);
     }
 }
