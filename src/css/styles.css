@@ -2528,11 +2528,16 @@ margin-top: 0;
     right: 2px;
     color: orangered;
     display: inline-block;
+    z-index: 2;
     font-variation-settings:
         'FILL' 1,
         'wght' 400,
         'GRAD' 0,
         'opsz' 24;
+}
+
+.calendar-day {
+    position: relative;
 }
 
 /* Normal mode → hide on today */
