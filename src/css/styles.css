@@ -2518,30 +2518,36 @@ margin-top: 0;
     border-radius: 6px;
 }
  */
-
 /* Weight indicator on calendar cards */
-.calendar-day.has-weight:not(.text-mode)::before {
+.calendar-day.has-weight::before {
     content: 'weight';
     font-family: 'Material Symbols';
     position: absolute;
     font-size: 0.8em !important;
     top: 2px;
     right: 2px;
-    opacity: 0.6;
     color: orangered;
-    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-block;
+    font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
 }
 
+/* Normal mode → hide on today */
+.calendar-day.has-weight:not(.text-mode).today::before {
+    display: none;
+}
+
+/* Text mode → always visible */
 .calendar-day.has-weight.text-mode::before {
-    content: 'weight';
-    font-family: 'Material Symbols';
-    position: absolute;
-    font-size: 0.8em !important;
-    top: 2px;
-    right: 2px;
     opacity: 0.5;
-    color: orangered;
-    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Normal mode → visible (not today) */
+.calendar-day.has-weight:not(.text-mode)::before {
+    opacity: 0.6;
 }
 
 /* Personal Best display in exercise edit mode */
