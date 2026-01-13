@@ -4359,9 +4359,9 @@ function toggleSimplifiedView() {
     // Update icon
     const btn = document.getElementById('simplifiedViewBtn');
     if (storage.isSimplifiedView) {
-        btn.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
-    } else {
         btn.innerHTML = '<span class="material-symbols-outlined">visibility_off</span>';
+    } else {
+        btn.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
     }
     
     // Refresh details
