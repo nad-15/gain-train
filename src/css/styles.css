@@ -1086,7 +1086,7 @@ body {
 .calendar-day.lower:not(.text-mode):not(.today)::after,
 .calendar-day.whole:not(.text-mode):not(.today)::after {
 
-    content: 'fitness_center';
+    content: 'asterisk';
     font-family: 'Material Symbols Outlined';
     position: absolute;
     font-size: 1em !important;
@@ -2467,7 +2467,7 @@ margin-top: 0;
     background: #3b5bdb;
 }
 
-
+/* 
 .workout-weight-section {
     display: flex;
     margin: 0 15px 15px 15px;
@@ -2505,7 +2505,7 @@ margin-top: 0;
     flex: 1;
     padding: 8px;
     border: 1px solid #e9ecef;
-    min-width: 0; /* IMPORTANT: prevents the input from pushing past the container */
+    min-width: 0; 
     border-radius: 6px;
     font-size: 0.875rem;
 }
@@ -2517,10 +2517,12 @@ margin-top: 0;
     color: white;
     border-radius: 6px;
 }
+ */
+
 /* Weight indicator on calendar cards */
 .calendar-day.has-weight:not(.text-mode)::before {
-    content: 'asterisk';
-    font-family: 'Material Symbols';
+    content: 'weight';
+    font-family: 'Material Symbols Sharp';
     position: absolute;
     font-size: 0.8em !important;
     top: 2px;
@@ -2531,8 +2533,8 @@ margin-top: 0;
 }
 
 .calendar-day.has-weight.text-mode::before {
-    content: 'asterisk';
-    font-family: 'Material Symbols';
+    content: 'weight';
+    font-family: 'Material Symbols Sharp';
     position: absolute;
     font-size: 0.8em !important;
     top: 2px;

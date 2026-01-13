@@ -1732,7 +1732,7 @@ function viewWorkout(workoutId) {
     document.getElementById('workoutDate').textContent =
         new Date(workout.date).toLocaleDateString();
 
-    renderWorkoutWeight(workout);
+    // renderWorkoutWeight(workout);
 
     // document.getElementById('viewModeIndicator').innerHTML = `
     //     <div class="view-mode">
@@ -1744,105 +1744,105 @@ function viewWorkout(workoutId) {
     renderWorkoutActions();
     showScreen('workout');
 }
-function renderWorkoutWeight(workout) {
-    const container = document.getElementById('workoutWeightSection');
-    if (!workout) {
-        container.style.display = 'none';
-        return;
-    }
+// function renderWorkoutWeight(workout) {
+//     const container = document.getElementById('workoutWeightSection');
+//     if (!workout) {
+//         container.style.display = 'none';
+//         return;
+//     }
 
-    const workoutDate = new Date(workout.date).toDateString();
-    const weightLog = storage.weightLogs.find(log =>
-        new Date(log.date).toDateString() === workoutDate
-    );
+//     const workoutDate = new Date(workout.date).toDateString();
+//     const weightLog = storage.weightLogs.find(log =>
+//         new Date(log.date).toDateString() === workoutDate
+//     );
 
-    container.style.display = 'block';
+//     container.style.display = 'block';
 
-    if (weightLog) {
-        // Show logged weight with edit option
-        container.innerHTML = `
-            <div class="workout-weight-display">
-                <span class="workout-weight-label">Body Weight:</span>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <span class="workout-weight-value">${weightLog.weight} kg</span>
-                    <button class="detail-tool-btn" onclick="editWorkoutWeight(${workout.id})">
-                        <span class="material-icons">edit</span>
-                    </button>
-                </div>
-            </div>
-        `;
-    } else {
-        // Show option to log weight
-        container.innerHTML = `
-            <div class="workout-weight-edit">
-                <input type="number" id="workoutWeightInput" placeholder="Log body weight (kg)" step="0.1">
-                <button class="save-weight-btn" style="padding: 8px 16px; margin: 0;" onclick="logWorkoutWeight(${workout.id})">
-                    Log Weight
-                </button>
-            </div>
-        `;
-    }
-}
+//     if (weightLog) {
+//         // Show logged weight with edit option
+//         container.innerHTML = `
+//             <div class="workout-weight-display">
+//                 <span class="workout-weight-label">Body Weight:</span>
+//                 <div style="display: flex; gap: 8px; align-items: center;">
+//                     <span class="workout-weight-value">${weightLog.weight} kg</span>
+//                     <button class="detail-tool-btn" onclick="editWorkoutWeight(${workout.id})">
+//                         <span class="material-icons">edit</span>
+//                     </button>
+//                 </div>
+//             </div>
+//         `;
+//     } else {
+//         // Show option to log weight
+//         container.innerHTML = `
+//             <div class="workout-weight-edit">
+//                 <input type="number" id="workoutWeightInput" placeholder="Log body weight (kg)" step="0.1">
+//                 <button class="save-weight-btn" style="padding: 8px 16px; margin: 0;" onclick="logWorkoutWeight(${workout.id})">
+//                     Log Weight
+//                 </button>
+//             </div>
+//         `;
+//     }
+// }
 
-function logWorkoutWeight(workoutId) {
-    const input = document.getElementById('workoutWeightInput');
-    const weight = parseFloat(input.value);
+// function logWorkoutWeight(workoutId) {
+//     const input = document.getElementById('workoutWeightInput');
+//     const weight = parseFloat(input.value);
 
-    if (!weight || weight <= 0) {
-        alert('Please enter a valid weight!');
-        return;
-    }
+//     if (!weight || weight <= 0) {
+//         alert('Please enter a valid weight!');
+//         return;
+//     }
 
-    const workout = storage.workouts.find(w => w.id === workoutId);
-    if (!workout) return;
+//     const workout = storage.workouts.find(w => w.id === workoutId);
+//     if (!workout) return;
 
-    const workoutDate = new Date(workout.date);
-    workoutDate.setHours(12, 0, 0, 0);
+//     const workoutDate = new Date(workout.date);
+//     workoutDate.setHours(12, 0, 0, 0);
 
-    // Check if already logged for this date
-    const existingIndex = storage.weightLogs.findIndex(log =>
-        new Date(log.date).toDateString() === workoutDate.toDateString()
-    );
+//     // Check if already logged for this date
+//     const existingIndex = storage.weightLogs.findIndex(log =>
+//         new Date(log.date).toDateString() === workoutDate.toDateString()
+//     );
 
-    if (existingIndex >= 0) {
-        storage.weightLogs[existingIndex].weight = weight;
-    } else {
-        storage.weightLogs.push({
-            date: workoutDate.toISOString(),
-            weight: weight
-        });
-    }
+//     if (existingIndex >= 0) {
+//         storage.weightLogs[existingIndex].weight = weight;
+//     } else {
+//         storage.weightLogs.push({
+//             date: workoutDate.toISOString(),
+//             weight: weight
+//         });
+//     }
 
-    storage.saveWeightLogs();
-    alert('Weight logged! 📊');
-    renderWorkoutWeight(workout);
-}
+//     storage.saveWeightLogs();
+//     alert('Weight logged! 📊');
+//     renderWorkoutWeight(workout);
+// }
 
-function editWorkoutWeight(workoutId) {
-    const workout = storage.workouts.find(w => w.id === workoutId);
-    if (!workout) return;
+// function editWorkoutWeight(workoutId) {
+//     const workout = storage.workouts.find(w => w.id === workoutId);
+//     if (!workout) return;
 
-    const workoutDate = new Date(workout.date).toDateString();
-    const weightLog = storage.weightLogs.find(log =>
-        new Date(log.date).toDateString() === workoutDate
-    );
+//     const workoutDate = new Date(workout.date).toDateString();
+//     const weightLog = storage.weightLogs.find(log =>
+//         new Date(log.date).toDateString() === workoutDate
+//     );
 
-    if (!weightLog) return;
+//     if (!weightLog) return;
 
-    const newWeight = prompt('Enter new weight (kg):', weightLog.weight);
-    if (newWeight === null) return;
+//     const newWeight = prompt('Enter new weight (kg):', weightLog.weight);
+//     if (newWeight === null) return;
 
-    const weight = parseFloat(newWeight);
-    if (!weight || weight <= 0) {
-        alert('Please enter a valid weight!');
-        return;
-    }
+//     const weight = parseFloat(newWeight);
+//     if (!weight || weight <= 0) {
+//         alert('Please enter a valid weight!');
+//         return;
+//     }
 
-    weightLog.weight = weight;
-    storage.saveWeightLogs();
-    alert('Weight updated! 📊');
-    renderWorkoutWeight(workout);
-}
+//     weightLog.weight = weight;
+//     storage.saveWeightLogs();
+//     alert('Weight updated! 📊');
+//     renderWorkoutWeight(workout);
+// }
 let selectedCalendarDate = null;
 let isDetailsExpanded = false;
 
