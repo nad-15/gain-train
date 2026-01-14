@@ -2210,8 +2210,14 @@ if (storage.isSimplifiedView) {
         }
         
         html += `
-    <div class="workout-detail-item">
-        <div class="workout-detail-title">${ex.name}</div>
+            <div class="workout-detail-item">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
+                        <span class="material-symbols-outlined">show_chart</span>
+                    </button>
+                    <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
                 <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
                     <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</span>
                     ${pbInfo ? `
@@ -2231,7 +2237,12 @@ if (storage.isSimplifiedView) {
     workout.exercises.forEach(ex => {
         html += `
             <div class="workout-detail-item">
-                <div class="workout-detail-title">${ex.name}</div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
+                        <span class="material-symbols-outlined">show_chart</span>
+                    </button>
+                    <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
+                </div>
                 <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</div>
                 
             </div>
