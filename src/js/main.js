@@ -2217,7 +2217,7 @@ if (storage.isSimplifiedView) {
                     </button>
                     <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
+                
                 <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
                     <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</span>
                     ${pbInfo ? `
