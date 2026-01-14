@@ -2578,3 +2578,28 @@ margin-top: 0;
     font-size: 16px !important;
     color: #4c6ef5;
 }
+
+.exercise-vol {
+    background: rgba(76, 110, 245, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ghost-stats {
+    font-style: italic;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.rest-timer-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rest-timer-btn:disabled {
+    background: #e9ecef;
+    border-color: #4c6ef5;
+    color: #4c6ef5;
+    width: 45px; /* Grow slightly to fit the numbers */
+}

@@ -596,6 +596,8 @@ function renderExercises() {
 
     storage.currentWorkout.exercises.forEach((ex, idx) => {
         const div = document.createElement('div');
+        const lastSession = getLastSession(ex.name, storage.currentWorkout.date);
+        const volume = (parseFloat(ex.weight) || 0) * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
         div.className = 'exercise-item';
         div.style.position = 'relative';
 
@@ -707,12 +709,26 @@ function renderExercises() {
 ` : ''}
 <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
             `;
-        } else {
-            // VIEW MODE
+       } else {
+            // VIEW MODE - CLEANED UP NESTING
             div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div class="exercise-name">${ex.name}</div>
-                    <div style="display: flex; gap: 4px; align-items: center;"> 
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                            <span class="exercise-name" style="margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ex.name}</span>
+                            <span style="font-size: 0.65rem; background: #eef2ff; color: #4c6ef5; padding: 2px 6px; border-radius: 4px; font-weight: 800; flex-shrink: 0;">
+                                VOL: ${volume.toLocaleString()}kg
+                            </span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #adb5bd; font-style: italic;">
+                            ${lastSession ? `Last: ${lastSession.weight}kg × ${lastSession.reps}` : 'First session for this exercise! 🚀'}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0; margin-left: 8px;"> 
+                        <button class="detail-tool-btn" onclick="startRestTimer(this)" style="border: 1px solid #e9ecef; background: white; border-radius: 6px; padding: 4px; display: flex; align-items: center;">
+                            <span class="material-symbols-outlined" style="font-size: 18px !important; color: #6c757d;">timer</span>
+                        </button>
                         <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})">
                             <span class="material-icons edit-icon">edit</span>
                         </button>
@@ -721,10 +737,11 @@ function renderExercises() {
                         </button>
                     </div>
                 </div>
-                <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px;">
+
+                <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px; font-weight: 500;">
                     ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}
                 </div>
-                ${ex.notes ? `<div class="notes-display">${ex.notes}</div>` : ''}
+                ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #888; background: #fdfdfd; padding: 4px 8px; border-left: 2px solid #eee; margin-top: 4px;">${ex.notes}</div>` : ''}
             `;
         }
         container.appendChild(div);
@@ -4277,70 +4294,58 @@ function logWeightFromCalendar() {
 function calculatePersonalBest(exerciseIdx) {
     const currentExercise = storage.currentWorkout.exercises[exerciseIdx];
     const exerciseName = currentExercise.name.trim();
-
-    if (!exerciseName || exerciseName === 'Exercise Name') {
-        storage.currentPB = null;
-        return;
-    }
-
+    
+    if (!exerciseName || exerciseName === 'Exercise Name') return;
+    
     const currentType = storage.currentWorkout.type;
-    let bestWeight = null;
+    const now = new Date(); // Get current time for filtering
+    
+    let bestWeight = 0;
     let bestReps = 0;
     let bestSets = 0;
     let bestDate = null;
-
-    // Search through all workouts of the same type
+    
     storage.workouts.forEach(w => {
+        const workoutDate = new Date(w.date);
+        
+        // 1. SKIP FUTURE DATES: Only count workouts up to today
+        if (workoutDate > now) return;
+
         if (w.type === currentType && w.exercises) {
             w.exercises.forEach(ex => {
-                if (ex.name === exerciseName) {
-                    const weight = ex.weight === 'BW' ? 'BW' : parseFloat(ex.weight) || 0;
+                if (ex.name === exerciseName && ex.weight !== 'BW') {
+                    const weight = parseFloat(ex.weight) || 0;
                     const reps = parseInt(ex.reps) || 0;
                     const sets = parseInt(ex.sets) || 0;
+                    
+                    let isNewBest = false;
 
-                    // Determine if this is better than current best
-                    let isBetter = false;
-
-                    if (bestWeight === null) {
-                        // First record found
-                        isBetter = true;
-                    } else if (weight === 'BW' && bestWeight === 'BW') {
-                        // Both bodyweight - compare reps, then sets
+                    // 2. TIE-BREAKER: Use >= so the LATEST date wins if performance is equal
+                    if (weight > bestWeight) {
+                        isNewBest = true;
+                    } else if (weight === bestWeight) {
                         if (reps > bestReps) {
-                            isBetter = true;
-                        } else if (reps === bestReps && sets > bestSets) {
-                            isBetter = true;
-                        }
-                    } else if (weight === 'BW' && bestWeight !== 'BW') {
-                        // Current is BW, best is weighted - skip
-                        isBetter = false;
-                    } else if (weight !== 'BW' && bestWeight === 'BW') {
-                        // Current is weighted, best is BW - weighted wins
-                        isBetter = true;
-                    } else {
-                        // Both weighted - compare weight, then reps, then sets
-                        if (weight > bestWeight) {
-                            isBetter = true;
-                        } else if (weight === bestWeight && reps > bestReps) {
-                            isBetter = true;
-                        } else if (weight === bestWeight && reps === bestReps && sets > bestSets) {
-                            isBetter = true;
+                            isNewBest = true;
+                        } else if (reps === bestReps) {
+                            if (sets >= bestSets) { // If sets are same or better, update to latest date
+                                isNewBest = true;
+                            }
                         }
                     }
 
-                    if (isBetter) {
+                    if (isNewBest) {
                         bestWeight = weight;
                         bestReps = reps;
                         bestSets = sets;
-                        bestDate = new Date(w.date);
+                        bestDate = workoutDate;
                     }
                 }
             });
         }
     });
-
+    
     // Store PB info for display
-    if (bestWeight !== null) {
+    if (bestWeight > 0) {
         storage.currentPB = {
             exerciseIdx: exerciseIdx,
             weight: bestWeight,
@@ -4352,6 +4357,38 @@ function calculatePersonalBest(exerciseIdx) {
         storage.currentPB = null;
     }
 }
+function getLastSession(exerciseName, currentWorkoutDate) {
+    if (!exerciseName) return null;
+    const referenceDate = new Date(currentWorkoutDate);
+    const pastWorkouts = storage.workouts
+        .filter(w => new Date(w.date) < referenceDate)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    for (const workout of pastWorkouts) {
+        const exercise = workout.exercises.find(ex => ex.name.trim() === exerciseName.trim());
+        if (exercise && (parseFloat(exercise.weight) > 0 || exercise.weight === 'BW')) {
+            return { weight: exercise.weight, reps: exercise.reps };
+        }
+    }
+    return null;
+}
+
+function startRestTimer(btn) {
+    let seconds = 90;
+    btn.disabled = true;
+    const originalContent = btn.innerHTML;
+    const interval = setInterval(() => {
+        seconds--;
+        btn.innerHTML = `<span style="font-size: 12px; font-weight: bold; color: #4c6ef5;">${seconds}s</span>`;
+        if (seconds <= 0) {
+            clearInterval(interval);
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+    }, 1000);
+}
+
 
 function toggleSimplifiedView() {
     storage.isSimplifiedView = !storage.isSimplifiedView;
