@@ -167,11 +167,6 @@ function showScreen(screenName) {
     if (screenName === 'stats') renderStats();
 }
 
-// function startWorkout(type, date = null, templateData = null) {
-//     storage.isViewMode = false;
-//     storage.editingWorkoutId = null;
-//     storage.isEditingWorkoutType = false;
-
 function startWorkout(type, date = null, templateData = null) {
     storage.isViewMode = false;
     storage.editingWorkoutId = null;
@@ -235,87 +230,12 @@ function startWorkout(type, date = null, templateData = null) {
     renderWorkoutActions();
     showScreen('workout');
 }
+
 function selectWorkoutType(type) {
     storage.selectedWorkoutType = type;
     showTemplateSelector(type);
     console.log('Selected workout type:', type);
 }
-
-// function showWorkoutTypePreview(type, templateData = null) {
-//     storage.isViewMode = true;
-//     storage.isEditingWorkoutType = true;
-//     storage.selectedTemplate = templateData;
-
-//     // Get exercises for this type
-//     let exercises;
-//     if (templateData) {
-//         // Using a specific template (Previous or custom template)
-//         exercises = JSON.parse(JSON.stringify(templateData.exercises));
-//     } else if (storage.isCreatingNewTemplate) {
-//         // Creating NEW template from ➕ button - start EMPTY
-//         exercises = [];
-//     } else {
-//         // Not creating new, but no template provided - use defaults if available
-//         const customType = storage.customWorkoutTypes.find(t => t.id === type);
-//         if (customType) {
-//             exercises = JSON.parse(JSON.stringify(customType.exercises));
-//         } else if (defaultTemplates[type]) {
-//             exercises = defaultTemplates[type].map(name => ({
-//                 name: name,
-//                 sets: 3,
-//                 reps: 10,
-//                 weight: 0,
-//                 notes: ''
-//             }));
-//         } else {
-//             exercises = [];
-//         }
-//     }
-
-//     storage.currentWorkout = {
-//         type: type,
-//         exercises: exercises
-//     };
-
-//     // Get display name
-//     let displayName;
-//     const customType = storage.customWorkoutTypes.find(t => t.id === type);
-//     if (customType) {
-//         displayName = customType.name;
-//     } else if (type === 'warmup') {
-//         displayName = 'Warm-up';
-//     } else if (type === 'cooldown') {
-//         displayName = 'Cool-down';
-//     } else {
-//         displayName = type.charAt(0).toUpperCase() + type.slice(1);
-//     }
-
-//     document.getElementById('workoutTitle').textContent = displayName + ' Workout';
-//     document.getElementById('workoutDate').textContent = 'Preview';
-
-//     renderExercises();
-//     renderPreviewActions();
-//     showScreen('workout');
-// }
-// function renderPreviewActions() {
-//     const container = document.getElementById('workoutActions');
-//     container.innerHTML = `
-//         <div class="action-buttons">
-//             <button class="save-template-btn" onclick="editFromPreview()">Edit Workout</button>
-//         </div>
-//     `;
-// }
-
-// function editFromPreview() {
-//     storage.isViewMode = false;
-//     // isEditingWorkoutType stays true (don't change it)
-
-//     document.getElementById('workoutDate').textContent = 'Editing';
-//     document.getElementById('viewModeIndicator').innerHTML = '';
-
-//     renderExercises();
-//     renderWorkoutActions();
-// }
 
 function showTemplateSelector(type) {
     const modal = document.getElementById('templateSelectorModal');
@@ -608,6 +528,7 @@ function autoSave() {
     }
     storage.saveWorkouts();
 }
+
 function renderExercises() {
     const container = document.getElementById('exerciseList');
     container.innerHTML = '';
@@ -739,7 +660,6 @@ function renderExercises() {
     });
 }
 
-
 function toggleExerciseDropdownInEdit(idx) {
     const container = document.getElementById(`exerciseDropdownContainer-${idx}`);
 
@@ -814,49 +734,6 @@ function loadExercisesForTypeInEdit(idx, type) {
         });
     }
 }
-// function populateExerciseDropdown(idx) {
-//     const currentType = storage.currentWorkout.type;
-//     const allExerciseNames = new Set();
-
-//     // Get from previous workouts
-//     storage.workouts.forEach(w => {
-//         if (w.type === currentType && w.exercises) {
-//             w.exercises.forEach(ex => {
-//                 if (ex.name) allExerciseNames.add(ex.name);
-//             });
-//         }
-//     });
-
-//     // Get from templates
-//     if (storage.templates[currentType]) {
-//         storage.templates[currentType].forEach(template => {
-//             if (template.exercises) {
-//                 template.exercises.forEach(ex => {
-//                     if (ex.name) allExerciseNames.add(ex.name);
-//                 });
-//             }
-//         });
-//     }
-
-//     // Get from default templates
-//     if (defaultTemplates[currentType]) {
-//         defaultTemplates[currentType].forEach(name => {
-//             allExerciseNames.add(name);
-//         });
-//     }
-
-//     // Populate select dropdown
-//     const select = document.getElementById(`exerciseSelect-${idx}`);
-//     if (select) {
-//         select.innerHTML = ''; // Remove placeholder - show exercises immediately
-//         Array.from(allExerciseNames).sort().forEach(name => {
-//             const option = document.createElement('option');
-//             option.value = name;
-//             option.textContent = name;
-//             select.appendChild(option);
-//         });
-//     }
-// }
 
 function handleExerciseSelectionInEdit(idx) {
 
@@ -887,6 +764,7 @@ function handleExerciseSelectionInEdit(idx) {
     renderExercises();
     autoSave();
 }
+
 function prefillExerciseDataInEdit(idx, exerciseName) {
     const currentType = storage.currentWorkout.type;
 
@@ -915,16 +793,6 @@ function prefillExerciseDataInEdit(idx, exerciseName) {
         storage.currentWorkout.exercises[idx].weight = latestExercise.weight;
     }
 }
-
-// function toggleEdit(idx) {
-//     if (storage.editingExerciseIndex === idx) {
-//         storage.editingExerciseIndex = null; // save / exit edit
-//         autoSave();
-//     } else {
-//         storage.editingExerciseIndex = idx; // enter edit
-//     }
-//     renderExercises();
-// }
 
 function toggleEdit(idx) {
     if (storage.editingExerciseIndex === idx) {
@@ -966,17 +834,6 @@ function cancelEdit(idx) {
     renderExercises();
 }
 
-// function editExercise(idx) {
-//     storage.editingExerciseIndex = idx;
-//     renderExercises();
-// }
-
-// function saveExercise(idx) {
-//     storage.editingExerciseIndex = null;
-//     renderExercises();
-//     autoSave();
-// }
-
 function updateExerciseName(exIdx, newName) {
     storage.currentWorkout.exercises[exIdx].name = newName;
     // autoSave();
@@ -986,7 +843,6 @@ function updateNotes(exIdx, notes) {
     storage.currentWorkout.exercises[exIdx].notes = notes;
     // autoSave();
 }
-
 
 function toggleBodyweight(exIdx, isBodyweight) {
     const ex = storage.currentWorkout.exercises[exIdx];
@@ -1136,46 +992,6 @@ function updateCurrentWorkout() {
     showScreen('calendar');
 }
 
-// function saveWorkoutTypeEdit() {
-//     const type = storage.currentWorkout.type;
-//     const isWarmupOrCooldown = (type === 'warmup' || type === 'cooldown');
-
-//     // If editing an existing template (not creating new one)
-//     if (storage.selectedTemplate && storage.selectedTemplate.name && storage.selectedTemplate.name !== 'Previous') {
-//         const templates = storage.templates;
-//         const categoryTemplates = templates[type] || [];
-
-//         // Find and update the template
-//         const templateIndex = categoryTemplates.findIndex(t => t.name === storage.selectedTemplate.name);
-//         if (templateIndex >= 0) {
-//             categoryTemplates[templateIndex].exercises = JSON.parse(JSON.stringify(storage.currentWorkout.exercises));
-//             storage.templates = templates;
-//             storage.saveTemplates();
-//             alert(`Template "${storage.selectedTemplate.name}" updated! 💾`);
-//         }
-//     } else if (isWarmupOrCooldown) {
-//         // For warmup/cooldown creating NEW template (selectedTemplate is null)
-//         // User needs to use "Save as" button to give it a name first
-//         alert('Please use "Save as" to create your first template! 💡');
-//     } else {
-//         // If editing default or previous workout for regular types
-//         alert('Changes not saved (Default/Previous templates cannot be updated) 💡');
-//     }
-
-//     storage.isEditingWorkoutType = false;
-//     storage.currentWorkout = null;
-//     storage.isViewMode = false;
-//     storage.selectedTemplate = null;
-//     showScreen('home');
-// }
-
-
-// function deleteExercise(idx) {
-//     storage.currentWorkout.exercises.splice(idx, 1);
-//     renderExercises();
-//     autoSave();
-// }
-
 function saveWorkoutTypeEdit() {
     const type = storage.currentWorkout.type;
 
@@ -1253,320 +1069,6 @@ function deleteExercise(idx) {
     renderExercises();
     autoSave();
 }
-
-// function prefillExerciseData() {
-//     const exerciseName = document.getElementById('exerciseName').value.trim();
-//     if (!exerciseName) return;
-
-//     const currentType = storage.currentWorkout.type;
-
-//     // Search for the most recent workout with this exercise
-//     let latestExercise = null;
-//     let latestDate = null;
-
-//     storage.workouts.forEach(w => {
-//         if (w.type === currentType && w.exercises) {
-//             w.exercises.forEach(ex => {
-//                 if (ex.name === exerciseName) {
-//                     const workoutDate = new Date(w.date);
-//                     if (!latestDate || workoutDate > latestDate) {
-//                         latestDate = workoutDate;
-//                         latestExercise = ex;
-//                     }
-//                 }
-//             });
-//         }
-//     });
-
-//     // If found, prefill the values
-//     if (latestExercise) {
-//         document.getElementById('exerciseSets').value = latestExercise.sets;
-//         document.getElementById('exerciseReps').value = latestExercise.reps;
-//         document.getElementById('exerciseWeight').value = latestExercise.weight === 'BW' ? 0 : latestExercise.weight;
-//     }
-// }
-
-// function toggleExerciseDropdown() {
-//     const container = document.getElementById('exerciseDropdownContainer');
-//     if (container.style.display === 'none') {
-//         container.style.display = 'block';
-//         // Load current type by default
-//         switchExerciseTab('current');
-//     } else {
-//         container.style.display = 'none';
-//     }
-// }
-
-// function switchExerciseTab(type) {
-//     // Update active tab
-//     document.querySelectorAll('.exercise-tab').forEach(tab => {
-//         tab.classList.remove('active');
-//     });
-//     document.querySelector(`.exercise-tab[data-type="${type}"]`).classList.add('active');
-
-//     // Load exercises for selected type
-//     const targetType = type === 'current' ? storage.currentWorkout.type : type;
-//     loadExercisesForType(targetType);
-// }
-
-// function loadExercisesForType(type) {
-//     const allExerciseNames = new Set();
-
-//     // Get from previous workouts
-//     storage.workouts.forEach(w => {
-//         if (w.type === type && w.exercises) {
-//             w.exercises.forEach(ex => {
-//                 if (ex.name) allExerciseNames.add(ex.name);
-//             });
-//         }
-//     });
-
-//     // Get from templates
-//     if (storage.templates[type]) {
-//         storage.templates[type].forEach(template => {
-//             if (template.exercises) {
-//                 template.exercises.forEach(ex => {
-//                     if (ex.name) allExerciseNames.add(ex.name);
-//                 });
-//             }
-//         });
-//     }
-
-//     // Get from default templates
-//     if (defaultTemplates[type]) {
-//         defaultTemplates[type].forEach(name => {
-//             allExerciseNames.add(name);
-//         });
-//     }
-
-//     // Populate select dropdown
-//     const select = document.getElementById('exerciseSelect');
-//     select.innerHTML = '';
-
-//     if (allExerciseNames.size === 0) {
-//         const option = document.createElement('option');
-//         option.textContent = 'No exercises found';
-//         option.disabled = true;
-//         select.appendChild(option);
-//     } else {
-//         Array.from(allExerciseNames).sort().forEach(name => {
-//             const option = document.createElement('option');
-//             option.value = name;
-//             option.textContent = name;
-//             select.appendChild(option);
-//         });
-//     }
-// }
-
-// function populateExerciseDropdownMain() {
-//     const currentType = storage.currentWorkout.type;
-//     const allExerciseNames = new Set();
-
-//     // Get from previous workouts
-//     storage.workouts.forEach(w => {
-//         if (w.type === currentType && w.exercises) {
-//             w.exercises.forEach(ex => {
-//                 if (ex.name) allExerciseNames.add(ex.name);
-//             });
-//         }
-//     });
-
-//     // Get from templates
-//     if (storage.templates[currentType]) {
-//         storage.templates[currentType].forEach(template => {
-//             if (template.exercises) {
-//                 template.exercises.forEach(ex => {
-//                     if (ex.name) allExerciseNames.add(ex.name);
-//                 });
-//             }
-//         });
-//     }
-
-//     // Get from default templates
-//     if (defaultTemplates[currentType]) {
-//         defaultTemplates[currentType].forEach(name => {
-//             allExerciseNames.add(name);
-//         });
-//     }
-
-//     const select = document.getElementById('exerciseSelect');
-//     select.innerHTML = ''; // Remove placeholder
-//     Array.from(allExerciseNames).sort().forEach(name => {
-//         const option = document.createElement('option');
-//         option.value = name;
-//         option.textContent = name;
-//         select.appendChild(option);
-//     });
-// }
-
-// function handleExerciseSelection() {
-//     const select = document.getElementById('exerciseSelect');
-//     const exerciseName = select.value;
-
-//     if (!exerciseName) return;
-
-//     // Put the selected name in the text input
-//     document.getElementById('exerciseName').value = exerciseName;
-
-//     // Prefill data
-//     prefillExerciseData();
-
-//         document.getElementById('exerciseDropdownContainer').style.display = 'none';
-
-
-//     // Reset select back to placeholder
-//     select.selectedIndex = 0;
-
-//     // Hide the dropdown
-//     select.style.display = 'none';
-// }
-
-// function openAddExercise() {
-//     // Reset form
-//     document.getElementById('exerciseName').value = '';
-//     document.getElementById('exerciseSets').value = '3';
-//     document.getElementById('exerciseReps').value = '10';
-//     document.getElementById('exerciseWeight').value = '0';
-
-//     // Add custom workout types to tabs
-//     const tabsContainer = document.getElementById('exerciseTabsMain');
-
-//     // Remove old custom tabs first
-//     tabsContainer.querySelectorAll('[data-custom="true"]').forEach(tab => tab.remove());
-
-//     // Add custom workout type tabs
-//     storage.customWorkoutTypes.forEach(custom => {
-//         const btn = document.createElement('button');
-//         btn.className = 'exercise-tab';
-//         btn.setAttribute('data-type', custom.id);
-//         btn.setAttribute('data-custom', 'true');
-//         btn.textContent = custom.name;
-//         btn.onclick = () => switchExerciseTab(custom.id);
-//         tabsContainer.appendChild(btn);
-//     });
-
-//     // Hide dropdown container by default
-//     document.getElementById('exerciseDropdownContainer').style.display = 'none';
-
-//     document.getElementById('exerciseModal').classList.add('active');
-// }
-
-// function openAddExercise() {
-//     // Create a blank exercise
-//     const newExercise = {
-//         name: 'Exercise Name',
-//         sets: 3,
-//         reps: 10,
-//         weight: 0,
-//         notes: ''
-//     };
-
-//     // Add to current workout
-//     storage.currentWorkout.exercises.push(newExercise);
-
-//     // Set it to editing mode immediately
-//     storage.editingExerciseIndex = storage.currentWorkout.exercises.length - 1;
-
-//     // Re-render to show the new exercise in edit mode
-//     renderExercises();
-// }
-
-// function closeAddExercise() {
-//     document.getElementById('exerciseModal').classList.remove('active');
-// }
-
-// function addExercise() {
-//     const name = document.getElementById('exerciseName').value;
-//     const sets = parseInt(document.getElementById('exerciseSets').value);
-//     const reps = parseInt(document.getElementById('exerciseReps').value);
-//     const weight = parseFloat(document.getElementById('exerciseWeight').value);
-
-//     if (!name) {
-//         alert('Please enter exercise name');
-//         return;
-//     }
-
-//     storage.currentWorkout.exercises.push({ name, sets, reps, weight, notes: '' });
-//     renderExercises();
-//     closeAddExercise();
-//     autoSave();
-
-//     // Reset form
-//     document.getElementById('exerciseName').value = '';
-//     document.getElementById('exerciseSets').value = '3';
-//     document.getElementById('exerciseReps').value = '10';
-//     document.getElementById('exerciseWeight').value = '0';
-// }
-
-// function openNotes(exIdx) {
-//     storage.editingNotesIndex = exIdx;
-//     const ex = storage.currentWorkout.exercises[exIdx];
-//     document.getElementById('notesText').value = ex.notes || '';
-//     document.getElementById('notesModal').classList.add('active');
-// }
-
-// function closeNotes() {
-//     document.getElementById('notesModal').classList.remove('active');
-// }
-
-// function saveNotes() {
-//     const notes = document.getElementById('notesText').value;
-//     storage.currentWorkout.exercises[storage.editingNotesIndex].notes = notes;
-//     renderExercises();
-//     closeNotes();
-//     autoSave();
-// }
-
-// function openAddExercise() {
-//     const currentType = storage.currentWorkout.type;
-
-//     // Get the reference date - either selected date or today
-//     const referenceDate = storage.isFromCalendar && storage.selectedDate 
-//         ? new Date(storage.selectedDate) 
-//         : new Date();
-
-//     // Find the most recent workout of this type BEFORE the reference date
-//     const previousWorkouts = storage.workouts
-//         .filter(w => {
-//             const workoutDate = new Date(w.date);
-//             return w.type === currentType && 
-//                    w.exercises?.length && 
-//                    workoutDate < referenceDate;
-//         })
-//         .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-//     let newExercise;
-
-//     if (previousWorkouts.length > 0 && previousWorkouts[0].exercises.length > 0) {
-//         // Use the first exercise from the most recent workout as template
-//         const templateExercise = previousWorkouts[0].exercises[0];
-//         newExercise = {
-//             name: templateExercise.name || 'Exercise Name',
-//             sets: templateExercise.sets || 3,
-//             reps: templateExercise.reps || 10,
-//             weight: templateExercise.weight || 0,
-//             notes: ''
-//         };
-//     } else {
-//         // No previous workout found - use defaults
-//         newExercise = {
-//             name: 'Exercise Name',
-//             sets: 3,
-//             reps: 10,
-//             weight: 0,
-//             notes: ''
-//         };
-//     }
-
-//     // Add to current workout
-//     storage.currentWorkout.exercises.push(newExercise);
-
-//     // Set it to editing mode immediately
-//     storage.editingExerciseIndex = storage.currentWorkout.exercises.length - 1;
-
-//     // Re-render to show the new exercise in edit mode
-//     renderExercises();
-// }
 
 function openAddExercise() {
     // Create a blank exercise with default values
@@ -1756,105 +1258,7 @@ function viewWorkout(workoutId) {
     renderWorkoutActions();
     showScreen('workout');
 }
-// function renderWorkoutWeight(workout) {
-//     const container = document.getElementById('workoutWeightSection');
-//     if (!workout) {
-//         container.style.display = 'none';
-//         return;
-//     }
 
-//     const workoutDate = new Date(workout.date).toDateString();
-//     const weightLog = storage.weightLogs.find(log =>
-//         new Date(log.date).toDateString() === workoutDate
-//     );
-
-//     container.style.display = 'block';
-
-//     if (weightLog) {
-//         // Show logged weight with edit option
-//         container.innerHTML = `
-//             <div class="workout-weight-display">
-//                 <span class="workout-weight-label">Body Weight:</span>
-//                 <div style="display: flex; gap: 8px; align-items: center;">
-//                     <span class="workout-weight-value">${weightLog.weight} kg</span>
-//                     <button class="detail-tool-btn" onclick="editWorkoutWeight(${workout.id})">
-//                         <span class="material-icons">edit</span>
-//                     </button>
-//                 </div>
-//             </div>
-//         `;
-//     } else {
-//         // Show option to log weight
-//         container.innerHTML = `
-//             <div class="workout-weight-edit">
-//                 <input type="number" id="workoutWeightInput" placeholder="Log body weight (kg)" step="0.1">
-//                 <button class="save-weight-btn" style="padding: 8px 16px; margin: 0;" onclick="logWorkoutWeight(${workout.id})">
-//                     Log Weight
-//                 </button>
-//             </div>
-//         `;
-//     }
-// }
-
-// function logWorkoutWeight(workoutId) {
-//     const input = document.getElementById('workoutWeightInput');
-//     const weight = parseFloat(input.value);
-
-//     if (!weight || weight <= 0) {
-//         alert('Please enter a valid weight!');
-//         return;
-//     }
-
-//     const workout = storage.workouts.find(w => w.id === workoutId);
-//     if (!workout) return;
-
-//     const workoutDate = new Date(workout.date);
-//     workoutDate.setHours(12, 0, 0, 0);
-
-//     // Check if already logged for this date
-//     const existingIndex = storage.weightLogs.findIndex(log =>
-//         new Date(log.date).toDateString() === workoutDate.toDateString()
-//     );
-
-//     if (existingIndex >= 0) {
-//         storage.weightLogs[existingIndex].weight = weight;
-//     } else {
-//         storage.weightLogs.push({
-//             date: workoutDate.toISOString(),
-//             weight: weight
-//         });
-//     }
-
-//     storage.saveWeightLogs();
-//     alert('Weight logged! 📊');
-//     renderWorkoutWeight(workout);
-// }
-
-// function editWorkoutWeight(workoutId) {
-//     const workout = storage.workouts.find(w => w.id === workoutId);
-//     if (!workout) return;
-
-//     const workoutDate = new Date(workout.date).toDateString();
-//     const weightLog = storage.weightLogs.find(log =>
-//         new Date(log.date).toDateString() === workoutDate
-//     );
-
-//     if (!weightLog) return;
-
-//     const newWeight = prompt('Enter new weight (kg):', weightLog.weight);
-//     if (newWeight === null) return;
-
-//     const weight = parseFloat(newWeight);
-//     if (!weight || weight <= 0) {
-//         alert('Please enter a valid weight!');
-//         return;
-//     }
-
-//     weightLog.weight = weight;
-//     storage.saveWeightLogs();
-//     alert('Weight updated! 📊');
-//     renderWorkoutWeight(workout);
-// }
 let selectedCalendarDate = null;
 let isDetailsExpanded = false;
 
@@ -3365,165 +2769,6 @@ let exerciseVolumeChart = null;
 let modalExerciseVolumeChart = null;
 let currentExerciseData = { name: '', type: '', timeline: 'daily' };
 
-// function renderWeeklyChart() {
-//     const canvas = document.getElementById('weeklyChart');
-//     if (!canvas) return;
-
-//     // Get all workouts sorted by date
-//     const sortedWorkouts = storage.workouts
-//         .filter(w => w.type !== 'rest')
-//         .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-//     // if (sortedWorkouts.length === 0) {
-//     //     // No data to display
-//     //     const ctx = canvas.getContext('2d');
-//     //     ctx.clearRect(0, 0, canvas.width, canvas.height);
-//     //     ctx.font = '14px Segoe UI';
-//     //     ctx.fillStyle = '#6c757d';
-//     //     ctx.textAlign = 'center';
-//     //     ctx.fillText('No workout data yet', canvas.width / 2, canvas.height / 2);
-//     //     return;
-//     // }
-
-//     if (sortedWorkouts.length === 0) {
-//     // No data to display
-//     canvas.style.display = 'block';
-//     canvas.style.height = '200px';
-//     const ctx = canvas.getContext('2d');
-//     ctx.clearRect(0, 0, canvas.width, canvas.height);
-//     ctx.font = '14px Segoe UI';
-//     ctx.fillStyle = '#6c757d';
-//     ctx.textAlign = 'center';
-//     ctx.fillText('No workout data yet', canvas.width / 2, 100);
-//     return;
-// }
-
-//     // Get first and last workout dates
-//     const firstDate = new Date(sortedWorkouts[0].date);
-//     const lastDate = new Date(sortedWorkouts[sortedWorkouts.length - 1].date);
-
-//     // Calculate start of first week (Sunday)
-//     const startDate = new Date(firstDate);
-//     startDate.setDate(startDate.getDate() - startDate.getDay());
-//     startDate.setHours(0, 0, 0, 0);
-
-//     // Calculate end of last week (Saturday)
-//     const endDate = new Date(lastDate);
-//     endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
-//     endDate.setHours(23, 59, 59, 999);
-
-//     // Generate week labels and count workouts per week
-//     const weeks = [];
-//     const workoutCounts = [];
-//     let currentWeekStart = new Date(startDate);
-
-//     while (currentWeekStart <= endDate) {
-//         const currentWeekEnd = new Date(currentWeekStart);
-//         currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
-
-//         // Format week label (e.g., "Jan 6-12")
-//         const startMonth = currentWeekStart.toLocaleDateString('en-US', { month: 'short' });
-//         const startDay = currentWeekStart.getDate();
-//         const endDay = currentWeekEnd.getDate();
-//         const label = `${startMonth} ${startDay}-${endDay}`;
-
-//         weeks.push(label);
-
-//         // Count workouts in this week
-//         const weekWorkouts = sortedWorkouts.filter(w => {
-//             const workoutDate = new Date(w.date);
-//             return workoutDate >= currentWeekStart && workoutDate <= currentWeekEnd;
-//         });
-
-//         workoutCounts.push(weekWorkouts.length);
-
-//         // Move to next week
-//         currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-//     }
-
-//     // Destroy existing chart if it exists
-//     if (weeklyChart) {
-//         weeklyChart.destroy();
-//     }
-
-//     // Create the chart
-//     const ctx = canvas.getContext('2d');
-//     weeklyChart = new Chart(ctx, {
-//         type: 'line',
-//         data: {
-//             labels: weeks,
-//             datasets: [{
-//                 label: 'Workouts per Week',
-//                 data: workoutCounts,
-//                 borderColor: '#2d3436',
-//                 backgroundColor: 'rgba(45, 52, 54, 0.1)',
-//                 tension: 0.3,
-//                 fill: true,
-//                 pointBackgroundColor: '#2d3436',
-//                 pointBorderColor: '#fff',
-//                 pointBorderWidth: 2,
-//                 pointRadius: 4,
-//                 pointHoverRadius: 6
-//             }]
-//         },
-//         options: {
-//             responsive: true,
-//             // maintainAspectRatio: true,
-//                         maintainAspectRatio: false,
-//             plugins: {
-//                 legend: {
-//                     display: false
-//                 },
-//                 tooltip: {
-//                     backgroundColor: 'rgba(45, 52, 54, 0.9)',
-//                     padding: 12,
-//                     titleFont: {
-//                         size: 13,
-//                         weight: 'bold'
-//                     },
-//                     bodyFont: {
-//                         size: 12
-//                     },
-//                     callbacks: {
-//                         label: function (context) {
-//                             return `Workouts: ${context.parsed.y}`;
-//                         }
-//                     }
-//                 }
-//             },
-//             scales: {
-//                 y: {
-//                     beginAtZero: true,
-//                     max: 7,
-//                     ticks: {
-//                         stepSize: 1,
-//                         font: {
-//                             size: 11
-//                         },
-//                         color: '#6c757d'
-//                     },
-//                     grid: {
-//                         color: 'rgba(0, 0, 0, 0.05)'
-//                     }
-//                 },
-//                 x: {
-//                     ticks: {
-//                         font: {
-//                             size: 10
-//                         },
-//                         color: '#6c757d',
-//                         maxRotation: 45,
-//                         minRotation: 45
-//                     },
-//                     grid: {
-//                         display: false
-//                     }
-//                 }
-//             }
-//         }
-//     });
-// }
-
 function renderWeeklyChart() {
     const canvas = document.getElementById('weeklyChart');
     if (!canvas) return;
@@ -3683,8 +2928,6 @@ function renderWeeklyChart() {
         }
     });
 }
-
-
 
 // ===== YEAR HEATMAP =====
 let currentHeatmapYear = new Date().getFullYear();
