@@ -505,6 +505,26 @@
         </div>
     </div>
 
+    <!-- Exercise Volume Modal -->
+<div id="exerciseVolumeModal" class="modal">
+    <div class="modal-content" style="max-width: 95%; width: 500px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 id="exerciseVolumeModalTitle" style="margin: 0;">Exercise Progress</h2>
+            <button onclick="closeExerciseVolumeModal()" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center;">
+                <span class="material-symbols-outlined" style="font-size: 24px; color: #6c757d;">close</span>
+            </button>
+        </div>
+        <div style="overflow-x: auto; overflow-y: hidden;">
+            <div id="modalExerciseChartWrapper" style="min-width: 100%;">
+                <canvas id="modalExerciseVolumeChart" style="max-height: 350px;"></canvas>
+            </div>
+        </div>
+        <div class="modal-buttons" style="margin-top: 20px;">
+            <button class="modal-btn cancel" onclick="closeExerciseVolumeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
 
     <script src="./src/js/main.js"></script>
 

@@ -688,13 +688,18 @@ function renderExercises() {
                 </div>` : '';
 
             div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="exercise-name" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${ex.name}</span>
-                    <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;"> 
-                        <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})" style="color: #adb5bd;"><span class="material-icons edit-icon" style="font-size: 18px;">edit</span></button>
-                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})" style="color: #ffc9c9;"><span class="material-icons" style="font-size: 18px;">delete</span></button>
-                    </div>
-                </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5;">
+                <span class="material-symbols-outlined" style="font-size: 18px !important;">show_chart</span>
+            </button>
+            <span class="exercise-name" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${ex.name}</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;"> 
+            <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})" style="color: #adb5bd;"><span class="material-icons edit-icon" style="font-size: 18px;">edit</span></button>
+            <button class="detail-tool-btn" onclick="deleteExercise(${idx})" style="color: #ffc9c9;"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+        </div>
+    </div>
 
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                     <span style="font-size: 0.9rem; font-weight: 700; color: #495057;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
@@ -2205,8 +2210,8 @@ if (storage.isSimplifiedView) {
         }
         
         html += `
-            <div class="workout-detail-item">
-                <div class="workout-detail-title">${ex.name}</div>
+    <div class="workout-detail-item">
+        <div class="workout-detail-title">${ex.name}</div>
                 <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
                     <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</span>
                     ${pbInfo ? `
@@ -3304,6 +3309,7 @@ function scrollToActiveDay() {
 // Weekly Chart
 let weeklyChart = null;
 let exerciseVolumeChart = null;
+let modalExerciseVolumeChart = null;
 
 // function renderWeeklyChart() {
 //     const canvas = document.getElementById('weeklyChart');
@@ -4501,6 +4507,161 @@ function renderExerciseVolumeChart() {
                 pointBorderWidth: 2,
                 pointRadius: 4,
                 pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(45, 52, 54, 0.9)',
+                    padding: 12,
+                    titleFont: {
+                        size: 13,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 12
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            const index = context.dataIndex;
+                            const data = exerciseData[index];
+                            return [
+                                `Volume: ${context.parsed.y.toLocaleString()} kg`,
+                                `${data.sets}×${data.reps}@${data.weight}${data.weight === 'BW' ? '' : 'kg'}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' kg';
+                        },
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        color: '#6c757d',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function openExerciseVolumeModal(exerciseName, workoutType) {
+    document.getElementById('exerciseVolumeModalTitle').textContent = exerciseName;
+    document.getElementById('exerciseVolumeModal').classList.add('active');
+    
+    // Small delay to ensure modal is visible
+    setTimeout(() => renderModalExerciseChart(exerciseName, workoutType), 50);
+}
+
+function closeExerciseVolumeModal() {
+    document.getElementById('exerciseVolumeModal').classList.remove('active');
+    if (modalExerciseVolumeChart) {
+        modalExerciseVolumeChart.destroy();
+        modalExerciseVolumeChart = null;
+    }
+}
+
+function renderModalExerciseChart(exerciseName, workoutType) {
+    const canvas = document.getElementById('modalExerciseVolumeChart');
+    if (!canvas) return;
+    
+    // Collect all instances of this exercise from this workout type
+    const exerciseData = [];
+    storage.workouts.forEach(w => {
+        if (w.type === workoutType && w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name === exerciseName) {
+                    const weight = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
+                    const reps = parseInt(ex.reps) || 0;
+                    const sets = parseInt(ex.sets) || 0;
+                    const volume = weight * reps * sets;
+                    
+                    exerciseData.push({
+                        date: new Date(w.date),
+                        volume: volume,
+                        weight: ex.weight,
+                        reps: reps,
+                        sets: sets
+                    });
+                }
+            });
+        }
+    });
+    
+    // Sort by date
+    exerciseData.sort((a, b) => a.date - b.date);
+    
+    if (exerciseData.length === 0) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Segoe UI';
+        ctx.fillStyle = '#6c757d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No history for this exercise yet', canvas.width / 2, 100);
+        return;
+    }
+    
+    // Prepare chart data
+    const labels = exerciseData.map(d => 
+        d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
+    );
+    const volumes = exerciseData.map(d => d.volume);
+    
+    // Destroy existing chart
+    if (modalExerciseVolumeChart) {
+        modalExerciseVolumeChart.destroy();
+    }
+    
+    // Set dynamic width
+    const wrapper = document.getElementById('modalExerciseChartWrapper');
+    const minWidth = exerciseData.length > 8 ? exerciseData.length * 70 : wrapper.parentElement.offsetWidth;
+    wrapper.style.width = Math.max(minWidth, wrapper.parentElement.offsetWidth) + 'px';
+    
+    // Create chart
+    const ctx = canvas.getContext('2d');
+    modalExerciseVolumeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total Volume (kg)',
+                data: volumes,
+                borderColor: '#4c6ef5',
+                backgroundColor: 'rgba(76, 110, 245, 0.2)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#4c6ef5',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
             }]
         },
         options: {
