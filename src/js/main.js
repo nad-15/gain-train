@@ -598,36 +598,17 @@ function renderExercises() {
         const exercisePB = storage.currentPB; 
         const last = getLastSession(ex.name, storage.currentWorkout.date);
         
-        // Volume Math: If weight is 'BW', use 1, otherwise use the number
         const currentWeightNum = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
         const currentVol = currentWeightNum * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
 
         const div = document.createElement('div');
-        div.className = 'exercise-item';
+        div.className = 'exercise-item'; // Restores your CSS card styling
         div.style.position = 'relative';
 
         const isEditing = storage.editingExerciseIndex === idx;
 
-        // --- SHARED PB UI BLOCK ---
-        const pbHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
-            <div class="pb-display" style="margin-bottom: 10px; display: flex; align-items: center; gap: 5px; color: #f39c12; font-size: 0.85rem; font-weight: 600;">
-                <span class="material-symbols-outlined" style="font-size: 18px !important;">emoji_events</span>
-                <span>PB: ${exercisePB.weight}kg × ${exercisePB.reps} reps (${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</span>
-            </div>
-        ` : '';
-
-        // --- GHOSTING UI BLOCK (With BW=1 Logic) ---
-        let ghostHTML = `<div style="font-size: 0.75rem; color: #adb5bd; margin-bottom: 12px; font-style: italic;">First session for this exercise! 🚀</div>`;
-        if (last) {
-            const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
-            const lv = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
-            ghostHTML = `
-                <div style="font-size: 0.75rem; color: #adb5bd; margin-bottom: 12px; font-style: italic;">
-                    Last: ${last.sets}×${last.reps}×${last.weight}${last.weight === 'BW' ? '' : 'kg'} (Vol: ${lv.toLocaleString()}kg)
-                </div>`;
-        }
-
         if (isEditing) {
+            // --- EDIT MODE: KEEPING YOUR FULL ORIGINAL STYLE ---
             div.innerHTML = `
                 <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 52px; left: 0; width: 100%; height: 250px; background: white; border: 1px solid #e9ecef; border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow-y: auto;">
                     <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none;">
@@ -646,12 +627,10 @@ function renderExercises() {
                     </button>
                     <input type="text" class="exercise-name-input" id="exerciseName-${idx}" value="${ex.name}" onchange="updateExerciseName(${idx}, this.value)" style="flex: 1; min-width: 0; padding: 10px 0px 3px; font-weight: 600; font-size: 0.95rem; border: none; margin-bottom: 7px; border-bottom: 1px solid #eee;">
                     <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;"> 
-                        <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})"><span class="material-icons">check</span></button>
-                        <button class="detail-tool-btn cancel-edit" onclick="cancelEdit(${idx})"><span class="material-icons" style="font-size: 18px;">close</span></button>
+                        <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})" style="background: #ebfbee; color: #40c057;"><span class="material-icons">check</span></button>
+                        <button class="detail-tool-btn cancel-edit" onclick="cancelEdit(${idx})" style="background: #fff5f5; color: #fa5252;"><span class="material-icons" style="font-size: 18px;">close</span></button>
                     </div>
                 </div>
-
-                ${ghostHTML}
 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px;">
                     <div style="text-align: center;">
@@ -679,42 +658,60 @@ function renderExercises() {
                         </div>
                     </div>
                 </div>
-
-                ${pbHTML}
-
                 <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
             `;
         } else {
-            // VIEW MODE
+            // --- VIEW MODE: THE 5-LINE HIERARCHY ---
+            
+            // LINE 3: Last Session
+            let lastRowHTML = '';
+            if (last) {
+                const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
+                const lv = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
+                lastRowHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span style="font-size: 0.75rem; color: #adb5bd;">Last: ${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
+                        <span style="font-size: 0.65rem; background: #fff5f5; color: #fa5252; padding: 2px 6px; border-radius: 4px; font-weight: 800;">VOL: ${lv.toLocaleString()}kg</span>
+                    </div>`;
+            } else {
+                lastRowHTML = `<div style="font-size: 0.75rem; color: #ced4da; margin-bottom: 4px; font-style: italic;">No history</div>`;
+            }
+
+            // LINE 4: PB
+            const pbRowHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 0.75rem; color: #f39c12; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 14px !important;">emoji_events</span>
+                        PB: ${exercisePB.weight}kg × ${exercisePB.reps} (${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                    </span>
+                    <span style="font-size: 0.65rem; background: #fff9db; color: #f08c00; padding: 2px 6px; border-radius: 4px; font-weight: 800;">BEST</span>
+                </div>` : '';
+
             div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                            <span class="exercise-name" style="margin-bottom: 0;">${ex.name}</span>
-                            <span style="font-size: 0.65rem; background: #eef2ff; color: #4c6ef5; padding: 2px 6px; border-radius: 4px; font-weight: 800;">
-                                VOL: ${currentVol.toLocaleString()}kg
-                            </span>
-                        </div>
-                        ${ghostHTML}
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0; margin-left: 8px;"> 
-                        <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})"><span class="material-icons edit-icon">edit</span></button>
-                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="exercise-name" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${ex.name}</span>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;"> 
+                        <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})" style="color: #adb5bd;"><span class="material-icons edit-icon" style="font-size: 18px;">edit</span></button>
+                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})" style="color: #ffc9c9;"><span class="material-icons" style="font-size: 18px;">delete</span></button>
                     </div>
                 </div>
 
-                <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 8px; font-weight: 500;">
-                    ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 0.9rem; font-weight: 700; color: #495057;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
+                    <span style="font-size: 0.65rem; background: #eef2ff; color: #4c6ef5; padding: 2px 6px; border-radius: 4px; font-weight: 800;">VOL: ${currentVol.toLocaleString()}kg</span>
                 </div>
 
-                ${pbHTML}
+                ${lastRowHTML}
 
-                ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #888; background: #fdfdfd; padding: 6px 10px; border-left: 3px solid #eee; margin-top: 5px;">${ex.notes}</div>` : ''}
+                ${pbRowHTML}
+
+                ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #888; background: #fdfdfd; padding: 6px 10px; border-left: 3px solid #eee; margin-top: 4px;">${ex.notes}</div>` : ''}
             `;
         }
         container.appendChild(div);
     });
 }
+
 
 function toggleExerciseDropdownInEdit(idx) {
     const container = document.getElementById(`exerciseDropdownContainer-${idx}`);
