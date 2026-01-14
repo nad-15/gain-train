@@ -506,24 +506,42 @@
     </div>
 
     <!-- Exercise Volume Modal -->
-<div id="exerciseVolumeModal" class="modal">
-    <div class="modal-content" style="max-width: 95%; width: 500px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 id="exerciseVolumeModalTitle" style="margin: 0;">Exercise Progress</h2>
-            <button onclick="closeExerciseVolumeModal()" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center;">
-                <span class="material-symbols-outlined" style="font-size: 24px; color: #6c757d;">close</span>
-            </button>
-        </div>
-        <div style="overflow-x: auto; overflow-y: hidden;">
-            <div id="modalExerciseChartWrapper" style="min-width: 100%;">
-                <canvas id="modalExerciseVolumeChart" style="max-height: 350px;"></canvas>
+    <div id="exerciseVolumeModal" class="modal">
+        <div class="modal-content" style="max-width: 95%; width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 id="exerciseVolumeModalTitle" style="margin: 0; font-size: 1.25rem;">Exercise Progress</h2>
+                <button onclick="closeExerciseVolumeModal()"
+                    style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center;">
+                    <span class="material-symbols-outlined" style="font-size: 24px; color: #6c757d;">close</span>
+                </button>
+            </div>
+
+            <!-- Timeline Filter Buttons -->
+            <div style="display: flex; gap: 6px; margin-bottom: 16px; justify-content: center;">
+                <button class="timeline-filter-btn active" data-timeline="daily" onclick="switchTimeline('daily')"
+                    style="padding: 6px 14px; border: 1px solid #e9ecef; border-radius: 6px; background: #4c6ef5; color: white; cursor: pointer; font-size: 0.75em; font-weight: 600; transition: all 0.2s;">
+                    Daily
+                </button>
+                <button class="timeline-filter-btn" data-timeline="weekly" onclick="switchTimeline('weekly')"
+                    style="padding: 6px 14px; border: 1px solid #e9ecef; border-radius: 6px; background: white; color: #6c757d; cursor: pointer; font-size: 0.75em; font-weight: 600; transition: all 0.2s;">
+                    Weekly
+                </button>
+                <button class="timeline-filter-btn" data-timeline="monthly" onclick="switchTimeline('monthly')"
+                    style="padding: 6px 14px; border: 1px solid #e9ecef; border-radius: 6px; background: white; color: #6c757d; cursor: pointer; font-size: 0.75em; font-weight: 600; transition: all 0.2s;">
+                    Monthly
+                </button>
+            </div>
+
+            <div style="overflow-x: auto; overflow-y: hidden;">
+                <div id="modalExerciseChartWrapper" style="width: 100%;">
+                    <canvas id="modalExerciseVolumeChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button class="modal-btn cancel" onclick="closeExerciseVolumeModal()">Close</button>
             </div>
         </div>
-        <div class="modal-buttons" style="margin-top: 20px;">
-            <button class="modal-btn cancel" onclick="closeExerciseVolumeModal()">Close</button>
-        </div>
     </div>
-</div>
 
 
     <script src="./src/js/main.js"></script>
