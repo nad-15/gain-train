@@ -1632,6 +1632,10 @@ body {
 }
 
 .workout-card::before {
+
+    pointer-events: none;
+
+
     content: '';
     position: absolute;
     inset: 0;

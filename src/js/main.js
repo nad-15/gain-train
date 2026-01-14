@@ -1,3 +1,25 @@
+
+// document.addEventListener(
+//   'click',
+//   (e) => {
+//     console.log(
+//       'CLICK:',
+//       e.target,
+//       'currentTarget:',
+//       e.currentTarget,
+//       'phase:',
+//       e.eventPhase === 1 ? 'CAPTURE' :
+//               e.eventPhase === 2 ? 'TARGET' :
+//               'BUBBLE'
+//     );
+//     console.log('composedPath:', e.composedPath());
+//   },
+//   true 
+// );
+
+
+
+
 // localStorage implementation
 const storage = {
     _workouts: null,
@@ -3276,6 +3298,7 @@ function saveCustomWorkout() {
 }
 
 function deleteCustomWorkoutType(idx) {
+    console.log("delete custom clicedk" );
     if (!confirm('Delete this custom workout type?')) return;
 
     const customTypes = storage.customWorkoutTypes;
@@ -3293,6 +3316,8 @@ function deleteCustomWorkoutType(idx) {
     renderHomeScreen();
 }
 function renameCustomWorkoutType(idx) {
+    console.log("rename custom clicedk" );
+
     const customType = storage.customWorkoutTypes[idx];
     const newName = prompt('Enter new workout name:', customType.name);
 
