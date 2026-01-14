@@ -586,8 +586,6 @@ function autoSave() {
     }
     storage.saveWorkouts();
 }
-
-
 function renderExercises() {
     const container = document.getElementById('exerciseList');
     container.innerHTML = '';
@@ -595,86 +593,72 @@ function renderExercises() {
     if (!storage.currentWorkout || !storage.currentWorkout.exercises) return;
 
     storage.currentWorkout.exercises.forEach((ex, idx) => {
+        // 1. DATA CALCULATIONS
+        calculatePersonalBest(idx);
+        const exercisePB = storage.currentPB; 
+        const last = getLastSession(ex.name, storage.currentWorkout.date);
+        
+        // Volume Math: If weight is 'BW', use 1, otherwise use the number
+        const currentWeightNum = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
+        const currentVol = currentWeightNum * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
+
         const div = document.createElement('div');
-        const lastSession = getLastSession(ex.name, storage.currentWorkout.date);
-        const volume = (parseFloat(ex.weight) || 0) * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
         div.className = 'exercise-item';
         div.style.position = 'relative';
 
         const isEditing = storage.editingExerciseIndex === idx;
 
+        // --- SHARED PB UI BLOCK ---
+        const pbHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
+            <div class="pb-display" style="margin-bottom: 10px; display: flex; align-items: center; gap: 5px; color: #f39c12; font-size: 0.85rem; font-weight: 600;">
+                <span class="material-symbols-outlined" style="font-size: 18px !important;">emoji_events</span>
+                <span>PB: ${exercisePB.weight}kg × ${exercisePB.reps} reps (${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</span>
+            </div>
+        ` : '';
+
+        // --- GHOSTING UI BLOCK (With BW=1 Logic) ---
+        let ghostHTML = `<div style="font-size: 0.75rem; color: #adb5bd; margin-bottom: 12px; font-style: italic;">First session for this exercise! 🚀</div>`;
+        if (last) {
+            const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
+            const lv = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
+            ghostHTML = `
+                <div style="font-size: 0.75rem; color: #adb5bd; margin-bottom: 12px; font-style: italic;">
+                    Last: ${last.sets}×${last.reps}×${last.weight}${last.weight === 'BW' ? '' : 'kg'} (Vol: ${lv.toLocaleString()}kg)
+                </div>`;
+        }
+
         if (isEditing) {
             div.innerHTML = `
-                <div id="exerciseDropdownContainer-${idx}" 
-                     style="display: none; position: absolute; top: 52px; left: 0; width: 100%; 
-                            height: 250px; background: white; border: 1px solid #e9ecef; 
-                            border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; 
-                            box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow-y: auto;">
-                    
+                <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 52px; left: 0; width: 100%; height: 250px; background: white; border: 1px solid #e9ecef; border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow-y: auto;">
                     <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none;">
-                        <style>
-                            .exercise-tab {
-                                padding: 6px 12px;
-                                border: 1px solid transparent;
-                                background: none;
-                                font-size: 0.8em;
-                                cursor: pointer;
-                                white-space: nowrap;
-                                color: #6c757d;
-                            }
-                            .exercise-tab.active {
-                                font-weight: bold;
-                            }
-                        </style>
                         <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
                         <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
                         <button class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
                         <button class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
-                        <button class="exercise-tab" data-type="upper" onclick="switchExerciseTabInEdit(${idx}, 'upper')">Upper</button>
-                        <button class="exercise-tab" data-type="lower" onclick="switchExerciseTabInEdit(${idx}, 'lower')">Lower</button>
-                        <button class="exercise-tab" data-type="whole" onclick="switchExerciseTabInEdit(${idx}, 'whole')">Whole</button>
-                        ${storage.customWorkoutTypes.map(custom =>
-                `<button class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>`
-            ).join('')}
+                        ${storage.customWorkoutTypes.map(custom => `<button class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>`).join('')}
                     </div>
-
-<select id="exerciseSelect-${idx}" 
-        onchange="handleExerciseSelectionInEdit(${idx})" 
-        size="10" 
-        style="width: 100%; height: auto; flex-grow: 1; border: none; font-size: 0.9em; outline: none; background: transparent; padding: 8px;">
-</select>
-
+                    <select id="exerciseSelect-${idx}" onchange="handleExerciseSelectionInEdit(${idx})" size="10" style="width: 100%; height: auto; flex-grow: 1; border: none; font-size: 0.9em; outline: none; background: transparent; padding: 8px;"></select>
                 </div>
+                
                 <div style="display: flex; align-items: center; width: 100%; gap: 8px;">
-
                     <button type="button" onclick="toggleExerciseDropdownInEdit(${idx})" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; flex-shrink: 0;">
                         <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
                     </button>
-                    
-                    <input type="text" 
-                        class="exercise-name-input" 
-                        id="exerciseName-${idx}" 
-                        value="${ex.name}" 
-                        onchange="updateExerciseName(${idx}, this.value)" 
-                        style="flex: 1; min-width: 0; padding: 10px 0px 3px; font-weight: 600; font-size: 0.95rem; border: none; margin-bottom: 7px ;border-bottom: 1px solid #eee;">
-
+                    <input type="text" class="exercise-name-input" id="exerciseName-${idx}" value="${ex.name}" onchange="updateExerciseName(${idx}, this.value)" style="flex: 1; min-width: 0; padding: 10px 0px 3px; font-weight: 600; font-size: 0.95rem; border: none; margin-bottom: 7px; border-bottom: 1px solid #eee;">
                     <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;"> 
-                        <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})">
-                            <span class="material-icons save-icon">check</span>
-                        </button>
-                        
-                        <button class="detail-tool-btn cancel-edit" onclick="cancelEdit(${idx})">
-                            <span class="material-icons cancel-edit-icon" style="font-size: 18px;">close</span>
-                        </button>
+                        <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})"><span class="material-icons">check</span></button>
+                        <button class="detail-tool-btn cancel-edit" onclick="cancelEdit(${idx})"><span class="material-icons" style="font-size: 18px;">close</span></button>
                     </div>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px;">
+
+                ${ghostHTML}
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px;">
                     <div style="text-align: center;">
                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">SETS</div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <button class="control-btn minus" onclick="changeValue(${idx}, 'sets', -1)">−</button>
-                            <input type="number" class="value-input" value="${ex.sets}" onchange="updateValue(${idx}, 'sets', this.value)" style="width: 45px;">
+                            <input type="number" class="value-input" value="${ex.sets}" onchange="updateValue(${idx}, 'sets', this.value)" style="width: 40px;">
                             <button class="control-btn plus" onclick="changeValue(${idx}, 'sets', 1)">+</button>
                         </div>
                     </div>
@@ -682,17 +666,12 @@ function renderExercises() {
                         <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">REPS</div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <button class="control-btn minus" onclick="changeValue(${idx}, 'reps', -1)">−</button>
-                            <input type="number" class="value-input" value="${ex.reps}" onchange="updateValue(${idx}, 'reps', this.value)" style="width: 45px;">
+                            <input type="number" class="value-input" value="${ex.reps}" onchange="updateValue(${idx}, 'reps', this.value)" style="width: 40px;">
                             <button class="control-btn plus" onclick="changeValue(${idx}, 'reps', 1)">+</button>
                         </div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;"> 
-                            <div style="font-size: 0.75em; font-weight: 600; color: #6c757d;">KG</div>
-                            <label style="display: flex; align-items: center; gap: 3px; font-size: 0.6em;">
-                                <input type="checkbox" style="zoom: 0.7;" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)"> BW
-                            </label>
-                        </div>
+                        <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">KG</div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
                             <input type="text" class="value-input" value="${ex.weight}" onchange="updateValue(${idx}, 'weight', this.value)" ${ex.weight === 'BW' ? 'disabled' : ''} style="width: 45px;">
@@ -700,48 +679,37 @@ function renderExercises() {
                         </div>
                     </div>
                 </div>
-                
-                ${storage.currentPB && storage.currentPB.exerciseIdx === idx ? `
-    <div class="pb-display">
-        <span class="material-symbols-outlined">emoji_events</span>
-        <span>PB: ${storage.currentPB.weight}kg × ${storage.currentPB.reps} reps (${storage.currentPB.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})</span>
-    </div>
-` : ''}
-<textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
+
+                ${pbHTML}
+
+                <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
             `;
-       } else {
-            // VIEW MODE - CLEANED UP NESTING
+        } else {
+            // VIEW MODE
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                     <div style="flex: 1; min-width: 0;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                            <span class="exercise-name" style="margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ex.name}</span>
-                            <span style="font-size: 0.65rem; background: #eef2ff; color: #4c6ef5; padding: 2px 6px; border-radius: 4px; font-weight: 800; flex-shrink: 0;">
-                                VOL: ${volume.toLocaleString()}kg
+                            <span class="exercise-name" style="margin-bottom: 0;">${ex.name}</span>
+                            <span style="font-size: 0.65rem; background: #eef2ff; color: #4c6ef5; padding: 2px 6px; border-radius: 4px; font-weight: 800;">
+                                VOL: ${currentVol.toLocaleString()}kg
                             </span>
                         </div>
-                        <div style="font-size: 0.75rem; color: #adb5bd; font-style: italic;">
-                            ${lastSession ? `Last: ${lastSession.weight}kg × ${lastSession.reps}` : 'First session for this exercise! 🚀'}
-                        </div>
+                        ${ghostHTML}
                     </div>
-
-                    <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0; margin-left: 8px;"> 
-                        <button class="detail-tool-btn" onclick="startRestTimer(this)" style="border: 1px solid #e9ecef; background: white; border-radius: 6px; padding: 4px; display: flex; align-items: center;">
-                            <span class="material-symbols-outlined" style="font-size: 18px !important; color: #6c757d;">timer</span>
-                        </button>
-                        <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})">
-                            <span class="material-icons edit-icon">edit</span>
-                        </button>
-                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})">
-                            <span class="material-icons" style="font-size: 18px;">delete</span>
-                        </button>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0; margin-left: 8px;"> 
+                        <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})"><span class="material-icons edit-icon">edit</span></button>
+                        <button class="detail-tool-btn" onclick="deleteExercise(${idx})"><span class="material-icons" style="font-size: 18px;">delete</span></button>
                     </div>
                 </div>
 
-                <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 4px; font-weight: 500;">
+                <div style="font-size: 0.85em; color: #6c757d; margin-bottom: 8px; font-weight: 500;">
                     ${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}
                 </div>
-                ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #888; background: #fdfdfd; padding: 4px 8px; border-left: 2px solid #eee; margin-top: 4px;">${ex.notes}</div>` : ''}
+
+                ${pbHTML}
+
+                ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #888; background: #fdfdfd; padding: 6px 10px; border-left: 3px solid #eee; margin-top: 5px;">${ex.notes}</div>` : ''}
             `;
         }
         container.appendChild(div);
@@ -955,7 +923,7 @@ function toggleEdit(idx) {
         storage.originalExerciseSnapshot = JSON.parse(JSON.stringify(storage.currentWorkout.exercises[idx]));
         storage.editingExerciseIndex = idx;
         // Calculate and display PB for this exercise
-        calculatePersonalBest(idx);
+        // calculatePersonalBest(idx);
         renderExercises();
     }
 }
@@ -4360,34 +4328,29 @@ function calculatePersonalBest(exerciseIdx) {
 function getLastSession(exerciseName, currentWorkoutDate) {
     if (!exerciseName) return null;
     const referenceDate = new Date(currentWorkoutDate);
+    
     const pastWorkouts = storage.workouts
         .filter(w => new Date(w.date) < referenceDate)
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     for (const workout of pastWorkouts) {
         const exercise = workout.exercises.find(ex => ex.name.trim() === exerciseName.trim());
-        if (exercise && (parseFloat(exercise.weight) > 0 || exercise.weight === 'BW')) {
-            return { weight: exercise.weight, reps: exercise.reps };
+        if (exercise) {
+            const hasWeight = parseFloat(exercise.weight) > 0;
+            const isBW = exercise.weight === 'BW';
+
+            if (hasWeight || isBW) {
+                return { 
+                    weight: exercise.weight, 
+                    reps: exercise.reps, 
+                    sets: exercise.sets || 3 
+                };
+            }
         }
     }
     return null;
 }
 
-function startRestTimer(btn) {
-    let seconds = 90;
-    btn.disabled = true;
-    const originalContent = btn.innerHTML;
-    const interval = setInterval(() => {
-        seconds--;
-        btn.innerHTML = `<span style="font-size: 12px; font-weight: bold; color: #4c6ef5;">${seconds}s</span>`;
-        if (seconds <= 0) {
-            clearInterval(interval);
-            btn.innerHTML = originalContent;
-            btn.disabled = false;
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }
-    }, 1000);
-}
 
 
 function toggleSimplifiedView() {
