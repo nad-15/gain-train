@@ -2682,6 +2682,9 @@ function renderStats() {
         }
     }, 150);
 
+    // Populate exercise selector
+    setTimeout(() => populateExerciseSelector(), 150);
+
 }
 
 // ===== WEEK VIEW FUNCTIONS =====
@@ -3300,6 +3303,7 @@ function scrollToActiveDay() {
 
 // Weekly Chart
 let weeklyChart = null;
+let exerciseVolumeChart = null;
 
 // function renderWeeklyChart() {
 //     const canvas = document.getElementById('weeklyChart');
@@ -4368,4 +4372,196 @@ function toggleSimplifiedView() {
         );
         showWorkoutDetails(selectedCalendarDate, workout);
     }
+}
+
+function populateExerciseSelector() {
+    const selector = document.getElementById('exerciseVolumeSelector');
+    if (!selector) return;
+    
+    // Get all unique exercise names from all workouts
+    const exerciseNames = new Set();
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name && ex.name !== 'Exercise Name') {
+                    exerciseNames.add(ex.name);
+                }
+            });
+        }
+    });
+    
+    // Clear and repopulate
+    selector.innerHTML = '<option value="">Select exercise...</option>';
+    Array.from(exerciseNames).sort().forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        selector.appendChild(option);
+    });
+}
+
+function renderExerciseVolumeChart() {
+    const canvas = document.getElementById('exerciseVolumeChart');
+    const selector = document.getElementById('exerciseVolumeSelector');
+    if (!canvas || !selector) return;
+    
+    const selectedExercise = selector.value;
+    
+    if (!selectedExercise) {
+        // No exercise selected - clear chart
+        if (exerciseVolumeChart) {
+            exerciseVolumeChart.destroy();
+            exerciseVolumeChart = null;
+        }
+        canvas.style.display = 'block';
+        canvas.style.height = '200px';
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Segoe UI';
+        ctx.fillStyle = '#6c757d';
+        ctx.textAlign = 'center';
+        ctx.fillText('Select an exercise to view volume progress', canvas.width / 2, 100);
+        return;
+    }
+    
+    // Collect all instances of this exercise
+    const exerciseData = [];
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name === selectedExercise) {
+                    const weight = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
+                    const reps = parseInt(ex.reps) || 0;
+                    const sets = parseInt(ex.sets) || 0;
+                    const volume = weight * reps * sets;
+                    
+                    exerciseData.push({
+                        date: new Date(w.date),
+                        volume: volume,
+                        weight: ex.weight,
+                        reps: reps,
+                        sets: sets
+                    });
+                }
+            });
+        }
+    });
+    
+    // Sort by date
+    exerciseData.sort((a, b) => a.date - b.date);
+    
+    if (exerciseData.length === 0) {
+        // No data for this exercise
+        if (exerciseVolumeChart) {
+            exerciseVolumeChart.destroy();
+            exerciseVolumeChart = null;
+        }
+        canvas.style.display = 'block';
+        canvas.style.height = '200px';
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Segoe UI';
+        ctx.fillStyle = '#6c757d';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data for this exercise yet', canvas.width / 2, 100);
+        return;
+    }
+    
+    // Prepare chart data
+    const labels = exerciseData.map(d => 
+        d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    );
+    const volumes = exerciseData.map(d => d.volume);
+    
+    // Destroy existing chart
+    if (exerciseVolumeChart) {
+        exerciseVolumeChart.destroy();
+    }
+    
+    // Set dynamic width
+    const wrapper = document.getElementById('exerciseChartWrapper');
+    const minWidth = exerciseData.length > 12 ? exerciseData.length * 60 : wrapper.parentElement.offsetWidth;
+    wrapper.style.width = Math.max(minWidth, wrapper.parentElement.offsetWidth) + 'px';
+    
+    // Create chart
+    const ctx = canvas.getContext('2d');
+    exerciseVolumeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total Volume (kg)',
+                data: volumes,
+                borderColor: '#845ef7',
+                backgroundColor: 'rgba(132, 94, 247, 0.2)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#845ef7',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(45, 52, 54, 0.9)',
+                    padding: 12,
+                    titleFont: {
+                        size: 13,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 12
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            const index = context.dataIndex;
+                            const data = exerciseData[index];
+                            return [
+                                `Volume: ${context.parsed.y.toLocaleString()} kg`,
+                                `${data.sets}×${data.reps}@${data.weight}${data.weight === 'BW' ? '' : 'kg'}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' kg';
+                        },
+                        font: {
+                            size: 11
+                        },
+                        color: '#6c757d'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        color: '#6c757d',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
 }

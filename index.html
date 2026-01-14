@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="./src/css/styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols:opsz,wght,FILL,GRAD@24,400,1,0"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@24,400,1,0"
+        rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <title>Workout Tracker</title>
@@ -172,7 +174,8 @@
                 <div class="workout-section-header">
                     <div class="expand-handle">
                         <span id="selectedDateLabel"></span>
-                        <span id="weightDisplay" style="font-size: 0.7em; color: #6c757d; margin-left: 8px; align-self: center; font-style: italic;"></span>
+                        <span id="weightDisplay"
+                            style="font-size: 0.7em; color: #6c757d; margin-left: 8px; align-self: center; font-style: italic;"></span>
                     </div>
 
                     <div class="workout-details-tools">
@@ -247,27 +250,29 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Weight Logging Section -->
-                <!-- <div id="weightLoggingSection" style="padding: 0 15px 15px; display: none; margin-top: 12px;">
-    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 12px 16px;">
-        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
-            <input type="date" id="weightDateInput"
-                style="padding: 8px 10px; border: 1px solid #e9ecef; border-radius: 8px; font-size: 0.8125rem; color: #1a1d1f; min-width: 120px;">
-            <input type="number" id="weightInput" placeholder="Weight (kg)" step="0.1"
-                style="flex: 1; min-width: 80px; padding: 8px 10px; border: 1px solid #e9ecef; border-radius: 8px; font-size: 0.8125rem; color: #1a1d1f;">
-            <button onclick="logWeight()"
-                style="padding: 8px 16px; border: none; border-radius: 8px; background: #2da44e; color: white; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;">
-                Log
-            </button>
-        </div>
-
-        <div id="weightHistoryList" style="max-height: 200px; overflow-y: auto; margin-top: 10px; width: 100%;">
-        </div>
-    </div>
-</div> -->
-
-
+                <!-- Exercise Volume Graph -->
+                <div style="padding: 15px; padding-bottom: 0;">
+                    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 10px;">
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid rgba(0, 0, 0, 0.06);">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="material-symbols-outlined"
+                                    style="font-size: 24px; color: #2d3436;">monitoring</span>
+                                <h3 style="margin: 0; font-size: 1.1em; font-weight: 700; color: #2d3436;">Exercise
+                                    Volume</h3>
+                            </div>
+                            <select id="exerciseVolumeSelector" onchange="renderExerciseVolumeChart()"
+                                style="padding: 6px 12px; border: 1px solid #e9ecef; border-radius: 6px; background: white; color: #1a1d1f; cursor: pointer; font-size: 0.8em; font-weight: 600;">
+                                <option value="">Select exercise...</option>
+                            </select>
+                        </div>
+                        <div style="overflow-x: auto; overflow-y: hidden;">
+                            <div id="exerciseChartWrapper" style="min-width: 100%;">
+                                <canvas id="exerciseVolumeChart" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="stats" id="statsContainer"></div>
             </div>
 
