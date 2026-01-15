@@ -2607,3 +2607,8 @@ margin-top: 0;
     color: #4c6ef5;
     width: 45px; /* Grow slightly to fit the numbers */
 }
+
+.material-symbols-outlined.exercise-graph-icon {
+    color:#0e6e28 !important;
+
+}

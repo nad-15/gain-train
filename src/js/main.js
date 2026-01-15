@@ -634,7 +634,7 @@ function renderExercises() {
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <div style="display: flex; align-items: center; gap: 8px;">
             <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5;">
-                <span class="material-symbols-outlined" style="font-size: 18px !important;">show_chart</span>
+                <span class="material-symbols-outlined" style="font-size: 18px !important;">query_stats</span>
             </button>
             <span class="exercise-name" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${ex.name}</span>
         </div>
@@ -1635,47 +1635,45 @@ bath_bedrock
                         };
                     }
 
-                    html += `
-            <div class="workout-detail-item">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                    <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
-                        <span class="material-symbols-outlined">show_chart</span>
-                    </button>
-                    <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
-                </div>
-                
-                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
-                    <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</span>
-                    ${pbInfo ? `
-                        <span style="color: #4c6ef5; font-size: 0.75em; display: flex; align-items: center; gap: 4px;">
-                            <span class="material-symbols-outlined" style="font-size: 14px !important;">emoji_events</span>
-                            PB: ${pbInfo.sets}×${pbInfo.reps}×${pbInfo.weight === 'BW' ? 'BW' : pbInfo.weight + 'kg'} 
-                            (${pbInfo.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
-                        </span>
-                    ` : ''}
-                </div>
-                ${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
-            </div>
-        `;
+                   html += `
+                    <div class="workout-detail-item" style="position: relative;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;">
+                            <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
+                            <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
+                                <span class="material-symbols-outlined exercise-graph-icon">query_stats</span>
+                            </button>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
+                            <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</span>
+                            ${pbInfo ? `
+                                <span style="color: #4c6ef5; font-size: 0.75em; display: flex; align-items: center; gap: 4px;">
+                                    <span class="material-symbols-outlined" style="font-size: 14px !important;">emoji_events</span>
+                                    PB: ${pbInfo.sets}×${pbInfo.reps}×${pbInfo.weight === 'BW' ? 'BW' : pbInfo.weight + 'kg'} 
+                                </span>
+                            ` : ''}
+                        </div>
+                        ${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
+                    </div>
+                `;
                 });
             } else {
                 // FULL VIEW (existing code)
                 workout.exercises.forEach(ex => {
                     html += `
-            <div class="workout-detail-item">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                    <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
-                        <span class="material-symbols-outlined">show_chart</span>
-                    </button>
-                    <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
-                </div>
-                <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</div>
-                
-            </div>
-        `;
+                    <div class="workout-detail-item">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0px;">
+                            <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
+                            <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
+                                <span class="material-symbols-outlined exercise-graph-icon">query_stats</span>
+                            </button>
+                        </div>
+                        <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</div>
+                    </div>
+                `;
                 });
             }
-            //${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
+
 
             detailsContent.innerHTML = html;
         }
