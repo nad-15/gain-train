@@ -617,51 +617,54 @@ function renderExercises() {
                 const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
                 const lv = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
                 lastRowHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 0.7rem; color: #868e96; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Last</span>
-                            <span style="font-size: 0.85rem; color: #495057; font-weight: 600;">${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: #f8f9fa; border-radius: 4px;">
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 0.6rem; color: #868e96; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Last</span>
+                            <span style="font-size: 0.8rem; color: #495057; font-weight: 700;">${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
                         </div>
-                        <span style="font-size: 0.65rem; background: #fff5f5; color: #fa5252; padding: 3px 8px; border-radius: 4px; font-weight: 800;">VOL ${lv.toLocaleString()}kg</span>
+                        <span style="font-size: 0.6rem; color: #fa5252; font-weight: 700;">VOL ${lv.toLocaleString()}kg</span>
                     </div>`;
             } else {
                 lastRowHTML = `
-                    <div style="padding: 6px 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px;">
-                        <span style="font-size: 0.75rem; color: #adb5bd; font-style: italic;">No previous session</span>
+                    <div style="flex: 1; padding: 6px 8px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 0.65rem; color: #adb5bd; font-style: italic;">No history</span>
                     </div>`;
             }
 
             // PB
             const pbRowHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #fff9db; border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #f59f00;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="material-symbols-outlined" style="font-size: 16px !important; color: #f59f00;">emoji_events</span>
-                        <span style="font-size: 0.85rem; color: #e67700; font-weight: 600;">${exercisePB.weight}kg × ${exercisePB.reps}</span>
-                        <span style="font-size: 0.7rem; color: #f08c00;">(${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</span>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: #fff9db; border-radius: 4px; border-left: 2px solid #f59f00;">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 12px !important; color: #f59f00;">emoji_events</span>
+                        <span style="font-size: 0.6rem; color: #e67700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Best</span>
+                        <span style="font-size: 0.8rem; color: #e67700; font-weight: 700;">${exercisePB.weight}kg×${exercisePB.reps}</span>
                     </div>
-                    <span style="font-size: 0.65rem; background: #ffe066; color: #e67700; padding: 3px 8px; border-radius: 4px; font-weight: 800;">BEST</span>
+                    <span style="font-size: 0.6rem; color: #f08c00;">${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                 </div>` : '';
 
             // Card content
             const cardContent = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <span class="exercise-name" style="margin: 0; font-weight: 700; font-size: 1.1rem; color: #212529;">${ex.name}</span>
-                    <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5;">
-                        <span class="material-symbols-outlined" style="font-size: 20px !important;">area_chart</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="exercise-name" style="margin: 0; font-weight: 700; font-size: 0.95rem; color: #212529; letter-spacing: -0.01em;">${ex.name}</span>
+                    <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5; width: 28px; height: 28px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px !important;">area_chart</span>
                     </button>
                 </div>
 
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #e7f5ff; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #4c6ef5;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 0.7rem; color: #1971c2; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Current</span>
-                        <span style="font-size: 1rem; font-weight: 700; color: #1864ab;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #e7f5ff; border-radius: 4px; margin-bottom: 6px; border-left: 2px solid #4c6ef5;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 0.6rem; color: #1971c2; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Now</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: #1864ab; letter-spacing: -0.02em;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
                     </div>
-                    <span style="font-size: 0.7rem; background: #4c6ef5; color: white; padding: 3px 8px; border-radius: 4px; font-weight: 800;">VOL ${currentVol.toLocaleString()}kg</span>
+                    <span style="font-size: 0.65rem; background: #4c6ef5; color: white; padding: 2px 6px; border-radius: 3px; font-weight: 700;">VOL ${currentVol.toLocaleString()}kg</span>
                 </div>
 
-                ${lastRowHTML}
-                ${pbRowHTML}
-                ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #495057; background: #f8f9fa; padding: 8px 10px; border-left: 3px solid #dee2e6; margin-top: 4px; border-radius: 4px; font-style: italic;">${ex.notes}</div>` : ''}
+                <div style="display: flex; gap: 6px; margin-bottom: ${ex.notes ? '6px' : '0'};">
+                    ${lastRowHTML}
+                    ${pbRowHTML}
+                </div>
+
+                ${ex.notes ? `<div class="notes-display" style="font-size: 0.7rem; color: #495057; background: #f8f9fa; padding: 6px 8px; border-left: 2px solid #dee2e6; border-radius: 4px; font-style: italic; line-height: 1.3;">${ex.notes}</div>` : ''}
             `;
 
             // Swipe container
