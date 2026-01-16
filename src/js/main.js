@@ -637,7 +637,7 @@ function renderExercises() {
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <span class="material-symbols-outlined" style="font-size: 12px !important; color: #f59f00;">emoji_events</span>
                         <span style="font-size: 0.6rem; color: #e67700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Best</span>
-                        <span style="font-size: 0.8rem; color: #e67700; font-weight: 700;">${exercisePB.weight}kg×${exercisePB.reps}</span>
+                        <span style="font-size: 0.8rem; color: #e67700; font-weight: 700;">${exercisePB.sets}×${exercisePB.reps}@${exercisePB.weight}kg</span>
                     </div>
                     <span style="font-size: 0.6rem; color: #f08c00;">${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                 </div>` : '';
