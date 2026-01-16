@@ -536,7 +536,7 @@ function renderExercises() {
     if (!storage.currentWorkout || !storage.currentWorkout.exercises) return;
 
     storage.currentWorkout.exercises.forEach((ex, idx) => {
-        // 1. DATA CALCULATIONS
+        // 1. DATA PREP
         calculatePersonalBest(idx);
         const exercisePB = storage.currentPB;
         const last = getLastSession(ex.name, storage.currentWorkout.date);
@@ -544,210 +544,160 @@ function renderExercises() {
         const currentWeightNum = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
         const currentVol = currentWeightNum * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
 
+        // 2. BUG FIX: DYNAMIC COLOR LOGIC
+        let statusColor = '#4c6ef5'; // Default Blue (No history or Equal)
+        let lastVol = 0;
+        if (last) {
+            const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
+            lastVol = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
+            
+            if (currentVol > lastVol) {
+                statusColor = '#40c057'; // Green: Better
+            } else if (currentVol < lastVol) {
+                statusColor = '#fa5252'; // Red: Lower
+            } else {
+                statusColor = '#4c6ef5'; // Blue: Same
+            }
+        }
+
         const div = document.createElement('div');
         div.className = 'exercise-item';
         div.style.position = 'relative';
-
+        
         const isEditing = storage.editingExerciseIndex === idx;
 
         if (isEditing) {
             // --- EDIT MODE ---
             div.innerHTML = `
-                <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 52px; left: 0; width: 100%; height: 250px; background: white; border: 1px solid #e9ecef; border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow-y: auto;">
-                    <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none;">
-                        <button class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
-                        <button class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
-                        <button class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
-                        <button class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
-                        ${storage.customWorkoutTypes.map(custom => `<button class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>`).join('')}
-                    </div>
-                    <select id="exerciseSelect-${idx}" onchange="handleExerciseSelectionInEdit(${idx})" size="10" style="width: 100%; height: auto; flex-grow: 1; border: none; font-size: 0.9em; outline: none; background: transparent; padding: 8px;"></select>
-                </div>
-                
-                <div style="display: flex; align-items: center; width: 100%; gap: 8px;">
-                    <button type="button" onclick="toggleExerciseDropdownInEdit(${idx})" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; flex-shrink: 0;">
-                        <span class="material-symbols-outlined" style="font-size: 18px; color: #6c757d;">expand_more</span>
-                    </button>
-                    <input type="text" class="exercise-name-input" id="exerciseName-${idx}" value="${ex.name}" onchange="updateExerciseName(${idx}, this.value)" style="flex: 1; min-width: 0; padding: 10px 0px 3px; font-weight: 600; font-size: 0.95rem; border: none; margin-bottom: 7px; border-bottom: 1px solid #eee;">
-                    <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;"> 
-                        <button class="detail-tool-btn toggle-edit-btn editing" onclick="toggleEdit(${idx})" style="background: #ebfbee; color: #40c057;"><span class="material-icons">check</span></button>
-                        <button class="detail-tool-btn cancel-edit" onclick="cancelEdit(${idx})" style="background: #fff5f5; color: #fa5252;"><span class="material-icons" style="font-size: 18px;">close</span></button>
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">SETS</div>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                            <button class="control-btn minus" onclick="changeValue(${idx}, 'sets', -1)">−</button>
-                            <input type="number" class="value-input" value="${ex.sets}" onchange="updateValue(${idx}, 'sets', this.value)" style="width: 40px;">
-                            <button class="control-btn plus" onclick="changeValue(${idx}, 'sets', 1)">+</button>
+                <div style="background: white; border: 2px solid #4c6ef5; border-radius: 8px; padding: 10px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 48px; left: 0; width: 100%; max-height: 250px; background: white; border: 1px solid #dee2e6; border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow: hidden;">
+                        <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0; white-space: nowrap; scrollbar-width: none;">
+                            <button type="button" class="exercise-tab active" data-type="current" onclick="switchExerciseTabInEdit(${idx}, 'current')">Current</button>
+                            <button type="button" class="exercise-tab" data-type="push" onclick="switchExerciseTabInEdit(${idx}, 'push')">Push</button>
+                            <button type="button" class="exercise-tab" data-type="pull" onclick="switchExerciseTabInEdit(${idx}, 'pull')">Pull</button>
+                            <button type="button" class="exercise-tab" data-type="legs" onclick="switchExerciseTabInEdit(${idx}, 'legs')">Legs</button>
+                            ${storage.customWorkoutTypes ? storage.customWorkoutTypes.map(custom => `
+                                <button type="button" class="exercise-tab" data-type="${custom.id}" onclick="switchExerciseTabInEdit(${idx}, '${custom.id}')">${custom.name}</button>
+                            `).join('') : ''}
                         </div>
+                        <select id="exerciseSelect-${idx}" onchange="handleExerciseSelectionInEdit(${idx})" size="10" style="width: 100%; border: none; font-size: 0.9em; outline: none; padding: 8px; background: transparent; flex-grow: 1;"></select>
                     </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">REPS</div>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                            <button class="control-btn minus" onclick="changeValue(${idx}, 'reps', -1)">−</button>
-                            <input type="number" class="value-input" value="${ex.reps}" onchange="updateValue(${idx}, 'reps', this.value)" style="width: 40px;">
-                            <button class="control-btn plus" onclick="changeValue(${idx}, 'reps', 1)">+</button>
+
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <button type="button" onclick="toggleExerciseDropdownInEdit(${idx})" style="background: #f1f3f5; border: none; border-radius: 4px; padding: 4px; cursor: pointer; display: flex; align-items: center;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #4c6ef5;">expand_more</span>
+                        </button>
+                        <input type="text" id="exerciseName-${idx}" value="${ex.name}" 
+                            oninput="if(typeof searchExercisesInEdit === 'function') searchExercisesInEdit(${idx}, this.value)" 
+                            onfocus="toggleExerciseDropdownInEdit(${idx}, true)"
+                            onchange="updateExerciseName(${idx}, this.value)"
+                            style="flex: 1; border: none; border-bottom: 1px solid #dee2e6; font-weight: 700; font-size: 0.95rem; color: #212529; outline: none;">
+                        <div style="display: flex; gap: 4px;"> 
+                            <button onclick="toggleEdit(${idx})" style="background: #ebfbee; color: #40c057; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer;"><span class="material-icons" style="font-size: 18px;">check</span></button>
+                            <button onclick="cancelEdit(${idx})" style="background: #fff5f5; color: #fa5252; border: 1px solid #ffc9c9; border-radius: 4px; padding: 5px 10px; cursor: pointer;"><span class="material-icons" style="font-size: 18px;">close</span></button>
                         </div>
                     </div>
 
-
-                    <div style="text-align: center;">
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom:6px">
-                                <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; text-align: center">KG</div>
-                                <input type="checkbox" id="bw-${idx}" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)" style="width: 16px; height: 10px; cursor: pointer;">
-                            </div>
-
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 8px; margin-bottom: 8px;">
+                        <div style="background: #f8f9fa; padding: 6px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 0.6rem; font-weight: 800; color: #868e96; margin-bottom: 4px;">SETS</div>
                             <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
-                                <input type="text" class="value-input" value="${ex.weight}" onchange="updateValue(${idx}, 'weight', this.value)" ${ex.weight === 'BW' ? 'disabled' : ''} style="width: 45px;">
-                                <button class="control-btn plus" onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>+</button>
+                                <button onclick="changeValue(${idx}, 'sets', -1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 24px; height: 24px;">−</button>
+                                <input type="number" class="value-input" value="${ex.sets}" onchange="updateValue(${idx}, 'sets', this.value)" style="width: 30px; border: none; background: transparent; text-align: center; font-weight: 700;">
+                                <button onclick="changeValue(${idx}, 'sets', 1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 24px; height: 24px;">+</button>
                             </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 6px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 0.6rem; font-weight: 800; color: #868e96; margin-bottom: 4px;">REPS</div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <button onclick="changeValue(${idx}, 'reps', -1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 24px; height: 24px;">−</button>
+                                <input type="number" class="value-input" value="${ex.reps}" onchange="updateValue(${idx}, 'reps', this.value)" style="width: 30px; border: none; background: transparent; text-align: center; font-weight: 700;">
+                                <button onclick="changeValue(${idx}, 'reps', 1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 24px; height: 24px;">+</button>
+                            </div>
+                        </div>
+                        <div style="background: #e7f5ff; padding: 6px; border-radius: 6px; text-align: center; border-left: 2px solid #4c6ef5;">
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 4px; margin-bottom: 4px;">
+                                <span style="font-size: 0.6rem; font-weight: 800; color: #1971c2;">KG</span>
+                                <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)" style="width: 14px; height: 14px;">
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <button onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''} style="border: none; background: #d0ebff; border-radius: 3px; width: 24px; height: 24px;">−</button>
+                                <input type="text" class="value-input" value="${ex.weight}" onchange="updateValue(${idx}, 'weight', this.value)" ${ex.weight === 'BW' ? 'disabled' : ''} style="width: 40px; border: none; background: transparent; text-align: center; font-weight: 700; color: #1864ab;">
+                                <button onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''} style="border: none; background: #d0ebff; border-radius: 3px; width: 24px; height: 24px;">+</button>
+                            </div>
+                        </div>
                     </div>
+                    <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1" style="font-size: 0.75rem; border: 1px solid #f1f3f5; border-radius: 4px; padding: 6px; width: 100%; box-sizing: border-box; background: #fafafa; outline: none;">${ex.notes || ''}</textarea>
                 </div>
-
-                
-
-
-
-
-     
-                <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
             `;
         } else {
-            // --- VIEW MODE WITH SWIPE ---
-
-            // Last Session
-            let lastRowHTML = '';
-            if (last) {
-                const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
-                const lv = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
-                lastRowHTML = `
-                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: #f8f9fa; border-radius: 4px;">
-                        <div style="display: flex; align-items: center; gap: 4px;">
-                            <span style="font-size: 0.6rem; color: #868e96; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Last</span>
-                            <span style="font-size: 0.8rem; color: #495057; font-weight: 700;">${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
-                        </div>
-                        <span style="font-size: 0.6rem; color: #fa5252; font-weight: 700;">VOL ${lv.toLocaleString()}kg</span>
-                    </div>`;
-            } else {
-                lastRowHTML = `
-                    <div style="flex: 1; padding: 6px 8px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 0.65rem; color: #adb5bd; font-style: italic;">No history</span>
-                    </div>`;
-            }
-
-            // PB
-            const pbRowHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: #fff9db; border-radius: 4px; border-left: 2px solid #f59f00;">
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <span class="material-symbols-outlined" style="font-size: 12px !important; color: #f59f00;">emoji_events</span>
-                        <span style="font-size: 0.6rem; color: #e67700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Best</span>
-                        <span style="font-size: 0.8rem; color: #e67700; font-weight: 700;">${exercisePB.sets}×${exercisePB.reps}@${exercisePB.weight}kg</span>
+            // --- VIEW MODE ---
+            let lastRowHTML = last ? `
+                <div style="flex: 1; display: flex; flex-direction: column; padding: 6px 8px; background: #eef2ff; border-radius: 4px; border-left: 2px solid #4c6ef5;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.6rem; color: #4c6ef5; font-weight: 800; text-transform: uppercase;">Last</span>
+                        <span style="font-size: 0.6rem; color: #4c6ef5; font-weight: 700;">VOL ${lastVol.toLocaleString()}kg</span>
                     </div>
-                    <span style="font-size: 0.6rem; color: #f08c00;">${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span style="font-size: 0.85rem; color: #1c7ed6; font-weight: 700;">${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
+                </div>` : `
+                <div style="flex: 1; padding: 6px 8px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 0.65rem; color: #adb5bd; font-style: italic;">No history</span>
+                </div>`;
+
+            let pbRowHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
+                <div style="flex: 1; display: flex; flex-direction: column; padding: 6px 8px; background: #fff9db; border-radius: 4px; border-left: 2px solid #f59f00;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.6rem; color: #e67700; font-weight: 800; text-transform: uppercase;">Best</span>
+                        <span style="font-size: 0.6rem; color: #f08c00;">${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    </div>
+                    <span style="font-size: 0.85rem; color: #e67700; font-weight: 700;">${exercisePB.sets}×${exercisePB.reps}@${exercisePB.weight}kg</span>
                 </div>` : '';
 
-            // Card content
-            const cardContent = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="exercise-name" style="margin: 0; font-weight: 700; font-size: 0.95rem; color: #212529; letter-spacing: -0.01em;">${ex.name}</span>
-                    <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" style="cursor: pointer;" title="View full graph">
-                        ${generateMiniGraph(ex.name, storage.currentWorkout.type)}
-                    </div>
-                </div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #e7f5ff; border-radius: 4px; margin-bottom: 6px; border-left: 2px solid #4c6ef5;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 0.6rem; color: #1971c2; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Now</span>
-                        <span style="font-size: 0.95rem; font-weight: 700; color: #1864ab; letter-spacing: -0.02em;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
-                    </div>
-                    <span style="font-size: 0.65rem; background: #4c6ef5; color: white; padding: 2px 6px; border-radius: 3px; font-weight: 700;">VOL ${currentVol.toLocaleString()}kg</span>
-                </div>
-
-                <div style="display: flex; gap: 6px; margin-bottom: ${ex.notes ? '6px' : '0'};">
-                    ${lastRowHTML}
-                    ${pbRowHTML}
-                </div>
-
-                ${ex.notes ? `<div class="notes-display" style="font-size: 0.7rem; color: #495057; background: #f8f9fa; padding: 6px 8px; border-left: 2px solid #dee2e6; border-radius: 4px; font-style: italic; line-height: 1.3;">${ex.notes}</div>` : ''}
-            `;
-
-            // Swipe container
             div.innerHTML = `
-                <div class="exercise-swipe-container" style="position: relative; overflow: hidden;">
-                    <div class="exercise-swipe-actions" style="position: absolute; right: 0; top: 0; height: 100%; display: flex; gap: 0;">
-                        <button onclick="event.stopPropagation(); toggleEdit(${idx})" style="color: white; background: #4c6ef5; border: none; width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
-                            <span class="material-icons" style="font-size: 24px;">edit</span>
-                            <span style="font-size: 11px; font-weight: 600;">EDIT</span>
+                <div class="exercise-swipe-container" style="position: relative; overflow: hidden; border-radius: 8px;">
+                    <div class="exercise-swipe-actions" style="position: absolute; right: 0; top: 0; height: 100%; display: flex;">
+                        <button onclick="event.stopPropagation(); toggleEdit(${idx})" style="color: white; background: #4c6ef5; border: none; width: 75px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 22px;">edit</span>
+                            <span style="font-size: 10px; font-weight: 700;">EDIT</span>
                         </button>
-                        <button onclick="event.stopPropagation(); deleteExercise(${idx})" style="color: white; background: #ff6b6b; border: none; width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
-                            <span class="material-icons" style="font-size: 24px;">delete</span>
-                            <span style="font-size: 11px; font-weight: 600;">DELETE</span>
+                        <button onclick="event.stopPropagation(); deleteExercise(${idx})" style="color: white; background: #ff6b6b; border: none; width: 75px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 22px;">delete</span>
+                            <span style="font-size: 10px; font-weight: 700;">DEL</span>
                         </button>
                     </div>
-                    <div class="exercise-swipe-content" style="background: white; position: relative; z-index: 1; transition: transform 0.3s ease; padding: 10px;">
-                        ${cardContent}
+                    <div class="exercise-swipe-content" style="background: white; position: relative; z-index: 1; transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); padding: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <span style="font-weight: 700; font-size: 0.95rem; color: #212529;">${ex.name}</span>
+                            <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')">
+                                ${generateMiniGraph(ex.name, storage.currentWorkout.type)}
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: ${statusColor}12; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid ${statusColor};">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 0.6rem; color: ${statusColor}; font-weight: 800; text-transform: uppercase;">Now</span>
+                                <span style="font-size: 1rem; font-weight: 800; color: ${statusColor};">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
+                            </div>
+                            <span style="font-size: 0.65rem; background: ${statusColor}; color: white; padding: 2px 6px; border-radius: 3px; font-weight: 800;">VOL ${currentVol.toLocaleString()}kg</span>
+                        </div>
+
+                        <div style="display: flex; gap: 6px;">
+                            ${lastRowHTML}
+                            ${pbRowHTML}
+                        </div>
+                        ${ex.notes ? `<div style="font-size: 0.7rem; color: #495057; background: #f8f9fa; padding: 6px 8px; border-left: 2px solid #dee2e6; border-radius: 4px; font-style: italic; margin-top: 6px;">${ex.notes}</div>` : ''}
                     </div>
                 </div>
             `;
 
-            // Swipe functionality
+            // RE-ATTACH SWIPE LOGIC
             const swipeContent = div.querySelector('.exercise-swipe-content');
-            const swipeActions = div.querySelector('.exercise-swipe-actions');
             let startX = 0;
             let isDragging = false;
-            let dragTimeout;
-            const minSwipeDistance = 30; // minimum distance to start moving
-            const swipeDelay = 150;      // delay before drag activates in ms
-
-            swipeContent.addEventListener('touchstart', (e) => {
-                startX = e.touches[0].clientX;
-
-                // Add a small delay before activating dragging
-                dragTimeout = setTimeout(() => {
-                    isDragging = true;
-                }, swipeDelay);
-            });
-
-            swipeContent.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-
-                const currentX = e.touches[0].clientX;
-                const diff = startX - currentX;
-
-                // Only move if difference exceeds threshold
-                if (Math.abs(diff) < minSwipeDistance) return;
-
-                if (diff > 0) {
-                    const translateX = Math.min(diff, 160);
-                    swipeContent.style.transform = `translateX(-${translateX}px)`;
-                }
-            });
-
-            swipeContent.addEventListener('touchend', (e) => {
-                clearTimeout(dragTimeout); // cancel pending drag if ended early
-                if (!isDragging) return;
-
-                isDragging = false;
-                const currentX = e.changedTouches[0].clientX;
-                const diff = startX - currentX;
-
-                if (diff > 80) {
-                    swipeContent.style.transform = 'translateX(-160px)';
-                } else {
-                    swipeContent.style.transform = 'translateX(0)';
-                }
-            });
-
-            // Close on tap
-            div.addEventListener('click', (e) => {
-                if (!e.target.closest('.exercise-swipe-actions')) {
-                    swipeContent.style.transform = 'translateX(0)';
-                }
-            });
+            swipeContent.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; setTimeout(() => { isDragging = true; }, 150); });
+            swipeContent.addEventListener('touchmove', (e) => { if (!isDragging) return; const diff = startX - e.touches[0].clientX; if (diff > 0) swipeContent.style.transform = `translateX(-${Math.min(diff, 150)}px)`; });
+            swipeContent.addEventListener('touchend', (e) => { isDragging = false; const diff = startX - e.changedTouches[0].clientX; swipeContent.style.transform = diff > 75 ? 'translateX(-150px)' : 'translateX(0)'; });
+            div.addEventListener('click', () => { swipeContent.style.transform = 'translateX(0)'; });
         }
         container.appendChild(div);
     });

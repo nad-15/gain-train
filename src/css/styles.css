@@ -435,10 +435,13 @@ body {
     opacity: 0.75;
 }
 
-
-.exercise-list {
-    padding: 15px;
-    padding-bottom: 0;
+#exerciseList {
+    background-color: #f1f3f5; /* Light grey background */
+    padding: 12px 10px;        /* Prevents cards from touching screen edges */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    /* No 'gap' needed because you have margin-bottom on the items */
 }
 
 .exercise-item {
@@ -446,7 +449,42 @@ body {
     padding: 5px;
     border-radius: 6px;
     margin-bottom: 8px;
-    border: 1px solid #979ca1;
+    border: 1px solid #dee2e6; /* Lighter border */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Soft lift */
+}
+
+
+/* Keeps the swipe buttons hidden behind the card */
+.exercise-swipe-container {
+    position: relative;
+    background: #ff6b6b; /* The "Delete" red shows if you swipe too far */
+    border-radius: 8px;
+}
+
+/* The actual white card that moves */
+.exercise-swipe-content {
+    background: white;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+/* Makes the number inputs look clean */
+.value-input {
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-weight: 700;
+    width: 35px;
+    outline: none;
+    -moz-appearance: textfield; /* Removes arrows in Firefox */
+}
+
+/* Removes arrows in Chrome/Safari */
+.value-input::-webkit-outer-spin-button,
+.value-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .exercise-header {
@@ -2291,6 +2329,12 @@ margin-top: 0;
     flex-direction: row;
     gap: 10px;
     padding: 15px;
+    background-color: #f1f3f5;
+}
+
+#workoutActions {
+    background-color: #f1f3f5;
+    
 }
 
 .workout-action-card {
