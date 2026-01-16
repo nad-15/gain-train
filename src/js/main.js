@@ -617,43 +617,51 @@ function renderExercises() {
                 const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
                 const lv = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
                 lastRowHTML = `
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                        <span style="font-size: 0.75rem; color: #adb5bd;">Last: ${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
-                        <span style="font-size: 0.65rem; background: #fff5f5; color: #fa5252; padding: 2px 6px; border-radius: 4px; font-weight: 800;">VOL: ${lv.toLocaleString()}kg</span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.7rem; color: #868e96; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Last</span>
+                            <span style="font-size: 0.85rem; color: #495057; font-weight: 600;">${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
+                        </div>
+                        <span style="font-size: 0.65rem; background: #fff5f5; color: #fa5252; padding: 3px 8px; border-radius: 4px; font-weight: 800;">VOL ${lv.toLocaleString()}kg</span>
                     </div>`;
             } else {
-                lastRowHTML = `<div style="font-size: 0.75rem; color: #ced4da; margin-bottom: 4px; font-style: italic;">No history</div>`;
+                lastRowHTML = `
+                    <div style="padding: 6px 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px;">
+                        <span style="font-size: 0.75rem; color: #adb5bd; font-style: italic;">No previous session</span>
+                    </div>`;
             }
 
             // PB
             const pbRowHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                    <span style="font-size: 0.75rem; color: #f39c12; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                        <span class="material-symbols-outlined" style="font-size: 14px !important;">emoji_events</span>
-                        PB: ${exercisePB.weight}kg × ${exercisePB.reps} (${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
-                    </span>
-                    <span style="font-size: 0.65rem; background: #fff9db; color: #f08c00; padding: 2px 6px; border-radius: 4px; font-weight: 800;">BEST</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #fff9db; border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #f59f00;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px !important; color: #f59f00;">emoji_events</span>
+                        <span style="font-size: 0.85rem; color: #e67700; font-weight: 600;">${exercisePB.weight}kg × ${exercisePB.reps}</span>
+                        <span style="font-size: 0.7rem; color: #f08c00;">(${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</span>
+                    </div>
+                    <span style="font-size: 0.65rem; background: #ffe066; color: #e67700; padding: 3px 8px; border-radius: 4px; font-weight: 800;">BEST</span>
                 </div>` : '';
 
             // Card content
             const cardContent = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5;">
-                            <span class="material-symbols-outlined" style="font-size: 18px !important;">query_stats</span>
-                        </button>
-                        <span class="exercise-name" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${ex.name}</span>
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span class="exercise-name" style="margin: 0; font-weight: 700; font-size: 1.1rem; color: #212529;">${ex.name}</span>
+                    <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5;">
+                        <span class="material-symbols-outlined" style="font-size: 20px !important;">area_chart</span>
+                    </button>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                    <span style="font-size: 0.9rem; font-weight: 700; color: #495057;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
-                    <span style="font-size: 0.65rem; background: #eef2ff; color: #4c6ef5; padding: 2px 6px; border-radius: 4px; font-weight: 800;">VOL: ${currentVol.toLocaleString()}kg</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #e7f5ff; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #4c6ef5;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.7rem; color: #1971c2; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Current</span>
+                        <span style="font-size: 1rem; font-weight: 700; color: #1864ab;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
+                    </div>
+                    <span style="font-size: 0.7rem; background: #4c6ef5; color: white; padding: 3px 8px; border-radius: 4px; font-weight: 800;">VOL ${currentVol.toLocaleString()}kg</span>
                 </div>
 
                 ${lastRowHTML}
                 ${pbRowHTML}
-                ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #888; background: #fdfdfd; padding: 6px 10px; border-left: 3px solid #eee; margin-top: 4px;">${ex.notes}</div>` : ''}
+                ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #495057; background: #f8f9fa; padding: 8px 10px; border-left: 3px solid #dee2e6; margin-top: 4px; border-radius: 4px; font-style: italic;">${ex.notes}</div>` : ''}
             `;
 
             // Swipe container
@@ -1701,7 +1709,7 @@ bath_bedrock
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;">
                             <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
                             <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
-                                <span class="material-symbols-outlined exercise-graph-icon">query_stats</span>
+                                <span class="material-symbols-outlined exercise-graph-icon">area_chart</span>
                             </button>
                         </div>
                         
@@ -1726,7 +1734,7 @@ bath_bedrock
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0px;">
                             <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
                             <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
-                                <span class="material-symbols-outlined exercise-graph-icon">query_stats</span>
+                                <span class="material-symbols-outlined exercise-graph-icon">area_chart</span>
                             </button>
                         </div>
                         <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</div>
