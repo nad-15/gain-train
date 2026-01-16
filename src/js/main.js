@@ -2077,6 +2077,88 @@ function renderStats() {
 
 }
 
+function openAllExercisesView() {
+    // Collect all unique exercises from all workouts
+    const exerciseMap = new Map();
+    
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name && ex.name !== 'Exercise Name') {
+                    if (!exerciseMap.has(ex.name)) {
+                        exerciseMap.set(ex.name, {
+                            name: ex.name,
+                            workoutType: w.type,
+                            lastDate: new Date(w.date)
+                        });
+                    } else {
+                        // Update if this workout is more recent
+                        const existing = exerciseMap.get(ex.name);
+                        const currentDate = new Date(w.date);
+                        if (currentDate > existing.lastDate) {
+                            existing.lastDate = currentDate;
+                            existing.workoutType = w.type;
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    // Sort alphabetically
+    const exercises = Array.from(exerciseMap.values()).sort((a, b) => 
+        a.name.localeCompare(b.name)
+    );
+
+    // Render the grid
+    const content = document.getElementById('allExercisesContent');
+    
+    if (exercises.length === 0) {
+        content.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                <span class="material-symbols-outlined" style="font-size: 64px; opacity: 0.3;">fitness_center</span>
+                <p style="margin-top: 16px; font-size: 1rem;">No exercises logged yet</p>
+            </div>
+        `;
+    } else {
+        let html = '<div style="display: grid; grid-template-columns: 1fr; gap: 12px;">';
+        
+        exercises.forEach(ex => {
+            const miniGraph = generateMiniGraph(ex.name, ex.workoutType);
+            
+            html += `
+                <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
+                     style="background: white; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.04);"
+                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.04)';">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 700; font-size: 0.95rem; color: #212529; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${ex.name}
+                            </div>
+                            <div style="font-size: 0.7rem; color: #868e96;">
+                                Last: ${ex.lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                        </div>
+                        <div style="flex-shrink: 0;">
+                            ${miniGraph}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        content.innerHTML = html;
+    }
+
+    document.getElementById('allExercisesModal').classList.add('active');
+}
+
+function closeAllExercisesView() {
+    document.getElementById('allExercisesModal').classList.remove('active');
+}
+
 // ===== WEEK VIEW FUNCTIONS =====
 function renderWeekView() {
     const grid = document.getElementById('calendarGrid');
