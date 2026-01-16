@@ -624,71 +624,57 @@ function renderExercises() {
             if (last) {
                 const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
                 const lv = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
+                
+                // Calculate if current is better
+                const isImprovement = currentVol > lv;
+                
                 lastRowHTML = `
-                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: #f8f9fa; border-radius: 4px;">
-                        <div style="display: flex; align-items: center; gap: 4px;">
-                            <span style="font-size: 0.6rem; color: #868e96; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Last</span>
-                            <span style="font-size: 0.8rem; color: #495057; font-weight: 700;">${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
-                        </div>
-                        <span style="font-size: 0.6rem; color: #fa5252; font-weight: 700;">VOL ${lv.toLocaleString()}kg</span>
-                    </div>`;
-            } else {
-                lastRowHTML = `
-                    <div style="flex: 1; padding: 6px 8px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 0.65rem; color: #adb5bd; font-style: italic;">No history</span>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <span style="font-size: 0.65rem; color: #adb5bd; font-weight: 500;">Last:</span>
+                        <span style="font-size: 0.7rem; color: #868e96; font-weight: 600;">${last.sets}×${last.reps}@${last.weight}${last.weight === 'BW' ? '' : 'kg'}</span>
+                        ${isImprovement ? `<span class="material-symbols-outlined" style="font-size: 12px; color: #2da44e;">trending_up</span>` : ''}
                     </div>`;
             }
 
-            // PB
-            const pbRowHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: #fff9db; border-radius: 4px; border-left: 2px solid #f59f00;">
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <span class="material-symbols-outlined" style="font-size: 12px !important; color: #f59f00;">emoji_events</span>
-                        <span style="font-size: 0.6rem; color: #e67700; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Best</span>
-                        <span style="font-size: 0.8rem; color: #e67700; font-weight: 700;">${exercisePB.sets}×${exercisePB.reps}@${exercisePB.weight}kg</span>
-                    </div>
-                    <span style="font-size: 0.6rem; color: #f08c00;">${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                </div>` : '';
+            // PB indicator (just icon if it's a PB)
+            const exercisePB = storage.currentPB;
+            const isPB = exercisePB && exercisePB.exerciseIdx === idx;
 
-            // Card content
+            // Card content - MINIMAL
             const cardContent = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="exercise-name" style="margin: 0; font-weight: 700; font-size: 0.95rem; color: #212529; letter-spacing: -0.01em;">${ex.name}</span>
-                    <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" style="cursor: pointer;" title="View full graph">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <span class="exercise-name" style="margin: 0; font-weight: 700; font-size: 0.9rem; color: #212529; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ex.name}</span>
+                            ${isPB ? `<span class="material-symbols-outlined" style="font-size: 14px; color: #f59f00;" title="Personal Best!">emoji_events</span>` : ''}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #1864ab;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
+                            <span style="font-size: 0.6rem; color: #4c6ef5; font-weight: 600;">VOL ${currentVol.toLocaleString()}</span>
+                        </div>
+                        ${lastRowHTML}
+                    </div>
+                    <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" style="cursor: pointer; flex-shrink: 0;" title="View full graph">
                         ${generateMiniGraph(ex.name, storage.currentWorkout.type)}
                     </div>
                 </div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #e7f5ff; border-radius: 4px; margin-bottom: 6px; border-left: 2px solid #4c6ef5;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 0.6rem; color: #1971c2; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">Now</span>
-                        <span style="font-size: 0.95rem; font-weight: 700; color: #1864ab; letter-spacing: -0.02em;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
-                    </div>
-                    <span style="font-size: 0.65rem; background: #4c6ef5; color: white; padding: 2px 6px; border-radius: 3px; font-weight: 700;">VOL ${currentVol.toLocaleString()}kg</span>
-                </div>
-
-                <div style="display: flex; gap: 6px; margin-bottom: ${ex.notes ? '6px' : '0'};">
-                    ${lastRowHTML}
-                    ${pbRowHTML}
-                </div>
-
-                ${ex.notes ? `<div class="notes-display" style="font-size: 0.7rem; color: #495057; background: #f8f9fa; padding: 6px 8px; border-left: 2px solid #dee2e6; border-radius: 4px; font-style: italic; line-height: 1.3;">${ex.notes}</div>` : ''}
+                ${ex.notes ? `<div class="notes-display" style="font-size: 0.65rem; color: #6c757d; background: #f8f9fa; padding: 4px 6px; border-left: 2px solid #dee2e6; border-radius: 3px; font-style: italic; line-height: 1.2; margin-top: 6px;">${ex.notes}</div>` : ''}
             `;
 
             // Swipe container
             div.innerHTML = `
                 <div class="exercise-swipe-container" style="position: relative; overflow: hidden;">
                     <div class="exercise-swipe-actions" style="position: absolute; right: 0; top: 0; height: 100%; display: flex; gap: 0;">
-                        <button onclick="event.stopPropagation(); toggleEdit(${idx})" style="color: white; background: #4c6ef5; border: none; width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
-                            <span class="material-icons" style="font-size: 24px;">edit</span>
-                            <span style="font-size: 11px; font-weight: 600;">EDIT</span>
+                        <button onclick="event.stopPropagation(); toggleEdit(${idx})" style="color: white; background: #4c6ef5; border: none; width: 70px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 20px;">edit</span>
+                            <span style="font-size: 10px; font-weight: 600;">EDIT</span>
                         </button>
-                        <button onclick="event.stopPropagation(); deleteExercise(${idx})" style="color: white; background: #ff6b6b; border: none; width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
-                            <span class="material-icons" style="font-size: 24px;">delete</span>
-                            <span style="font-size: 11px; font-weight: 600;">DELETE</span>
+                        <button onclick="event.stopPropagation(); deleteExercise(${idx})" style="color: white; background: #ff6b6b; border: none; width: 70px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 20px;">delete</span>
+                            <span style="font-size: 10px; font-weight: 600;">DELETE</span>
                         </button>
                     </div>
-                    <div class="exercise-swipe-content" style="background: white; position: relative; z-index: 1; transition: transform 0.3s ease; padding: 10px;">
+                    <div class="exercise-swipe-content" style="background: white; position: relative; z-index: 1; transition: transform 0.3s ease; padding: 8px 10px;">
                         ${cardContent}
                     </div>
                 </div>
@@ -699,50 +685,36 @@ function renderExercises() {
             const swipeActions = div.querySelector('.exercise-swipe-actions');
             let startX = 0;
             let isDragging = false;
-            let dragTimeout;
-            const minSwipeDistance = 30; // minimum distance to start moving
-            const swipeDelay = 150;      // delay before drag activates in ms
 
             swipeContent.addEventListener('touchstart', (e) => {
                 startX = e.touches[0].clientX;
-
-                // Add a small delay before activating dragging
-                dragTimeout = setTimeout(() => {
-                    isDragging = true;
-                }, swipeDelay);
+                isDragging = true;
             });
 
             swipeContent.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
-
                 const currentX = e.touches[0].clientX;
                 const diff = startX - currentX;
-
-                // Only move if difference exceeds threshold
-                if (Math.abs(diff) < minSwipeDistance) return;
-
+                
                 if (diff > 0) {
-                    const translateX = Math.min(diff, 160);
+                    const translateX = Math.min(diff, 140);
                     swipeContent.style.transform = `translateX(-${translateX}px)`;
                 }
             });
 
             swipeContent.addEventListener('touchend', (e) => {
-                clearTimeout(dragTimeout); // cancel pending drag if ended early
                 if (!isDragging) return;
-
                 isDragging = false;
                 const currentX = e.changedTouches[0].clientX;
                 const diff = startX - currentX;
 
-                if (diff > 80) {
-                    swipeContent.style.transform = 'translateX(-160px)';
+                if (diff > 70) {
+                    swipeContent.style.transform = 'translateX(-140px)';
                 } else {
                     swipeContent.style.transform = 'translateX(0)';
                 }
             });
 
-            // Close on tap
             div.addEventListener('click', (e) => {
                 if (!e.target.closest('.exercise-swipe-actions')) {
                     swipeContent.style.transform = 'translateX(0)';
