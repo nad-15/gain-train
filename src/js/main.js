@@ -1503,135 +1503,76 @@ function createCalendarDay(day, date, isOtherMonth) {
 
     grid.appendChild(dayDiv);
 }
-
 function showWorkoutDetails(date, workout) {
     selectedCalendarDate = date;
     const detailsSection = document.getElementById('workoutDetailsSection');
-
     const detailsContent = document.getElementById('workoutDetailsContent');
+
     detailsContent.onclick = (e) => {
-        // Check if click is on delete button or its children (Material Icons span)
-        if (e.target.classList.contains('delete-btn') ||
-            e.target.closest('.delete-btn')) {
-            return; // Stop here, don't view workout
-        }
-        if (workout) {
-            viewWorkout(workout.id);
-        }
+        if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) return;
+        if (workout) viewWorkout(workout.id);
     };
+
     const dateLabel = document.getElementById('selectedDateLabel');
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    // Format date
-    const dateStr = date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-        // ,
-        // year: 'numeric'
-    });
-
-    // Check for weight log
-    const weightLog = storage.weightLogs.find(log =>
-        new Date(log.date).toDateString() === date.toDateString()
-    );
+    const weightLog = storage.weightLogs.find(log => new Date(log.date).toDateString() === date.toDateString());
     const weightDisplay = document.getElementById('weightDisplay');
 
     const deleteBtn = document.getElementById("deleteWorkoutBtn");
     const changeBtn = document.getElementById("changeWorkoutBtn");
 
     if (workout) {
-        // Show delete button
         deleteBtn.innerHTML = `<span class="material-symbols-outlined">delete</span>`;
-        deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            deleteWorkoutFromCalendar(workout.id);
-        };
+        deleteBtn.onclick = (e) => { e.stopPropagation(); deleteWorkoutFromCalendar(workout.id); };
         deleteBtn.style.display = 'flex';
 
-        // Show change workout button
         changeBtn.innerHTML = `<span class="material-symbols-outlined">sync_alt</span>`;
-        changeBtn.onclick = (e) => {
-            e.stopPropagation();
-            changeWorkoutForDate(date, workout.id);
-        };
+        changeBtn.onclick = (e) => { e.stopPropagation(); changeWorkoutForDate(date, workout.id); };
         changeBtn.style.display = 'flex';
     } else {
-        deleteBtn.innerHTML = '';
         deleteBtn.style.display = 'none';
-        changeBtn.innerHTML = '';
         changeBtn.style.display = 'none';
     }
 
+    dateLabel.innerHTML = `<span>${dateStr}</span>`;
 
-    dateLabel.innerHTML = `
-  <span>${dateStr}</span>
-`;
-
-    // Update weight display
     if (weightLog) {
         weightDisplay.textContent = `• ${weightLog.weight}kg`;
         weightDisplay.style.display = 'inline';
     } else {
-        weightDisplay.textContent = '';
         weightDisplay.style.display = 'none';
     }
 
-    // Show/hide weight button
     const logWeightBtn = document.getElementById('logWeightBtn');
     logWeightBtn.style.display = 'flex';
 
-    // Add this right after the logWeightBtn.style.display = 'flex'; line
     const simplifiedViewBtn = document.getElementById('simplifiedViewBtn');
     if (!simplifiedViewBtn) {
-        // Create the button if it doesn't exist
         const newBtn = document.createElement('button');
         newBtn.id = 'simplifiedViewBtn';
         newBtn.className = 'detail-tool-btn';
         newBtn.innerHTML = '<span class="material-symbols-outlined">visibility</span>';
-        newBtn.title = 'Toggle simplified view';
-        newBtn.onclick = (e) => {
-            e.stopPropagation();
-            toggleSimplifiedView();
-        };
-        document.querySelector('.workout-details-tools').insertBefore(
-            newBtn,
-            document.querySelector('.workout-details-tools').lastElementChild
-        );
+        newBtn.onclick = (e) => { e.stopPropagation(); toggleSimplifiedView(); };
+        document.querySelector('.workout-details-tools').insertBefore(newBtn, document.querySelector('.workout-details-tools').lastElementChild);
     }
 
-    // Show the section
     detailsSection.style.display = 'block';
 
     if (workout) {
-        // Show workout details
         if (workout.type === 'rest') {
             detailsContent.innerHTML = `
                 <div class="no-workout-message">
-                    <span class="material-symbols-outlined rest-day-icon">
-bath_bedrock
-</span>    <div class="rest-day-text">Rest Day</div>
-                
-                </div>
-
-            `;
+                    <span class="material-symbols-outlined rest-day-icon">bath_bedrock</span>
+                    <div class="rest-day-text">Rest Day</div>
+                </div>`;
         } else {
-
-            // <button class="save-template-btn" style="flex: 1; padding: 10px;" onclick="viewWorkout(${workout.id})">Expand</button>
-            let html = `
-
-            `;
-
-            // Replace the section that starts with: workout.exercises.forEach(ex => {
+            let html = '';
             if (storage.isSimplifiedView) {
-                // SIMPLIFIED VIEW
                 workout.exercises.forEach(ex => {
-                    // Calculate PB for this exercise
                     const currentType = workout.type;
                     let pbInfo = null;
-
-                    let bestWeight = null;
-                    let bestReps = 0;
-                    let bestSets = 0;
-                    let bestDate = null;
+                    let bestWeight = null, bestReps = 0, bestSets = 0, bestDate = null;
 
                     storage.workouts.forEach(w => {
                         if (w.type === currentType && w.exercises) {
@@ -1640,99 +1581,65 @@ bath_bedrock
                                     const weight = exW.weight === 'BW' ? 'BW' : parseFloat(exW.weight) || 0;
                                     const reps = parseInt(exW.reps) || 0;
                                     const sets = parseInt(exW.sets) || 0;
-
                                     let isBetter = false;
+                                    if (bestWeight === null) isBetter = true;
+                                    else if (weight === 'BW' && bestWeight === 'BW') { if (reps > bestReps || (reps === bestReps && sets > bestSets)) isBetter = true; }
+                                    else if (weight !== 'BW' && bestWeight !== 'BW') { if (weight > bestWeight || (weight === bestWeight && reps > bestReps) || (weight === bestWeight && reps === bestReps && sets > bestSets)) isBetter = true; }
+                                    else if (weight !== 'BW' && bestWeight === 'BW') isBetter = true;
 
-                                    if (bestWeight === null) {
-                                        isBetter = true;
-                                    } else if (weight === 'BW' && bestWeight === 'BW') {
-                                        if (reps > bestReps || (reps === bestReps && sets > bestSets)) {
-                                            isBetter = true;
-                                        }
-                                    } else if (weight !== 'BW' && bestWeight !== 'BW') {
-                                        if (weight > bestWeight || (weight === bestWeight && reps > bestReps) ||
-                                            (weight === bestWeight && reps === bestReps && sets > bestSets)) {
-                                            isBetter = true;
-                                        }
-                                    } else if (weight !== 'BW' && bestWeight === 'BW') {
-                                        isBetter = true;
-                                    }
-
-                                    if (isBetter) {
-                                        bestWeight = weight;
-                                        bestReps = reps;
-                                        bestSets = sets;
-                                        bestDate = new Date(w.date);
-                                    }
+                                    if (isBetter) { bestWeight = weight; bestReps = reps; bestSets = sets; bestDate = new Date(w.date); }
                                 }
                             });
                         }
                     });
 
-                    if (bestWeight !== null) {
-                        pbInfo = {
-                            weight: bestWeight,
-                            reps: bestReps,
-                            sets: bestSets,
-                            date: bestDate
-                        };
-                    }
+                    if (bestWeight !== null) pbInfo = { weight: bestWeight, reps: bestReps, sets: bestSets, date: bestDate };
 
                     html += `
-                    <div class="workout-detail-item" style="position: relative;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;">
-                            <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
-                            <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" style="cursor: pointer;" title="View full graph">
+                    <div class="workout-detail-item" style="padding: 12px; border-bottom: 1px solid #f1f3f5;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <div style="font-weight: 700; font-size: 0.9rem; color: #212529;">${ex.name}</div>
+                            <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')">
                                 ${generateMiniGraph(ex.name, workout.type)}
                             </div>
                         </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
-                            <span>${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</span>
+                        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <span style="font-weight: 600; font-size: 0.85rem; color: #495057;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight==='BW'?'':'kg'}</span>
                             ${pbInfo ? `
-                                <span style="color: #4c6ef5; font-size: 0.75em; display: flex; align-items: center; gap: 4px;">
-                                    <span class="material-symbols-outlined" style="font-size: 14px !important;">emoji_events</span>
-                                    PB: ${pbInfo.sets}×${pbInfo.reps}×${pbInfo.weight === 'BW' ? 'BW' : pbInfo.weight + 'kg'} 
-                                </span>
-                            ` : ''}
+                                <span style="color: #f08c00; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 3px; background: #fff9db; padding: 2px 6px; border-radius: 4px;">
+                                    <span class="material-symbols-outlined" style="font-size: 14px !important;">star</span>
+                                    PB: ${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight==='BW'?'':'kg'}
+                                </span>` : ''}
                         </div>
-                        ${ex.notes ? `<div style="margin-top: 8px; font-size: 0.8em; color: #6c757d; font-style: italic;">${ex.notes}</div>` : ''}
-                    </div>
-                `;
+                        ${ex.notes ? `<div style="margin-top: 6px; font-size: 0.75rem; color: #868e96; font-style: italic; ">${ex.notes}</div>` : ''}
+                    </div>`;
                 });
             } else {
-                // FULL VIEW (existing code)
                 workout.exercises.forEach(ex => {
                     html += `
-                    <div class="workout-detail-item">
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0px;">
-                            <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
-                            <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" style="cursor: pointer;" title="View full graph">
+                    <div class="workout-detail-item" style="padding: 10px 12px; border-bottom: 1px solid #f1f3f5;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.9rem; color: #212529;">${ex.name}</div>
+                                <div style="font-size: 0.85rem; color: #495057; font-weight: 600; margin-top: 2px;">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</div>
+                            </div>
+                            <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')">
                                 ${generateMiniGraph(ex.name, workout.type)}
                             </div>
                         </div>
-                        <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</div>
-                    </div>
-                `;
+                    </div>`;
                 });
             }
-
-
             detailsContent.innerHTML = html;
         }
     } else {
-        // No workout - show add workout button
         detailsContent.innerHTML = `
-            <div class="no-workout-message">
-                No workout logged for this day
-            </div>
-            <div style=" display: flex; justify-content: center; padding: 0 15px 15px;">
-                <button class="add-exercise-btn" style="margin: 0;" onclick="selectDateForWorkout(new Date('${date.toISOString()}'))">Log Workout</button>
-            </div>
-        `;
+            <div class="no-workout-message">No workout logged for this day</div>
+            <div style="display: flex; justify-content: center; padding: 15px;">
+                <button class="add-exercise-btn" onclick="selectDateForWorkout(new Date('${date.toISOString()}'))">Log Workout</button>
+            </div>`;
     }
 }
-
 function changeWorkoutForDate(date, oldWorkoutId) {
     // Store the date and old workout ID
     storage.changeWorkoutDate = date;
