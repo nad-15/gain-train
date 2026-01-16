@@ -691,17 +691,28 @@ function renderExercises() {
             const swipeActions = div.querySelector('.exercise-swipe-actions');
             let startX = 0;
             let isDragging = false;
+            let dragTimeout;
+            const minSwipeDistance = 30; // minimum distance to start moving
+            const swipeDelay = 150;      // delay before drag activates in ms
 
             swipeContent.addEventListener('touchstart', (e) => {
                 startX = e.touches[0].clientX;
-                isDragging = true;
+
+                // Add a small delay before activating dragging
+                dragTimeout = setTimeout(() => {
+                    isDragging = true;
+                }, swipeDelay);
             });
 
             swipeContent.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
+
                 const currentX = e.touches[0].clientX;
                 const diff = startX - currentX;
-                
+
+                // Only move if difference exceeds threshold
+                if (Math.abs(diff) < minSwipeDistance) return;
+
                 if (diff > 0) {
                     const translateX = Math.min(diff, 160);
                     swipeContent.style.transform = `translateX(-${translateX}px)`;
@@ -709,7 +720,9 @@ function renderExercises() {
             });
 
             swipeContent.addEventListener('touchend', (e) => {
+                clearTimeout(dragTimeout); // cancel pending drag if ended early
                 if (!isDragging) return;
+
                 isDragging = false;
                 const currentX = e.changedTouches[0].clientX;
                 const diff = startX - currentX;
@@ -1707,7 +1720,7 @@ bath_bedrock
                         };
                     }
 
-                   html += `
+                    html += `
                     <div class="workout-detail-item" style="position: relative;">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;">
                             <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
@@ -2772,7 +2785,7 @@ function saveCustomWorkout() {
 }
 
 function deleteCustomWorkoutType(idx) {
-    console.log("delete custom clicedk" );
+    console.log("delete custom clicedk");
     if (!confirm('Delete this custom workout type?')) return;
 
     const customTypes = storage.customWorkoutTypes;
@@ -2790,7 +2803,7 @@ function deleteCustomWorkoutType(idx) {
     renderHomeScreen();
 }
 function renameCustomWorkoutType(idx) {
-    console.log("rename custom clicedk" );
+    console.log("rename custom clicedk");
 
     const customType = storage.customWorkoutTypes[idx];
     const newName = prompt('Enter new workout name:', customType.name);
