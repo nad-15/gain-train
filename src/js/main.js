@@ -545,13 +545,13 @@ function renderExercises() {
         const currentVol = currentWeightNum * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
 
         const div = document.createElement('div');
-        div.className = 'exercise-item'; // Restores your CSS card styling
+        div.className = 'exercise-item';
         div.style.position = 'relative';
 
         const isEditing = storage.editingExerciseIndex === idx;
 
         if (isEditing) {
-            // --- EDIT MODE: KEEPING YOUR FULL ORIGINAL STYLE ---
+            // --- EDIT MODE ---
             div.innerHTML = `
                 <div id="exerciseDropdownContainer-${idx}" style="display: none; position: absolute; top: 52px; left: 0; width: 100%; height: 250px; background: white; border: 1px solid #e9ecef; border-top: 2px solid #4c6ef5; border-radius: 0 0 10px 10px; z-index: 20; box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex-direction: column; overflow-y: auto;">
                     <div class="exercise-type-tabs" style="display: flex; border-bottom: 1px solid #e9ecef; padding: 8px 8px 0 8px; gap: 4px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none;">
@@ -601,12 +601,17 @@ function renderExercises() {
                         </div>
                     </div>
                 </div>
+
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                    <input type="checkbox" id="bw-${idx}" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)" style="width: 16px; height: 16px; cursor: pointer;">
+                    <label for="bw-${idx}" style="font-size: 0.85em; color: #495057; cursor: pointer; user-select: none;">Bodyweight Exercise</label>
+                </div>
                 <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
             `;
         } else {
-            // --- VIEW MODE: THE 5-LINE HIERARCHY ---
+            // --- VIEW MODE WITH SWIPE ---
 
-            // LINE 3: Last Session
+            // Last Session
             let lastRowHTML = '';
             if (last) {
                 const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
@@ -620,7 +625,7 @@ function renderExercises() {
                 lastRowHTML = `<div style="font-size: 0.75rem; color: #ced4da; margin-bottom: 4px; font-style: italic;">No history</div>`;
             }
 
-            // LINE 4: PB
+            // PB
             const pbRowHTML = (exercisePB && exercisePB.exerciseIdx === idx) ? `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                     <span style="font-size: 0.75rem; color: #f39c12; font-weight: 600; display: flex; align-items: center; gap: 4px;">
@@ -630,19 +635,16 @@ function renderExercises() {
                     <span style="font-size: 0.65rem; background: #fff9db; color: #f08c00; padding: 2px 6px; border-radius: 4px; font-weight: 800;">BEST</span>
                 </div>` : '';
 
-            div.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5;">
-                <span class="material-symbols-outlined" style="font-size: 18px !important;">query_stats</span>
-            </button>
-            <span class="exercise-name" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${ex.name}</span>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;"> 
-            <button class="detail-tool-btn toggle-edit-btn" onclick="toggleEdit(${idx})" style="color: #adb5bd;"><span class="material-icons edit-icon" style="font-size: 18px;">edit</span></button>
-            <button class="detail-tool-btn" onclick="deleteExercise(${idx})" style="color: #ffc9c9;"><span class="material-icons" style="font-size: 18px;">delete</span></button>
-        </div>
-    </div>
+            // Card content
+            const cardContent = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5;">
+                            <span class="material-symbols-outlined" style="font-size: 18px !important;">query_stats</span>
+                        </button>
+                        <span class="exercise-name" style="margin-bottom: 0; font-weight: 700; font-size: 1.05rem;">${ex.name}</span>
+                    </div>
+                </div>
 
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                     <span style="font-size: 0.9rem; font-weight: 700; color: #495057;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
@@ -650,11 +652,70 @@ function renderExercises() {
                 </div>
 
                 ${lastRowHTML}
-
                 ${pbRowHTML}
-
                 ${ex.notes ? `<div class="notes-display" style="font-size: 0.8em; color: #888; background: #fdfdfd; padding: 6px 10px; border-left: 3px solid #eee; margin-top: 4px;">${ex.notes}</div>` : ''}
             `;
+
+            // Swipe container
+            div.innerHTML = `
+                <div class="exercise-swipe-container" style="position: relative; overflow: hidden;">
+                    <div class="exercise-swipe-actions" style="position: absolute; right: 0; top: 0; height: 100%; display: flex; gap: 0;">
+                        <button onclick="event.stopPropagation(); toggleEdit(${idx})" style="color: white; background: #4c6ef5; border: none; width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 24px;">edit</span>
+                            <span style="font-size: 11px; font-weight: 600;">EDIT</span>
+                        </button>
+                        <button onclick="event.stopPropagation(); deleteExercise(${idx})" style="color: white; background: #ff6b6b; border: none; width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
+                            <span class="material-icons" style="font-size: 24px;">delete</span>
+                            <span style="font-size: 11px; font-weight: 600;">DELETE</span>
+                        </button>
+                    </div>
+                    <div class="exercise-swipe-content" style="background: white; position: relative; z-index: 1; transition: transform 0.3s ease; padding: 10px;">
+                        ${cardContent}
+                    </div>
+                </div>
+            `;
+
+            // Swipe functionality
+            const swipeContent = div.querySelector('.exercise-swipe-content');
+            const swipeActions = div.querySelector('.exercise-swipe-actions');
+            let startX = 0;
+            let isDragging = false;
+
+            swipeContent.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            });
+
+            swipeContent.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const currentX = e.touches[0].clientX;
+                const diff = startX - currentX;
+                
+                if (diff > 0) {
+                    const translateX = Math.min(diff, 160);
+                    swipeContent.style.transform = `translateX(-${translateX}px)`;
+                }
+            });
+
+            swipeContent.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                const currentX = e.changedTouches[0].clientX;
+                const diff = startX - currentX;
+
+                if (diff > 80) {
+                    swipeContent.style.transform = 'translateX(-160px)';
+                } else {
+                    swipeContent.style.transform = 'translateX(0)';
+                }
+            });
+
+            // Close on tap
+            div.addEventListener('click', (e) => {
+                if (!e.target.closest('.exercise-swipe-actions')) {
+                    swipeContent.style.transform = 'translateX(0)';
+                }
+            });
         }
         container.appendChild(div);
     });
