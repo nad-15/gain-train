@@ -592,20 +592,28 @@ function renderExercises() {
                             <button class="control-btn plus" onclick="changeValue(${idx}, 'reps', 1)">+</button>
                         </div>
                     </div>
+
+
                     <div style="text-align: center;">
-                        <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; margin-bottom: 6px;">KG</div>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                            <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
-                            <input type="text" class="value-input" value="${ex.weight}" onchange="updateValue(${idx}, 'weight', this.value)" ${ex.weight === 'BW' ? 'disabled' : ''} style="width: 45px;">
-                            <button class="control-btn plus" onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>+</button>
-                        </div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom:6px">
+                                <div style="font-size: 0.75em; font-weight: 600; color: #6c757d; text-align: center">KG</div>
+                                <input type="checkbox" id="bw-${idx}" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)" style="width: 16px; height: 10px; cursor: pointer;">
+                            </div>
+
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <button class="control-btn minus" onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>−</button>
+                                <input type="text" class="value-input" value="${ex.weight}" onchange="updateValue(${idx}, 'weight', this.value)" ${ex.weight === 'BW' ? 'disabled' : ''} style="width: 45px;">
+                                <button class="control-btn plus" onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''}>+</button>
+                            </div>
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
-                    <input type="checkbox" id="bw-${idx}" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)" style="width: 16px; height: 16px; cursor: pointer;">
-                    <label for="bw-${idx}" style="font-size: 0.85em; color: #495057; cursor: pointer; user-select: none;">Bodyweight Exercise</label>
-                </div>
+                
+
+
+
+
+     
                 <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1">${ex.notes || ''}</textarea>
             `;
         } else {
@@ -646,9 +654,9 @@ function renderExercises() {
             const cardContent = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span class="exercise-name" style="margin: 0; font-weight: 700; font-size: 0.95rem; color: #212529; letter-spacing: -0.01em;">${ex.name}</span>
-                    <button class="detail-tool-btn" onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" title="View progress" style="color: #4c6ef5; width: 28px; height: 28px;">
-                        <span class="material-symbols-outlined" style="font-size: 18px !important;">area_chart</span>
-                    </button>
+                    <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" style="cursor: pointer;" title="View full graph">
+                        ${generateMiniGraph(ex.name, storage.currentWorkout.type)}
+                    </div>
                 </div>
 
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #e7f5ff; border-radius: 4px; margin-bottom: 6px; border-left: 2px solid #4c6ef5;">
@@ -1724,9 +1732,9 @@ bath_bedrock
                     <div class="workout-detail-item" style="position: relative;">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;">
                             <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
-                            <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
-                                <span class="material-symbols-outlined exercise-graph-icon">area_chart</span>
-                            </button>
+                            <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" style="cursor: pointer;" title="View full graph">
+                                ${generateMiniGraph(ex.name, workout.type)}
+                            </div>
                         </div>
                         
                         <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85em; color: #6c757d;">
@@ -1749,9 +1757,9 @@ bath_bedrock
                     <div class="workout-detail-item">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0px;">
                             <div class="workout-detail-title" style="margin: 0; border: none; padding: 0;">${ex.name}</div>
-                            <button class="detail-tool-btn" onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" title="View progress">
-                                <span class="material-symbols-outlined exercise-graph-icon">area_chart</span>
-                            </button>
+                            <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${workout.type}')" style="cursor: pointer;" title="View full graph">
+                                ${generateMiniGraph(ex.name, workout.type)}
+                            </div>
                         </div>
                         <div class="workout-detail-set">${ex.sets} sets × ${ex.reps} reps × ${ex.weight === 'BW' ? 'BW' : ex.weight + ' kg'}</div>
                     </div>
@@ -3739,6 +3747,72 @@ function getLastSession(exerciseName, currentWorkoutDate) {
 }
 
 
+
+function generateMiniGraph(exerciseName, workoutType) {
+    // Collect exercise data
+    const data = [];
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name === exerciseName) {
+                    const weight = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
+                    const volume = weight * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
+                    data.push({
+                        date: new Date(w.date),
+                        volume: volume
+                    });
+                }
+            });
+        }
+    });
+
+    // Sort by date and take last 10
+    data.sort((a, b) => a.date - b.date);
+    const recentData = data.slice(-10);
+
+    if (recentData.length < 2) {
+        return `<div style="width: 60px; height: 30px; display: flex; align-items: center; justify-content: center; background: #f1f3f5; border-radius: 4px; font-size: 0.6rem; color: #adb5bd;">No data</div>`;
+    }
+
+    // Calculate dimensions
+    const width = 60;
+    const height = 30;
+    const padding = 2;
+    
+    const maxVol = Math.max(...recentData.map(d => d.volume));
+    const minVol = Math.min(...recentData.map(d => d.volume));
+    const range = maxVol - minVol || 1;
+
+    // Generate points
+    const points = recentData.map((d, i) => {
+        const x = padding + (i / (recentData.length - 1)) * (width - padding * 2);
+        const y = height - padding - ((d.volume - minVol) / range) * (height - padding * 2);
+        return `${x},${y}`;
+    }).join(' ');
+
+    // Determine trend color
+    const firstVol = recentData[0].volume;
+    const lastVol = recentData[recentData.length - 1].volume;
+    const color = lastVol >= firstVol ? '#2da44e' : '#ff6b6b';
+
+    return `
+        <svg width="${width}" height="${height}" style="display: block; border-radius: 4px; background: #f8f9fa;">
+            <polyline
+                points="${points}"
+                fill="none"
+                stroke="${color}"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            />
+            ${recentData.map((d, i) => {
+                const x = padding + (i / (recentData.length - 1)) * (width - padding * 2);
+                const y = height - padding - ((d.volume - minVol) / range) * (height - padding * 2);
+                return `<circle cx="${x}" cy="${y}" r="1.5" fill="${color}" />`;
+            }).join('')}
+        </svg>
+    `;
+}
 
 function toggleSimplifiedView() {
     storage.isSimplifiedView = !storage.isSimplifiedView;

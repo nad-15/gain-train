@@ -443,10 +443,10 @@ body {
 
 .exercise-item {
     background: white;
-    padding: 10px;
+    padding: 5px;
     border-radius: 6px;
     margin-bottom: 8px;
-    border: 1px solid #e9ecef;
+    border: 1px solid #979ca1;
 }
 
 .exercise-header {
