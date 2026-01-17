@@ -545,25 +545,27 @@ function renderExercises() {
         const currentVol = currentWeightNum * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
 
         // 2. BUG FIX: DYNAMIC COLOR LOGIC
-        let statusColor = '#4c6ef5'; // Default Blue (No history or Equal)
+        // let statusColor = '#4c6ef5'; // Default Blue (No history or Equal)
+        let statusColor = '#868e96'; // Default Gray (No history or Equal)
         let lastVol = 0;
         if (last) {
             const lastWeightNum = last.weight === 'BW' ? 1 : (parseFloat(last.weight) || 0);
             lastVol = lastWeightNum * (parseInt(last.reps) || 0) * (parseInt(last.sets) || 3);
-            
+
             if (currentVol > lastVol) {
                 statusColor = '#40c057'; // Green: Better
             } else if (currentVol < lastVol) {
                 statusColor = '#fa5252'; // Red: Lower
             } else {
-                statusColor = '#4c6ef5'; // Blue: Same
+                // statusColor = '#4c6ef5'; // Blue: Same
+                statusColor = '#868e96'; // Gray: Same/Stale
             }
         }
 
         const div = document.createElement('div');
         div.className = 'exercise-item';
         div.style.position = 'relative';
-        
+
         const isEditing = storage.editingExerciseIndex === idx;
 
         if (isEditing) {
@@ -1606,11 +1608,11 @@ function showWorkoutDetails(date, workout) {
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
-                            <span style="font-weight: 600; font-size: 0.85rem; color: #495057;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight==='BW'?'':'kg'}</span>
+                            <span style="font-weight: 600; font-size: 0.85rem; color: #495057;">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
                             ${pbInfo ? `
                                 <span style="color: #f08c00; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 3px; background: #fff9db; padding: 2px 6px; border-radius: 4px;">
                                     <span class="material-symbols-outlined" style="font-size: 14px !important;">star</span>
-                                    PB: ${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight==='BW'?'':'kg'}
+                                    PB: ${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight === 'BW' ? '' : 'kg'}
                                 </span>` : ''}
                         </div>
                         ${ex.notes ? `<div style="margin-top: 6px; font-size: 0.75rem; color: #868e96; font-style: italic; ">${ex.notes}</div>` : ''}
@@ -2082,7 +2084,7 @@ function renderStats() {
 function openAllExercisesView() {
     // Collect all unique exercises from all workouts
     const exerciseMap = new Map();
-    
+
     storage.workouts.forEach(w => {
         if (w.exercises) {
             w.exercises.forEach(ex => {
@@ -2108,13 +2110,13 @@ function openAllExercisesView() {
     });
 
     // Sort alphabetically
-    const exercises = Array.from(exerciseMap.values()).sort((a, b) => 
+    const exercises = Array.from(exerciseMap.values()).sort((a, b) =>
         a.name.localeCompare(b.name)
     );
 
     // Render the grid
     const content = document.getElementById('allExercisesContent');
-    
+
     if (exercises.length === 0) {
         content.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; color: #6c757d;">
@@ -2124,10 +2126,10 @@ function openAllExercisesView() {
         `;
     } else {
         let html = '<div style="display: grid; grid-template-columns: 1fr; gap: 12px;">';
-        
+
         exercises.forEach(ex => {
             const miniGraph = generateMiniGraph(ex.name, ex.workoutType);
-            
+
             // Calculate PB for this exercise
             let pbInfo = null;
             let bestWeight = null;
@@ -2182,36 +2184,53 @@ function openAllExercisesView() {
             if (bestWeight !== null) {
                 pbInfo = { weight: bestWeight, reps: bestReps, sets: bestSets, date: bestDate };
             }
-            
-            html += `
-                <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
-                     style="background: white; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.04);"
-                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';"
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.04)';">
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+
+            html += `<div style="background: white; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                         <div style="flex: 1; min-width: 0;">
-                            <div style="font-weight: 700; font-size: 0.95rem; color: #212529; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                ${ex.name}
-                            </div>
-                            <div style="font-size: 0.7rem; color: #868e96; margin-bottom: 4px;">
-                                Last: ${ex.lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </div>
-                            ${pbInfo ? `
-                                <div style="display: flex; align-items: center; gap: 4px; font-size: 0.7rem;">
-                                    <span style="color: #f59f00; font-weight: 700;">★ PB:</span>
-                                    <span style="color: #e67700; font-weight: 600;">${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight === 'BW' ? '' : 'kg'}</span>
-                                    <span style="color: #adb5bd;">(${pbInfo.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</span>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <button onclick="event.stopPropagation(); openSameAsModal('${ex.name.replace(/'/g, "\\'")}')" 
+                                        style="background: #e7f5ff; border: 1px solid #d0ebff; border-radius: 6px; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;"
+                                        onmouseover="this.style.background='#d0ebff';"
+                                        onmouseout="this.style.background='#e7f5ff';"
+                                        title="Merge with another exercise">
+                                    <span class="material-symbols-outlined" style="font-size: 16px !important; color: #228be6;">merge</span>
+                                </button>
+                                <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
+                                     style="font-weight: 700; font-size: 0.95rem; color: #212529; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;"
+                                     onmouseover="this.style.opacity='0.7';"
+                                     onmouseout="this.style.opacity='1';">
+                                    ${ex.name}
                                 </div>
-                            ` : ''}
+                            </div>
+                            
+                            <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
+                                 style="cursor: pointer;"
+                                 onmouseover="this.style.opacity='0.7';"
+                                 onmouseout="this.style.opacity='1';">
+                                <div style="font-size: 0.7rem; color: #868e96; margin-bottom: 4px;">
+                                    Last: ${ex.lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </div>
+                                ${pbInfo ? `
+                                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.7rem;">
+                                        <span style="color: #f59f00; font-weight: 700;">★ PB:</span>
+                                        <span style="color: #e67700; font-weight: 600;">${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight === 'BW' ? '' : 'kg'}</span>
+                                        <span style="color: #adb5bd;">(${pbInfo.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</span>
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
+
                         <div style="flex-shrink: 0;">
-                            ${miniGraph}
+                            <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" style="cursor: pointer;">
+                                ${miniGraph}
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
         });
-        
+
         html += '</div>';
         content.innerHTML = html;
     }
@@ -3796,7 +3815,7 @@ function generateMiniGraph(exerciseName, workoutType) {
     const width = 60;
     const height = 30;
     const padding = 2;
-    
+
     const maxVol = Math.max(...recentData.map(d => d.volume));
     const minVol = Math.min(...recentData.map(d => d.volume));
     const range = maxVol - minVol || 1;
@@ -3824,10 +3843,10 @@ function generateMiniGraph(exerciseName, workoutType) {
                 stroke-linejoin="round"
             />
             ${recentData.map((d, i) => {
-                const x = padding + (i / (recentData.length - 1)) * (width - padding * 2);
-                const y = height - padding - ((d.volume - minVol) / range) * (height - padding * 2);
-                return `<circle cx="${x}" cy="${y}" r="1.5" fill="${color}" />`;
-            }).join('')}
+        const x = padding + (i / (recentData.length - 1)) * (width - padding * 2);
+        const y = height - padding - ((d.volume - minVol) / range) * (height - padding * 2);
+        return `<circle cx="${x}" cy="${y}" r="1.5" fill="${color}" />`;
+    }).join('')}
         </svg>
     `;
 }
@@ -4324,4 +4343,113 @@ function getWeekNumber(date) {
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+
+let sameAsSourceExercise = '';
+
+function openSameAsModal(exerciseName) {
+    sameAsSourceExercise = exerciseName;
+    document.getElementById('sameAsSourceName').textContent = exerciseName;
+    
+    // Get all unique exercise names except the current one
+    const allExerciseNames = new Set();
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name && ex.name !== 'Exercise Name' && ex.name !== exerciseName) {
+                    allExerciseNames.add(ex.name);
+                }
+            });
+        }
+    });
+    
+    // Sort alphabetically
+    const sortedNames = Array.from(allExerciseNames).sort();
+    
+    // Render list
+    const container = document.getElementById('sameAsExerciseList');
+    if (sortedNames.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No other exercises found</div>';
+    } else {
+        let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+        sortedNames.forEach(name => {
+            html += `
+                <button onclick="mergeSameAsExercise('${name.replace(/'/g, "\\'")}', '${exerciseName.replace(/'/g, "\\'")}')" 
+                        style="background: white; border: 2px solid #e9ecef; border-radius: 8px; padding: 12px; text-align: left; cursor: pointer; transition: all 0.2s; font-weight: 600; color: #1a1d1f;"
+                        onmouseover="this.style.borderColor='#4c6ef5'; this.style.background='#f8f9fa';"
+                        onmouseout="this.style.borderColor='#e9ecef'; this.style.background='white';">
+                    ${name}
+                </button>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
+    
+    document.getElementById('sameAsModal').classList.add('active');
+}
+
+function closeSameAsModal() {
+    document.getElementById('sameAsModal').classList.remove('active');
+    sameAsSourceExercise = '';
+}
+
+function mergeSameAsExercise(targetName, sourceName) {
+    if (!confirm(`Rename all "${sourceName}" to "${targetName}"?\n\nThis will update all workouts in your history.`)) {
+        return;
+    }
+    
+    // Update all workouts
+    let updateCount = 0;
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name === sourceName) {
+                    ex.name = targetName;
+                    updateCount++;
+                }
+            });
+        }
+    });
+    
+    // Update all templates
+    Object.keys(storage.templates).forEach(type => {
+        storage.templates[type].forEach(template => {
+            if (template.exercises) {
+                template.exercises.forEach(ex => {
+                    if (ex.name === sourceName) {
+                        ex.name = targetName;
+                    }
+                });
+            }
+        });
+    });
+    
+    // Update custom workout types
+    storage.customWorkoutTypes.forEach(customType => {
+        if (customType.exercises) {
+            customType.exercises.forEach(ex => {
+                if (ex.name === sourceName) {
+                    ex.name = targetName;
+                }
+            });
+        }
+    });
+    
+    // Save everything
+    storage.saveWorkouts();
+    storage.saveTemplates();
+    storage.saveCustomWorkoutTypes();
+    
+    closeSameAsModal();
+    closeAllExercisesView();
+    
+    alert(`✅ Merged successfully!\n\n${updateCount} instances of "${sourceName}" renamed to "${targetName}"`);
+    
+    // Refresh stats if we're on that screen
+    const statsScreen = document.getElementById('stats');
+    if (statsScreen && statsScreen.classList.contains('active')) {
+        renderStats();
+    }
 }
