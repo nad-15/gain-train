@@ -3307,6 +3307,7 @@ function switchGraphType(type) {
         } else {
             btn.style.background = 'white';
             btn.style.color = '#6c757d';
+            
             btn.classList.remove('active');
         }
     });
