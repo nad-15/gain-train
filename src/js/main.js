@@ -3290,11 +3290,18 @@ function switchGraphType(type) {
     document.querySelectorAll('.chart-toggle-btn').forEach(btn => {
         if (btn.dataset.type === type) {
             if (type === 'workouts') {
-                btn.style.background = '#2da44e';
+                // Soft Green Style
+                btn.style.background = '#ebffed';
+                btn.style.color = '#2da44e';
+                btn.style.border = '1px solid #c6f6d5';
             } else {
-                btn.style.background = '#4c6ef5';
+                // Soft Indigo Style
+                btn.style.background = '#edf2ff';
+                btn.style.color = '#4c6ef5';
+                btn.style.border = '1px solid #dbe4ff';
             }
-            btn.style.color = 'white';
+            // Ensure font is bold so it's easy to read on the light background
+            btn.style.fontWeight = '700';
             btn.classList.add('active');
         } else {
             btn.style.background = 'white';
@@ -4351,7 +4358,7 @@ let sameAsSourceExercise = '';
 function openSameAsModal(exerciseName) {
     sameAsSourceExercise = exerciseName;
     document.getElementById('sameAsSourceName').textContent = exerciseName;
-    
+
     // Get all unique exercise names except the current one
     const allExerciseNames = new Set();
     storage.workouts.forEach(w => {
@@ -4363,10 +4370,10 @@ function openSameAsModal(exerciseName) {
             });
         }
     });
-    
+
     // Sort alphabetically
     const sortedNames = Array.from(allExerciseNames).sort();
-    
+
     // Render list
     const container = document.getElementById('sameAsExerciseList');
     if (sortedNames.length === 0) {
@@ -4386,7 +4393,7 @@ function openSameAsModal(exerciseName) {
         html += '</div>';
         container.innerHTML = html;
     }
-    
+
     document.getElementById('sameAsModal').classList.add('active');
 }
 
@@ -4399,7 +4406,7 @@ function mergeSameAsExercise(targetName, sourceName) {
     if (!confirm(`Rename all "${sourceName}" to "${targetName}"?\n\nThis will update all workouts in your history.`)) {
         return;
     }
-    
+
     // Update all workouts
     let updateCount = 0;
     storage.workouts.forEach(w => {
@@ -4412,7 +4419,7 @@ function mergeSameAsExercise(targetName, sourceName) {
             });
         }
     });
-    
+
     // Update all templates
     Object.keys(storage.templates).forEach(type => {
         storage.templates[type].forEach(template => {
@@ -4425,7 +4432,7 @@ function mergeSameAsExercise(targetName, sourceName) {
             }
         });
     });
-    
+
     // Update custom workout types
     storage.customWorkoutTypes.forEach(customType => {
         if (customType.exercises) {
@@ -4436,17 +4443,17 @@ function mergeSameAsExercise(targetName, sourceName) {
             });
         }
     });
-    
+
     // Save everything
     storage.saveWorkouts();
     storage.saveTemplates();
     storage.saveCustomWorkoutTypes();
-    
+
     closeSameAsModal();
     closeAllExercisesView();
-    
+
     alert(`✅ Merged successfully!\n\n${updateCount} instances of "${sourceName}" renamed to "${targetName}"`);
-    
+
     // Refresh stats if we're on that screen
     const statsScreen = document.getElementById('stats');
     if (statsScreen && statsScreen.classList.contains('active')) {

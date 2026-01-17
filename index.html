@@ -274,7 +274,9 @@
                             </select>
 
                             <button onclick="openAllExercisesView()"
-                                style="flex-shrink: 0; height: 28px; padding: 0 12px; background: #4c6ef5; color: white; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box; transition: opacity 0.2s;">
+                                style="flex-shrink: 0; height: 28px; padding: 0 12px; background: #edf2ff; color: #4c6ef5; border: 1px solid #dbe4ff; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box; transition: all 0.2s;"
+                                onmouseover="this.style.background='#dbe4ff';"
+                                onmouseout="this.style.background='#edf2ff';">
                                 <span class="material-symbols-outlined" style="font-size: 16px;">grid_view</span>
                                 <span style="line-height: 1;">ALL</span>
                             </button>
@@ -587,7 +589,8 @@
         <div class="modal-content">
             <h2>Merge Exercise</h2>
             <p style="color: #6c757d; font-size: 0.875rem; margin-bottom: 16px;">
-                Select which exercise name to keep. All instances of "<span id="sameAsSourceName" style="font-weight: 600; color: #1a1d1f;"></span>" will be renamed.
+                Select which exercise name to keep. All instances of "<span id="sameAsSourceName"
+                    style="font-weight: 600; color: #1a1d1f;"></span>" will be renamed.
             </p>
             <div id="sameAsExerciseList" style="max-height: 400px; overflow-y: auto;"></div>
             <div class="modal-buttons">
