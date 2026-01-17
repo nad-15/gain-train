@@ -3066,7 +3066,8 @@ function renderYearHeatmap() {
     heatmapSection.innerHTML = `
         <div class="year-heatmap-header">
             <div class="year-heatmap-title">
-                <span class="material-symbols-outlined">key_visualizer</span>
+                <span class="material-symbols-outlined" style="color: #40C463;"
+                >key_visualizer</span>
                 <h5 style="color: #6c757d;">${totalDays} workouts in ${currentHeatmapYear}</h5>
             </div>
             <div class="year-nav">
