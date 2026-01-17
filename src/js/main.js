@@ -2126,6 +2126,61 @@ function openAllExercisesView() {
         exercises.forEach(ex => {
             const miniGraph = generateMiniGraph(ex.name, ex.workoutType);
             
+            // Calculate PB for this exercise
+            let pbInfo = null;
+            let bestWeight = null;
+            let bestReps = 0;
+            let bestSets = 0;
+            let bestDate = null;
+
+            storage.workouts.forEach(w => {
+                if (w.exercises) {
+                    w.exercises.forEach(exW => {
+                        if (exW.name === ex.name) {
+                            const weight = exW.weight === 'BW' ? 'BW' : (parseFloat(exW.weight) || 0);
+                            const reps = parseInt(exW.reps) || 0;
+                            const sets = parseInt(exW.sets) || 0;
+
+                            let isNewBest = false;
+
+                            // Handle BW exercises
+                            if (weight === 'BW' && bestWeight === 'BW') {
+                                if (reps > bestReps) {
+                                    isNewBest = true;
+                                } else if (reps === bestReps && sets >= bestSets) {
+                                    isNewBest = true;
+                                }
+                            } else if (weight === 'BW' && bestWeight === null) {
+                                isNewBest = true;
+                            } else if (weight !== 'BW' && bestWeight !== 'BW') {
+                                if (bestWeight === null || weight > bestWeight) {
+                                    isNewBest = true;
+                                } else if (weight === bestWeight) {
+                                    if (reps > bestReps) {
+                                        isNewBest = true;
+                                    } else if (reps === bestReps && sets >= bestSets) {
+                                        isNewBest = true;
+                                    }
+                                }
+                            } else if (weight !== 'BW' && bestWeight === 'BW') {
+                                isNewBest = true;
+                            }
+
+                            if (isNewBest) {
+                                bestWeight = weight;
+                                bestReps = reps;
+                                bestSets = sets;
+                                bestDate = new Date(w.date);
+                            }
+                        }
+                    });
+                }
+            });
+
+            if (bestWeight !== null) {
+                pbInfo = { weight: bestWeight, reps: bestReps, sets: bestSets, date: bestDate };
+            }
+            
             html += `
                 <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
                      style="background: white; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.04);"
@@ -2136,9 +2191,16 @@ function openAllExercisesView() {
                             <div style="font-weight: 700; font-size: 0.95rem; color: #212529; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                 ${ex.name}
                             </div>
-                            <div style="font-size: 0.7rem; color: #868e96;">
+                            <div style="font-size: 0.7rem; color: #868e96; margin-bottom: 4px;">
                                 Last: ${ex.lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </div>
+                            ${pbInfo ? `
+                                <div style="display: flex; align-items: center; gap: 4px; font-size: 0.7rem;">
+                                    <span style="color: #f59f00; font-weight: 700;">★ PB:</span>
+                                    <span style="color: #e67700; font-weight: 600;">${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight === 'BW' ? '' : 'kg'}</span>
+                                    <span style="color: #adb5bd;">(${pbInfo.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</span>
+                                </div>
+                            ` : ''}
                         </div>
                         <div style="flex-shrink: 0;">
                             ${miniGraph}
