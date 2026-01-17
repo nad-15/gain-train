@@ -598,35 +598,37 @@ function renderExercises() {
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 8px; margin-bottom: 8px;">
-                        <div style="background: #f8f9fa; padding: 6px; border-radius: 6px; text-align: center;">
-                            <div style="font-size: 0.6rem; font-weight: 800; color: #868e96; margin-bottom: 4px;">SETS</div>
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                <button onclick="changeValue(${idx}, 'sets', -1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 24px; height: 24px;">−</button>
-                                <input type="number" class="value-input" value="${ex.sets}" onchange="updateValue(${idx}, 'sets', this.value)" style="width: 30px; border: none; background: transparent; text-align: center; font-weight: 700;">
-                                <button onclick="changeValue(${idx}, 'sets', 1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 24px; height: 24px;">+</button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+                        <div style="background: #f8f9fa; padding: 6px 4px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 0.55rem; font-weight: 800; color: #868e96; margin-bottom: 4px;">SETS</div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+                                <button onclick="changeValue(${idx}, 'sets', -1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 20px; height: 20px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; padding: 0;">−</button>
+                                <input type="number" class="value-input" value="${ex.sets}" onchange="updateValue(${idx}, 'sets', this.value)" style="width: 28px; border: none; background: transparent; text-align: center; font-weight: 700; font-size: 0.85rem;">
+                                <button onclick="changeValue(${idx}, 'sets', 1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 20px; height: 20px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; padding: 0;">+</button>
                             </div>
                         </div>
-                        <div style="background: #f8f9fa; padding: 6px; border-radius: 6px; text-align: center;">
-                            <div style="font-size: 0.6rem; font-weight: 800; color: #868e96; margin-bottom: 4px;">REPS</div>
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                <button onclick="changeValue(${idx}, 'reps', -1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 24px; height: 24px;">−</button>
-                                <input type="number" class="value-input" value="${ex.reps}" onchange="updateValue(${idx}, 'reps', this.value)" style="width: 30px; border: none; background: transparent; text-align: center; font-weight: 700;">
-                                <button onclick="changeValue(${idx}, 'reps', 1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 24px; height: 24px;">+</button>
+                        <div style="background: #f8f9fa; padding: 6px 4px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 0.55rem; font-weight: 800; color: #868e96; margin-bottom: 4px;">REPS</div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+                                <button onclick="changeValue(${idx}, 'reps', -1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 20px; height: 20px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; padding: 0;">−</button>
+                                <input type="number" class="value-input" value="${ex.reps}" onchange="updateValue(${idx}, 'reps', this.value)" style="width: 28px; border: none; background: transparent; text-align: center; font-weight: 700; font-size: 0.85rem;">
+                                <button onclick="changeValue(${idx}, 'reps', 1)" style="border: none; background: #e9ecef; border-radius: 3px; width: 20px; height: 20px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; padding: 0;">+</button>
                             </div>
                         </div>
-                        <div style="background: #e7f5ff; padding: 6px; border-radius: 6px; text-align: center; border-left: 2px solid #4c6ef5;">
-                            <div style="display: flex; justify-content: center; align-items: center; gap: 4px; margin-bottom: 4px;">
-                                <span style="font-size: 0.6rem; font-weight: 800; color: #1971c2;">KG</span>
-                                <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)" style="width: 14px; height: 14px;">
+                        <div style="background: #e7f5ff; padding: 6px 4px; border-radius: 6px; text-align: center; border-left: 2px solid #4c6ef5;">
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 2px; margin-bottom: 4px;">
+                                <span style="font-size: 0.55rem; font-weight: 800; color: #1971c2;">KG</span>
+                                <input type="checkbox" ${ex.weight === 'BW' ? 'checked' : ''} onchange="toggleBodyweight(${idx}, this.checked)" style="width: 12px; height: 12px;">
                             </div>
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                <button onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''} style="border: none; background: #d0ebff; border-radius: 3px; width: 24px; height: 24px;">−</button>
-                                <input type="text" class="value-input" value="${ex.weight}" onchange="updateValue(${idx}, 'weight', this.value)" ${ex.weight === 'BW' ? 'disabled' : ''} style="width: 40px; border: none; background: transparent; text-align: center; font-weight: 700; color: #1864ab;">
-                                <button onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''} style="border: none; background: #d0ebff; border-radius: 3px; width: 24px; height: 24px;">+</button>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+                                <button onclick="changeValue(${idx}, 'weight', -2.5)" ${ex.weight === 'BW' ? 'disabled' : ''} style="border: none; background: #d0ebff; border-radius: 3px; width: 20px; height: 20px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; padding: 0;">−</button>
+                                <input type="text" class="value-input" value="${ex.weight}" onchange="updateValue(${idx}, 'weight', this.value)" ${ex.weight === 'BW' ? 'disabled' : ''} style="width: 32px; border: none; background: transparent; text-align: center; font-weight: 700; color: #1864ab; font-size: 0.8rem;">
+                                <button onclick="changeValue(${idx}, 'weight', 2.5)" ${ex.weight === 'BW' ? 'disabled' : ''} style="border: none; background: #d0ebff; border-radius: 3px; width: 20px; height: 20px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; padding: 0;">+</button>
                             </div>
                         </div>
                     </div>
+
+
                     <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1" style="font-size: 0.75rem; border: 1px solid #f1f3f5; border-radius: 4px; padding: 6px; width: 100%; box-sizing: border-box; background: #fafafa; outline: none;">${ex.notes || ''}</textarea>
                 </div>
             `;
