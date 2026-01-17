@@ -584,17 +584,17 @@ function renderExercises() {
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                        <button type="button" onclick="toggleExerciseDropdownInEdit(${idx})" style="background: #f1f3f5; border: none; border-radius: 4px; padding: 4px; cursor: pointer; display: flex; align-items: center;">
+                        <button type="button" onclick="toggleExerciseDropdownInEdit(${idx})" style="background: #f1f3f5; border: none; border-radius: 4px; padding: 4px; cursor: pointer; display: flex; align-items: center; flex-shrink: 0;">
                             <span class="material-symbols-outlined" style="font-size: 18px; color: #4c6ef5;">expand_more</span>
                         </button>
                         <input type="text" id="exerciseName-${idx}" value="${ex.name}" 
                             oninput="if(typeof searchExercisesInEdit === 'function') searchExercisesInEdit(${idx}, this.value)" 
                             onfocus="toggleExerciseDropdownInEdit(${idx}, true)"
                             onchange="updateExerciseName(${idx}, this.value)"
-                            style="flex: 1; border: none; border-bottom: 1px solid #dee2e6; font-weight: 700; font-size: 0.95rem; color: #212529; outline: none;">
-                        <div style="display: flex; gap: 4px;"> 
-                            <button onclick="toggleEdit(${idx})" style="background: #ebfbee; color: #40c057; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer;"><span class="material-icons" style="font-size: 18px;">check</span></button>
-                            <button onclick="cancelEdit(${idx})" style="background: #fff5f5; color: #fa5252; border: 1px solid #ffc9c9; border-radius: 4px; padding: 5px 10px; cursor: pointer;"><span class="material-icons" style="font-size: 18px;">close</span></button>
+                            style="flex: 1; min-width: 0; border: none; border-bottom: 1px solid #dee2e6; font-weight: 700; font-size: 0.95rem; color: #212529; outline: none;">
+                        <div style="display: flex; gap: 4px; flex-shrink: 0;"> 
+                            <button onclick="toggleEdit(${idx})" style="background: #ebfbee; color: #40c057; border: none; border-radius: 4px; padding: 4px 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 28px; height: 28px;"><span class="material-icons" style="font-size: 16px;">check</span></button>
+                            <button onclick="cancelEdit(${idx})" style="background: #fff5f5; color: #fa5252; border: 1px solid #ffc9c9; border-radius: 4px; padding: 4px 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 28px; height: 28px;"><span class="material-icons" style="font-size: 16px;">close</span></button>
                         </div>
                     </div>
 
@@ -650,7 +650,7 @@ function renderExercises() {
                         <span style="font-size: 0.6rem; color: #e67700; font-weight: 800; text-transform: uppercase;">Best</span>
                         <span style="font-size: 0.6rem; color: #f08c00;">${new Date(exercisePB.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     </div>
-                    <span style="font-size: 0.85rem; color: #e67700; font-weight: 700;">${exercisePB.sets}×${exercisePB.reps}@${exercisePB.weight}kg</span>
+                    <span style="font-size: 0.85rem; color: #e67700; font-weight: 700;">${exercisePB.sets}×${exercisePB.reps}@${exercisePB.weight}${exercisePB.weight === 'BW' ? '' : 'kg'}</span>
                 </div>` : '';
 
             div.innerHTML = `
@@ -3602,7 +3602,7 @@ function calculatePersonalBest(exerciseIdx) {
     const currentType = storage.currentWorkout.type;
     const now = new Date(); // Get current time for filtering
 
-    let bestWeight = 0;
+    let bestWeight = null; // Changed to null to handle BW
     let bestReps = 0;
     let bestSets = 0;
     let bestDate = null;
@@ -3615,24 +3615,38 @@ function calculatePersonalBest(exerciseIdx) {
 
         if (w.type === currentType && w.exercises) {
             w.exercises.forEach(ex => {
-                if (ex.name === exerciseName && ex.weight !== 'BW') {
-                    const weight = parseFloat(ex.weight) || 0;
+                if (ex.name === exerciseName) {
+                    const weight = ex.weight === 'BW' ? 'BW' : (parseFloat(ex.weight) || 0);
                     const reps = parseInt(ex.reps) || 0;
                     const sets = parseInt(ex.sets) || 0;
 
                     let isNewBest = false;
 
-                    // 2. TIE-BREAKER: Use >= so the LATEST date wins if performance is equal
-                    if (weight > bestWeight) {
-                        isNewBest = true;
-                    } else if (weight === bestWeight) {
+                    // Handle BW exercises
+                    if (weight === 'BW' && bestWeight === 'BW') {
+                        // Both BW - compare reps and sets
                         if (reps > bestReps) {
                             isNewBest = true;
-                        } else if (reps === bestReps) {
-                            if (sets >= bestSets) { // If sets are same or better, update to latest date
+                        } else if (reps === bestReps && sets >= bestSets) {
+                            isNewBest = true;
+                        }
+                    } else if (weight === 'BW' && bestWeight === null) {
+                        // First BW entry
+                        isNewBest = true;
+                    } else if (weight !== 'BW' && bestWeight !== 'BW') {
+                        // Both weighted - normal comparison
+                        if (bestWeight === null || weight > bestWeight) {
+                            isNewBest = true;
+                        } else if (weight === bestWeight) {
+                            if (reps > bestReps) {
+                                isNewBest = true;
+                            } else if (reps === bestReps && sets >= bestSets) {
                                 isNewBest = true;
                             }
                         }
+                    } else if (weight !== 'BW' && bestWeight === 'BW') {
+                        // Weighted beats BW
+                        isNewBest = true;
                     }
 
                     if (isNewBest) {
@@ -3647,7 +3661,7 @@ function calculatePersonalBest(exerciseIdx) {
     });
 
     // Store PB info for display
-    if (bestWeight > 0) {
+    if (bestWeight !== null) {
         storage.currentPB = {
             exerciseIdx: exerciseIdx,
             weight: bestWeight,
@@ -3659,6 +3673,7 @@ function calculatePersonalBest(exerciseIdx) {
         storage.currentPB = null;
     }
 }
+
 function getLastSession(exerciseName, currentWorkoutDate) {
     if (!exerciseName) return null;
     const referenceDate = new Date(currentWorkoutDate);
