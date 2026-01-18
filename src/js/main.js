@@ -1,23 +1,4 @@
 
-// document.addEventListener(
-//   'click',
-//   (e) => {
-//     console.log(
-//       'CLICK:',
-//       e.target,
-//       'currentTarget:',
-//       e.currentTarget,
-//       'phase:',
-//       e.eventPhase === 1 ? 'CAPTURE' :
-//               e.eventPhase === 2 ? 'TARGET' :
-//               'BUBBLE'
-//     );
-//     console.log('composedPath:', e.composedPath());
-//   },
-//   true 
-// );
-
-
 
 
 // localStorage implementation
