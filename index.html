@@ -376,13 +376,14 @@
         <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
             <h2>Log Workout for <span id="selectedDateDisplay"></span></h2>
             <div class="workout-types" style="margin-top: 20px;">
+                <button class="workout-btn rest" onclick="startWorkoutForDate('rest')">Rest Day</button>
                 <button class="workout-btn push" onclick="startWorkoutForDate('push')">Push</button>
                 <button class="workout-btn pull" onclick="startWorkoutForDate('pull')">Pull</button>
                 <button class="workout-btn legs" onclick="startWorkoutForDate('legs')">Legs</button>
                 <button class="workout-btn upper" onclick="startWorkoutForDate('upper')">Upper</button>
                 <button class="workout-btn lower" onclick="startWorkoutForDate('lower')">Lower</button>
                 <button class="workout-btn whole" onclick="startWorkoutForDate('whole')">Whole Body</button>
-                <button class="workout-btn rest" onclick="startWorkoutForDate('rest')">Rest Day</button>
+                
             </div>
 
             <div id="customWorkoutsModalSection" style="display: none;">

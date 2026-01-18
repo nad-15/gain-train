@@ -1230,6 +1230,7 @@ function finishWorkout() {
 }
 
 function goBackFromWorkout() {
+     storage.viewingWorkoutDate = null; // Clear the viewing date
     storage.editingExerciseIndex = null;
 
     if (storage.isViewMode) {
@@ -1304,6 +1305,11 @@ function viewWorkout(workoutId) {
     renderExercises();
     renderWorkoutActions();
     showScreen('workout');
+    // Store the current workout date for swipe navigation
+    storage.viewingWorkoutDate = new Date(workout.date);
+    
+    // Attach swipe handlers to workout screen
+    attachWorkoutScreenSwipe();
 }
 
 let selectedCalendarDate = null;
@@ -2571,6 +2577,65 @@ if (detailsSection) {
     }, { passive: true });
 }
 
+// ===== SCREEN SWIPE NAVIGATION (Home and Stats only) =====
+let screenTouchStartX = 0;
+let screenTouchStartY = 0;
+
+function handleScreenSwipe(startX, endX, startY, endY) {
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const minSwipeDistance = 80;
+    
+    if (Math.abs(dx) < minSwipeDistance) return;
+    
+    const slope = Math.abs(dy / dx);
+    const maxAllowedSlope = Math.tan(30 * Math.PI / 180);
+    if (slope > maxAllowedSlope) return;
+    
+    const activeScreen = document.querySelector('.screen.active');
+    if (!activeScreen) return;
+    
+    const screenId = activeScreen.id;
+    
+    // Only allow swipes from home and stats
+    if (screenId === 'home' && dx < 0) {
+        // Swipe left from home -> go to calendar
+        showScreen('calendar');
+    } else if (screenId === 'stats' && dx > 0) {
+        // Swipe right from stats -> go to calendar
+        showScreen('calendar');
+    }
+}
+
+// Attach to home screen
+const homeScreen = document.getElementById('home');
+if (homeScreen) {
+    homeScreen.addEventListener('touchstart', (e) => {
+        screenTouchStartX = e.changedTouches[0].screenX;
+        screenTouchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    homeScreen.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        handleScreenSwipe(screenTouchStartX, touchEndX, screenTouchStartY, touchEndY);
+    }, { passive: true });
+}
+
+// Attach to stats screen
+const statsScreen = document.getElementById('stats');
+if (statsScreen) {
+    statsScreen.addEventListener('touchstart', (e) => {
+        screenTouchStartX = e.changedTouches[0].screenX;
+        screenTouchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    statsScreen.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        handleScreenSwipe(screenTouchStartX, touchEndX, screenTouchStartY, touchEndY);
+    }, { passive: true });
+}
 
 // ===== CUSTOM WORKOUT TYPE FUNCTIONS =====
 
@@ -4461,4 +4526,79 @@ function mergeSameAsExercise(targetName, sourceName) {
     if (statsScreen && statsScreen.classList.contains('active')) {
         renderStats();
     }
+}
+
+// ===== WORKOUT SCREEN SWIPE NAVIGATION =====
+let workoutTouchStartX = 0;
+let workoutTouchStartY = 0;
+let workoutSwipeAttached = false;
+
+function handleWorkoutScreenSwipe(startX, endX, startY, endY) {
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const minSwipeDistance = 60;
+    
+    if (Math.abs(dx) < minSwipeDistance) return;
+    
+    const slope = Math.abs(dy / dx);
+    const maxAllowedSlope = Math.tan(35 * Math.PI / 180);
+    if (slope > maxAllowedSlope) return;
+    
+    if (!storage.viewingWorkoutDate) return;
+    
+    // Calculate new date
+    const newDate = new Date(storage.viewingWorkoutDate);
+    if (dx < 0) {
+        // Swipe left - next day
+        newDate.setDate(newDate.getDate() + 1);
+    } else {
+        // Swipe right - previous day
+        newDate.setDate(newDate.getDate() - 1);
+    }
+    
+    // Find workout for new date
+    const newWorkout = storage.workouts.find(w =>
+        new Date(w.date).toDateString() === newDate.toDateString()
+    );
+    
+    if (newWorkout) {
+        // Update selected calendar date
+        selectedCalendarDate = newDate;
+        
+        // Update month/year if changed
+        storage.currentMonth = newDate.getMonth();
+        storage.currentYear = newDate.getFullYear();
+        
+        // Load the new workout
+        viewWorkout(newWorkout.id);
+    } else {
+        // No workout on this date, show message
+        alert(`No workout logged for ${newDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
+    }
+}
+
+function attachWorkoutScreenSwipe() {
+    if (workoutSwipeAttached) return;
+    
+    const workoutScreen = document.getElementById('workout');
+    if (!workoutScreen) return;
+    
+    workoutScreen.addEventListener('touchstart', (e) => {
+        // Don't interfere with exercise card swipes
+        if (e.target.closest('.exercise-swipe-content')) return;
+        
+        workoutTouchStartX = e.changedTouches[0].screenX;
+        workoutTouchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    workoutScreen.addEventListener('touchend', (e) => {
+        // Don't interfere with exercise card swipes
+        if (e.target.closest('.exercise-swipe-content')) return;
+        
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        handleWorkoutScreenSwipe(workoutTouchStartX, touchEndX, workoutTouchStartY, touchEndY);
+    }, { passive: true });
+    
+    workoutSwipeAttached = true;
 }
