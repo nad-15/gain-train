@@ -378,6 +378,23 @@ body {
     border-color: #40c463;
 } */
 
+.workout-btn.rest {
+    background: linear-gradient(135deg, 
+        rgba(64, 196, 99, 0.25) 0%, 
+        rgba(64, 196, 99, 0.15) 100%);
+    border: 2px solid rgba(64, 196, 99, 0.4);
+    color: #2da44e;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(64, 196, 99, 0.2);
+}
+
+.workout-btn.rest:hover {
+    background: linear-gradient(135deg, 
+        rgba(64, 196, 99, 0.35) 0%, 
+        rgba(64, 196, 99, 0.25) 100%);
+    border-color: rgba(64, 196, 99, 0.5);
+}
+
 .workout-types {
     display: grid;
     grid-template-columns: 1fr;
