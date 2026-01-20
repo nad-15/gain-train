@@ -2067,7 +2067,6 @@ function renderStats() {
     setTimeout(() => populateExerciseSelector(), 150);
 
 }
-
 function openAllExercisesView() {
     // Collect all unique exercises from all workouts
     const exerciseMap = new Map();
@@ -2076,15 +2075,15 @@ function openAllExercisesView() {
         if (w.exercises) {
             w.exercises.forEach(ex => {
                 if (ex.name && ex.name !== 'Exercise Name') {
-                    if (!exerciseMap.has(ex.name)) {
-                        exerciseMap.set(ex.name, {
-                            name: ex.name,
+                    const trimmedName = ex.name.trim();
+                    if (!exerciseMap.has(trimmedName)) {
+                        exerciseMap.set(trimmedName, {
+                            name: trimmedName,
                             workoutType: w.type,
                             lastDate: new Date(w.date)
                         });
                     } else {
-                        // Update if this workout is more recent
-                        const existing = exerciseMap.get(ex.name);
+                        const existing = exerciseMap.get(trimmedName);
                         const currentDate = new Date(w.date);
                         if (currentDate > existing.lastDate) {
                             existing.lastDate = currentDate;
@@ -2096,12 +2095,10 @@ function openAllExercisesView() {
         }
     });
 
-    // Sort alphabetically
     const exercises = Array.from(exerciseMap.values()).sort((a, b) =>
         a.name.localeCompare(b.name)
     );
 
-    // Render the grid
     const content = document.getElementById('allExercisesContent');
 
     if (exercises.length === 0) {
@@ -2117,101 +2114,39 @@ function openAllExercisesView() {
         exercises.forEach(ex => {
             const miniGraph = generateMiniGraph(ex.name, ex.workoutType);
             
-            // Calculate PB for this exercise
-            let pbInfo = null;
-            let bestWeight = null;
-            let bestReps = 0;
-            let bestSets = 0;
-            let bestDate = null;
+            // USE THE HELPER FUNCTION HERE
+            const pbInfo = getExercisePB(ex.name);
 
-            const now = new Date(); // To filter out future workouts
-
-            storage.workouts.forEach(w => {
-                const workoutDate = new Date(w.date);
-
-                // Skip future dates
-                if (workoutDate > now) return;
-
-                // ✅ REMOVED TYPE CHECK - only check if exercises exist
-                if (w.exercises) {
-                    w.exercises.forEach(exW => {
-                        // ✅ Only compare by exercise name
-                        if (exW.name === ex.name) {
-                            const weight = exW.weight === 'BW' ? 'BW' : (parseFloat(exW.weight) || 0);
-                            const reps = parseInt(exW.reps) || 0;
-                            const sets = parseInt(exW.sets) || 0;
-
-                            let isNewBest = false;
-
-                            // Handle BW exercises
-                            if (weight === 'BW' && bestWeight === 'BW') {
-                                if (reps > bestReps) {
-                                    isNewBest = true;
-                                } else if (reps === bestReps && sets > bestSets) {
-                                    isNewBest = true;
-                                }
-                            } else if (weight === 'BW' && bestWeight === null) {
-                                isNewBest = true;
-                            } else if (weight !== 'BW' && bestWeight !== 'BW') {
-                                if (bestWeight === null || weight > bestWeight) {
-                                    isNewBest = true;
-                                } else if (weight === bestWeight) {
-                                    if (reps > bestReps) {
-                                        isNewBest = true;
-                                    } else if (reps === bestReps && sets > bestSets) {
-                                        isNewBest = true;
-                                    }
-                                }
-                            } else if (weight !== 'BW' && bestWeight === 'BW') {
-                                isNewBest = true;
-                            }
-
-                            if (isNewBest) {
-                                bestWeight = weight;
-                                bestReps = reps;
-                                bestSets = sets;
-                                bestDate = workoutDate;
-                            }
-                        }
-                    });
-                }
-            });
-
-            if (bestWeight !== null) {
-                pbInfo = { weight: bestWeight, reps: bestReps, sets: bestSets, date: bestDate };
-            }
-
-            html += `<div style="background: white; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
+            html += `
+                <div style="background: white; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                         <div style="flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                 <button onclick="event.stopPropagation(); openSameAsModal('${ex.name.replace(/'/g, "\\'")}')" 
                                         style="background: #e7f5ff; border: 1px solid #d0ebff; border-radius: 6px; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;"
                                         onmouseover="this.style.background='#d0ebff';"
-                                        onmouseout="this.style.background='#e7f5ff';"
-                                        title="Merge with another exercise">
+                                        onmouseout="this.style.background='#e7f5ff';">
                                     <span class="material-symbols-outlined" style="font-size: 16px !important; color: #228be6;">merge</span>
                                 </button>
                                 <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
-                                     style="font-weight: 700; font-size: 0.95rem; color: #212529; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;"
-                                     onmouseover="this.style.opacity='0.7';"
-                                     onmouseout="this.style.opacity='1';">
+                                     style="font-weight: 700; font-size: 0.95rem; color: #212529; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
                                     ${ex.name}
                                 </div>
                             </div>
                             
-                            <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
-                                 style="cursor: pointer;"
-                                 onmouseover="this.style.opacity='0.7';"
-                                 onmouseout="this.style.opacity='1';">
+                            <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" style="cursor: pointer;">
                                 <div style="font-size: 0.7rem; color: #868e96; margin-bottom: 4px;">
                                     Last: ${ex.lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                 </div>
                                 ${pbInfo ? `
                                     <div style="display: flex; align-items: center; gap: 4px; font-size: 0.7rem;">
                                         <span style="color: #f59f00; font-weight: 700;">★ PB:</span>
-                                        <span style="color: #e67700; font-weight: 600;">${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight === 'BW' ? '' : 'kg'}</span>
-                                        <span style="color: #adb5bd;">(${pbInfo.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})</span>
+                                        <span style="color: #e67700; font-weight: 600;">
+                                            ${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight === 'BW' ? '' : 'kg'}
+                                        </span>
+                                        <span style="color: #adb5bd;">
+                                            (${pbInfo.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                                        </span>
                                     </div>
                                 ` : ''}
                             </div>
@@ -2232,6 +2167,55 @@ function openAllExercisesView() {
     }
 
     document.getElementById('allExercisesModal').classList.add('active');
+}
+
+function getExercisePB(exerciseName) {
+    let bestWeight = null;
+    let bestReps = 0;
+    let bestSets = 0;
+    let bestDate = null;
+    const now = new Date();
+
+    storage.workouts.forEach(w => {
+        const workoutDate = new Date(w.date);
+        if (workoutDate > now) return;
+
+        if (w.exercises) {
+            w.exercises.forEach(ex => {
+                if (ex.name.trim() === exerciseName.trim()) {
+                    const weight = ex.weight === 'BW' ? 'BW' : (parseFloat(ex.weight) || 0);
+                    const reps = parseInt(ex.reps) || 0;
+                    const sets = parseInt(ex.sets) || 0;
+
+                    let isNewBest = false;
+
+                    if (weight === 'BW') {
+                        if (bestWeight === null) isNewBest = true;
+                        else if (bestWeight === 'BW') {
+                            if (reps > bestReps) isNewBest = true;
+                            else if (reps === bestReps && sets > bestSets) isNewBest = true;
+                        }
+                    } else {
+                        if (bestWeight === 'BW' || bestWeight === null) isNewBest = true;
+                        else if (weight > bestWeight) isNewBest = true;
+                        else if (weight === bestWeight) {
+                            if (reps > bestReps) isNewBest = true;
+                            else if (reps === bestReps && sets > bestSets) isNewBest = true;
+                        }
+                    }
+
+                    if (isNewBest) {
+                        bestWeight = weight;
+                        bestReps = reps;
+                        bestSets = sets;
+                        bestDate = workoutDate;
+                    }
+                }
+            });
+        }
+    });
+
+    return bestWeight !== null ? { weight: bestWeight, reps: bestReps, sets: bestSets, date: bestDate } : null;
 }
 
 function closeAllExercisesView() {
@@ -3743,78 +3727,23 @@ function logWeightFromCalendar() {
 function calculatePersonalBest(exerciseIdx) {
     const currentExercise = storage.currentWorkout.exercises[exerciseIdx];
     const exerciseName = currentExercise.name.trim();
+    
+    // Safety check
+    if (!exerciseName || exerciseName === 'Exercise Name') {
+        storage.currentPB = null;
+        return;
+    }
 
-    if (!exerciseName || exerciseName === 'Exercise Name') return;
+    // Call the shared helper function
+    const pb = getExercisePB(exerciseName);
 
-    const currentType = storage.currentWorkout.type;
-    const now = new Date(); // Get current time for filtering
-
-    let bestWeight = null; // Changed to null to handle BW
-    let bestReps = 0;
-    let bestSets = 0;
-    let bestDate = null;
-
-    storage.workouts.forEach(w => {
-        const workoutDate = new Date(w.date);
-
-        // 1. SKIP FUTURE DATES: Only count workouts up to today
-        if (workoutDate > now) return;
-
-        if (w.type === currentType && w.exercises) {
-            w.exercises.forEach(ex => {
-                if (ex.name === exerciseName) {
-                    const weight = ex.weight === 'BW' ? 'BW' : (parseFloat(ex.weight) || 0);
-                    const reps = parseInt(ex.reps) || 0;
-                    const sets = parseInt(ex.sets) || 0;
-
-                    let isNewBest = false;
-
-                    // Handle BW exercises
-                    if (weight === 'BW' && bestWeight === 'BW') {
-                        // Both BW - compare reps and sets
-                        if (reps > bestReps) {
-                            isNewBest = true;
-                        } else if (reps === bestReps && sets >= bestSets) {
-                            isNewBest = true;
-                        }
-                    } else if (weight === 'BW' && bestWeight === null) {
-                        // First BW entry
-                        isNewBest = true;
-                    } else if (weight !== 'BW' && bestWeight !== 'BW') {
-                        // Both weighted - normal comparison
-                        if (bestWeight === null || weight > bestWeight) {
-                            isNewBest = true;
-                        } else if (weight === bestWeight) {
-                            if (reps > bestReps) {
-                                isNewBest = true;
-                            } else if (reps === bestReps && sets >= bestSets) {
-                                isNewBest = true;
-                            }
-                        }
-                    } else if (weight !== 'BW' && bestWeight === 'BW') {
-                        // Weighted beats BW
-                        isNewBest = true;
-                    }
-
-                    if (isNewBest) {
-                        bestWeight = weight;
-                        bestReps = reps;
-                        bestSets = sets;
-                        bestDate = workoutDate;
-                    }
-                }
-            });
-        }
-    });
-
-    // Store PB info for display
-    if (bestWeight !== null) {
+    if (pb) {
         storage.currentPB = {
             exerciseIdx: exerciseIdx,
-            weight: bestWeight,
-            reps: bestReps,
-            sets: bestSets,
-            date: bestDate
+            weight: pb.weight,
+            reps: pb.reps,
+            sets: pb.sets,
+            date: pb.date
         };
     } else {
         storage.currentPB = null;
