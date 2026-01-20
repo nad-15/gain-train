@@ -455,7 +455,7 @@ body {
 #exerciseList {
     background-color: #f1f3f5; /* Light grey background */
     padding: 12px 10px;        /* Prevents cards from touching screen edges */
-    min-height: 100vh;
+    /* min-height: 100vh; */
     display: flex;
     flex-direction: column;
     /* No 'gap' needed because you have margin-bottom on the items */

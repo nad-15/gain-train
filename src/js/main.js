@@ -2117,18 +2117,24 @@ function openAllExercisesView() {
         exercises.forEach(ex => {
             const miniGraph = generateMiniGraph(ex.name, ex.workoutType);
 
-            // Calculate PB for this exercise
-            let pbInfo = null;
-            let bestWeight = null;
-            let bestReps = 0;
-            let bestSets = 0;
-            let bestDate = null;
+// Calculate PB for this exercise
+let pbInfo = null;
+let bestWeight = null;
+let bestReps = 0;
+let bestSets = 0;
+let bestDate = null;
 
-            storage.workouts.forEach(w => {
-                if (w.exercises) {
-                    w.exercises.forEach(exW => {
-                        if (exW.name === ex.name) {
-                            const weight = exW.weight === 'BW' ? 'BW' : (parseFloat(exW.weight) || 0);
+const currentType = storage.currentWorkout.type;
+const now = new Date();
+
+storage.workouts.forEach(w => {
+    const workoutDate = new Date(w.date);
+    if (workoutDate > now) return; // Skip future dates
+    
+    if (w.type === currentType && w.exercises) {
+        w.exercises.forEach(exW => {
+            if (exW.name === ex.name) {
+                const weight = exW.weight === 'BW' ? 'BW' : (parseFloat(exW.weight) || 0);
                             const reps = parseInt(exW.reps) || 0;
                             const sets = parseInt(exW.sets) || 0;
 
@@ -4513,7 +4519,6 @@ function mergeSameAsExercise(targetName, sourceName) {
 let workoutTouchStartX = 0;
 let workoutTouchStartY = 0;
 let workoutSwipeAttached = false;
-
 function handleWorkoutScreenSwipe(startX, endX, startY, endY) {
     const dx = endX - startX;
     const dy = endY - startY;
@@ -4542,22 +4547,47 @@ function handleWorkoutScreenSwipe(startX, endX, startY, endY) {
         new Date(w.date).toDateString() === newDate.toDateString()
     );
     
+    // Update selected calendar date and viewing date
+    selectedCalendarDate = newDate;
+    storage.viewingWorkoutDate = newDate;
+    
+    // Update month/year if changed
+    storage.currentMonth = newDate.getMonth();
+    storage.currentYear = newDate.getFullYear();
+    
     if (newWorkout) {
-        // Update selected calendar date
-        selectedCalendarDate = newDate;
-        
-        // Update month/year if changed
-        storage.currentMonth = newDate.getMonth();
-        storage.currentYear = newDate.getFullYear();
-        
         // Load the new workout
         viewWorkout(newWorkout.id);
     } else {
-        // No workout on this date, show message
-        alert(`No workout logged for ${newDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
+        // No workout on this date - show empty workout screen
+        storage.currentWorkout = null;
+        storage.isViewMode = true;
+        
+        document.getElementById('workoutTitle').textContent = 'No Workout';
+        document.getElementById('workoutDate').textContent = newDate.toLocaleDateString();
+        
+        const exerciseList = document.getElementById('exerciseList');
+        exerciseList.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #6c757d;">
+                <span class="material-symbols-outlined" style="font-size: 64px; opacity: 0.3;">fitness_center</span>
+                <p style="margin-top: 16px; font-size: 1rem; text-align: center;">No workout logged for<br>${newDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                <p style="margin-top: 8px; font-size: 0.875rem; color: #adb5bd;">← Swipe to browse dates →</p>
+            </div>
+        `;
+        
+        const workoutActions = document.getElementById('workoutActions');
+        workoutActions.innerHTML = `
+            <div class="workout-action-grid">
+                <button class="workout-action-card primary" onclick="selectDateForWorkout(new Date('${newDate.toISOString()}'))">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    <span class="action-label">Log Workout</span>
+                </button>
+            </div>
+        `;
+        
+        showScreen('workout');
     }
 }
-
 function attachWorkoutScreenSwipe() {
     if (workoutSwipeAttached) return;
     
@@ -4568,6 +4598,9 @@ function attachWorkoutScreenSwipe() {
         // Don't interfere with exercise card swipes
         if (e.target.closest('.exercise-swipe-content')) return;
         
+        // Don't interfere if user is editing an exercise
+        if (storage.editingExerciseIndex !== null) return;
+        
         workoutTouchStartX = e.changedTouches[0].screenX;
         workoutTouchStartY = e.changedTouches[0].screenY;
     }, { passive: true });
@@ -4575,6 +4608,9 @@ function attachWorkoutScreenSwipe() {
     workoutScreen.addEventListener('touchend', (e) => {
         // Don't interfere with exercise card swipes
         if (e.target.closest('.exercise-swipe-content')) return;
+        
+        // Don't interfere if user is editing an exercise
+        if (storage.editingExerciseIndex !== null) return;
         
         const touchEndX = e.changedTouches[0].screenX;
         const touchEndY = e.changedTouches[0].screenY;
