@@ -1211,7 +1211,7 @@ function finishWorkout() {
 }
 
 function goBackFromWorkout() {
-     storage.viewingWorkoutDate = null; // Clear the viewing date
+    storage.viewingWorkoutDate = null; // Clear the viewing date
     storage.editingExerciseIndex = null;
 
     if (storage.isViewMode) {
@@ -1288,7 +1288,7 @@ function viewWorkout(workoutId) {
     showScreen('workout');
     // Store the current workout date for swipe navigation
     storage.viewingWorkoutDate = new Date(workout.date);
-    
+
     // Attach swipe handlers to workout screen
     attachWorkoutScreenSwipe();
 }
@@ -2116,25 +2116,28 @@ function openAllExercisesView() {
 
         exercises.forEach(ex => {
             const miniGraph = generateMiniGraph(ex.name, ex.workoutType);
+            
+            // Calculate PB for this exercise
+            let pbInfo = null;
+            let bestWeight = null;
+            let bestReps = 0;
+            let bestSets = 0;
+            let bestDate = null;
 
-// Calculate PB for this exercise
-let pbInfo = null;
-let bestWeight = null;
-let bestReps = 0;
-let bestSets = 0;
-let bestDate = null;
+            const now = new Date(); // To filter out future workouts
 
-const currentType = storage.currentWorkout.type;
-const now = new Date();
+            storage.workouts.forEach(w => {
+                const workoutDate = new Date(w.date);
 
-storage.workouts.forEach(w => {
-    const workoutDate = new Date(w.date);
-    if (workoutDate > now) return; // Skip future dates
-    
-    if (w.type === currentType && w.exercises) {
-        w.exercises.forEach(exW => {
-            if (exW.name === ex.name) {
-                const weight = exW.weight === 'BW' ? 'BW' : (parseFloat(exW.weight) || 0);
+                // Skip future dates
+                if (workoutDate > now) return;
+
+                // ✅ REMOVED TYPE CHECK - only check if exercises exist
+                if (w.exercises) {
+                    w.exercises.forEach(exW => {
+                        // ✅ Only compare by exercise name
+                        if (exW.name === ex.name) {
+                            const weight = exW.weight === 'BW' ? 'BW' : (parseFloat(exW.weight) || 0);
                             const reps = parseInt(exW.reps) || 0;
                             const sets = parseInt(exW.sets) || 0;
 
@@ -2144,7 +2147,7 @@ storage.workouts.forEach(w => {
                             if (weight === 'BW' && bestWeight === 'BW') {
                                 if (reps > bestReps) {
                                     isNewBest = true;
-                                } else if (reps === bestReps && sets >= bestSets) {
+                                } else if (reps === bestReps && sets > bestSets) {
                                     isNewBest = true;
                                 }
                             } else if (weight === 'BW' && bestWeight === null) {
@@ -2155,7 +2158,7 @@ storage.workouts.forEach(w => {
                                 } else if (weight === bestWeight) {
                                     if (reps > bestReps) {
                                         isNewBest = true;
-                                    } else if (reps === bestReps && sets >= bestSets) {
+                                    } else if (reps === bestReps && sets > bestSets) {
                                         isNewBest = true;
                                     }
                                 }
@@ -2167,7 +2170,7 @@ storage.workouts.forEach(w => {
                                 bestWeight = weight;
                                 bestReps = reps;
                                 bestSets = sets;
-                                bestDate = new Date(w.date);
+                                bestDate = workoutDate;
                             }
                         }
                     });
@@ -2572,18 +2575,18 @@ function handleScreenSwipe(startX, endX, startY, endY) {
     const dx = endX - startX;
     const dy = endY - startY;
     const minSwipeDistance = 80;
-    
+
     if (Math.abs(dx) < minSwipeDistance) return;
-    
+
     const slope = Math.abs(dy / dx);
     const maxAllowedSlope = Math.tan(30 * Math.PI / 180);
     if (slope > maxAllowedSlope) return;
-    
+
     const activeScreen = document.querySelector('.screen.active');
     if (!activeScreen) return;
-    
+
     const screenId = activeScreen.id;
-    
+
     // Only allow swipes from home and stats
     if (screenId === 'home' && dx < 0) {
         // Swipe left from home -> go to calendar
@@ -3359,7 +3362,7 @@ function switchGraphType(type) {
         } else {
             btn.style.background = 'white';
             btn.style.color = '#6c757d';
-            
+
             btn.classList.remove('active');
         }
     });
@@ -4523,15 +4526,15 @@ function handleWorkoutScreenSwipe(startX, endX, startY, endY) {
     const dx = endX - startX;
     const dy = endY - startY;
     const minSwipeDistance = 60;
-    
+
     if (Math.abs(dx) < minSwipeDistance) return;
-    
+
     const slope = Math.abs(dy / dx);
     const maxAllowedSlope = Math.tan(35 * Math.PI / 180);
     if (slope > maxAllowedSlope) return;
-    
+
     if (!storage.viewingWorkoutDate) return;
-    
+
     // Calculate new date
     const newDate = new Date(storage.viewingWorkoutDate);
     if (dx < 0) {
@@ -4541,20 +4544,20 @@ function handleWorkoutScreenSwipe(startX, endX, startY, endY) {
         // Swipe right - previous day
         newDate.setDate(newDate.getDate() - 1);
     }
-    
+
     // Find workout for new date
     const newWorkout = storage.workouts.find(w =>
         new Date(w.date).toDateString() === newDate.toDateString()
     );
-    
+
     // Update selected calendar date and viewing date
     selectedCalendarDate = newDate;
     storage.viewingWorkoutDate = newDate;
-    
+
     // Update month/year if changed
     storage.currentMonth = newDate.getMonth();
     storage.currentYear = newDate.getFullYear();
-    
+
     if (newWorkout) {
         // Load the new workout
         viewWorkout(newWorkout.id);
@@ -4562,10 +4565,10 @@ function handleWorkoutScreenSwipe(startX, endX, startY, endY) {
         // No workout on this date - show empty workout screen
         storage.currentWorkout = null;
         storage.isViewMode = true;
-        
+
         document.getElementById('workoutTitle').textContent = 'No Workout';
         document.getElementById('workoutDate').textContent = newDate.toLocaleDateString();
-        
+
         const exerciseList = document.getElementById('exerciseList');
         exerciseList.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #6c757d;">
@@ -4574,7 +4577,7 @@ function handleWorkoutScreenSwipe(startX, endX, startY, endY) {
                 <p style="margin-top: 8px; font-size: 0.875rem; color: #adb5bd;">← Swipe to browse dates →</p>
             </div>
         `;
-        
+
         const workoutActions = document.getElementById('workoutActions');
         workoutActions.innerHTML = `
             <div class="workout-action-grid">
@@ -4584,23 +4587,23 @@ function handleWorkoutScreenSwipe(startX, endX, startY, endY) {
                 </button>
             </div>
         `;
-        
+
         showScreen('workout');
     }
 }
 function attachWorkoutScreenSwipe() {
     if (workoutSwipeAttached) return;
-    
+
     const workoutScreen = document.getElementById('workout');
     if (!workoutScreen) return;
-    
+
     workoutScreen.addEventListener('touchstart', (e) => {
         // Don't interfere with exercise card swipes
         if (e.target.closest('.exercise-swipe-content')) return;
-        
+
         // Don't interfere if user is editing an exercise
         if (storage.editingExerciseIndex !== null) return;
-        
+
         workoutTouchStartX = e.changedTouches[0].screenX;
         workoutTouchStartY = e.changedTouches[0].screenY;
     }, { passive: true });
@@ -4608,14 +4611,14 @@ function attachWorkoutScreenSwipe() {
     workoutScreen.addEventListener('touchend', (e) => {
         // Don't interfere with exercise card swipes
         if (e.target.closest('.exercise-swipe-content')) return;
-        
+
         // Don't interfere if user is editing an exercise
         if (storage.editingExerciseIndex !== null) return;
-        
+
         const touchEndX = e.changedTouches[0].screenX;
         const touchEndY = e.changedTouches[0].screenY;
         handleWorkoutScreenSwipe(workoutTouchStartX, touchEndX, workoutTouchStartY, touchEndY);
     }, { passive: true });
-    
+
     workoutSwipeAttached = true;
 }
