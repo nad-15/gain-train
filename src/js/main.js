@@ -2170,37 +2170,52 @@ function openAllExercisesView() {
 }
 
 function getExercisePB(exerciseName) {
+    if (!exerciseName || exerciseName === 'Exercise Name') return null;
+    
     let bestWeight = null;
     let bestReps = 0;
     let bestSets = 0;
     let bestDate = null;
     const now = new Date();
 
+    // Loop through all workouts
     storage.workouts.forEach(w => {
         const workoutDate = new Date(w.date);
         if (workoutDate > now) return;
 
         if (w.exercises) {
             w.exercises.forEach(ex => {
-                if (ex.name.trim() === exerciseName.trim()) {
+                if (ex.name && ex.name.trim() === exerciseName.trim()) {
                     const weight = ex.weight === 'BW' ? 'BW' : (parseFloat(ex.weight) || 0);
                     const reps = parseInt(ex.reps) || 0;
                     const sets = parseInt(ex.sets) || 0;
 
                     let isNewBest = false;
 
+                    // CASE 1: Bodyweight Comparison
                     if (weight === 'BW') {
-                        if (bestWeight === null) isNewBest = true;
-                        else if (bestWeight === 'BW') {
-                            if (reps > bestReps) isNewBest = true;
-                            else if (reps === bestReps && sets > bestSets) isNewBest = true;
+                        if (bestWeight === null) {
+                            isNewBest = true;
+                        } else if (bestWeight === 'BW') {
+                            if (reps > bestReps) {
+                                isNewBest = true;
+                            } else if (reps === bestReps && sets >= bestSets) { // 👈 CHANGE THIS TO >=
+                                isNewBest = true;
+                            }
                         }
-                    } else {
-                        if (bestWeight === 'BW' || bestWeight === null) isNewBest = true;
-                        else if (weight > bestWeight) isNewBest = true;
-                        else if (weight === bestWeight) {
-                            if (reps > bestReps) isNewBest = true;
-                            else if (reps === bestReps && sets > bestSets) isNewBest = true;
+                    } 
+                    // CASE 2: Weighted Comparison
+                    else {
+                        if (bestWeight === 'BW' || bestWeight === null) {
+                            isNewBest = true;
+                        } else if (weight > bestWeight) {
+                            isNewBest = true;
+                        } else if (weight === bestWeight) {
+                            if (reps > bestReps) {
+                                isNewBest = true;
+                            } else if (reps === bestReps && sets >= bestSets) { // 👈 CHANGE THIS TO >=
+                                isNewBest = true;
+                            }
                         }
                     }
 
