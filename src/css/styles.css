@@ -1921,6 +1921,8 @@ body {
     padding: 4px 6px;
     background: white !important;
     border: 1px solid #dee2e6;
+
+    overflow: hidden;
 }
 
 /* Keep "Today" highlight consistent */
@@ -1977,6 +1979,12 @@ margin-top: 0;
     letter-spacing: 0.02em;
     line-height: 1;
     white-space: nowrap; /* Prevents text from wrapping and growing the cell */
+
+    text-align: left;   
+    white-space: nowrap;        
+    overflow: hidden;           
+    text-overflow: ellipsis;    
+    display: block;
 }
 
 /* 3. Subtle Aura Colors */
@@ -2672,3 +2680,49 @@ margin-top: 0;
 
 }
 
+/* Custom workout text mode pill styling */
+.calendar-day.text-mode.custom-workout .workout-label {
+    background: rgba(76, 110, 245, 0.15);
+    color: var(--custom-color, #4c6ef5);
+}
+
+/* Apply custom color using CSS variable */
+.calendar-day.text-mode.custom-workout {
+    --custom-color: attr(data-custom-color);
+}
+
+/* Fix text overflow in calendar cells */
+.calendar-day .day-number {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.calendar-day .workout-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 90%;
+}
+
+/* Fix home screen card text overflow */
+.workout-card .card-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: block;
+}
+
+/* Fix border consistency in normal mode for custom workouts */
+.calendar-day[style*="border-color"] {
+    border-width: 2px !important;
+    border-style: solid !important;
+}
+
+
+.calendar-day.text-mode.custom-workout .workout-label {
+    background: color-mix(in srgb, var(--custom-color, #4c6ef5) 15%, transparent);
+    color: var(--custom-color, #4c6ef5);
+}

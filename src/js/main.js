@@ -1416,45 +1416,51 @@ function createCalendarDay(day, date, isOtherMonth) {
     if (hasWeight) {
         dayDiv.classList.add('has-weight');
     }
-
-    // Get workout label
-    let workoutLabel = '';
-    if (workout) {
-        const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
-        if (customType) {
-            workoutLabel = customType.name;
-            if (!storage.calendarTextMode) {
-                dayDiv.style.backgroundColor = customType.color + '33';
-                dayDiv.style.borderColor = customType.color;
-            }
+// Get workout label
+let workoutLabel = '';
+if (workout) {
+    const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
+    if (customType) {
+        workoutLabel = customType.name;
+        
+        // Apply custom workout styling
+        if (!storage.calendarTextMode) {
+            // Normal mode - gradient background
+            dayDiv.style.background = `linear-gradient(135deg, ${customType.color}33 0%, ${customType.color}14 100%)`;
+            dayDiv.style.borderColor = `${customType.color}4D`; // 30% opacity
+            dayDiv.style.boxShadow = `inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 8px ${customType.color}26`;
+            dayDiv.style.color = customType.color;
+            dayDiv.style.fontWeight = '700';
         } else {
-            // Map workout types to short labels
-            const labelMap = {
-                'push': 'Push',
-                'pull': 'Pull',
-                'legs': 'Legs',
-                'upper': 'UB',
-                'lower': 'LB',
-                'whole': 'FB',
-                'rest': 'Rest',
-                'warmup': 'Warm',
-                'cooldown': 'Cool'
-            };
-            workoutLabel = labelMap[workout.type] || workout.type;
-
-            if (!storage.calendarTextMode) {
-                dayDiv.classList.add(workout.type);
-            }
+            // Text mode - add custom class for pill styling
+            dayDiv.classList.add('text-mode');
+            dayDiv.classList.add('custom-workout');
+            dayDiv.dataset.customColor = customType.color;
+             dayDiv.style.setProperty('--custom-color', customType.color);
         }
-    }
+    } else {
+        // Map workout types to short labels
+        const labelMap = {
+            'push': 'Push',
+            'pull': 'Pull',
+            'legs': 'Legs',
+            'upper': 'UB',
+            'lower': 'LB',
+            'whole': 'FB',
+            'rest': 'Rest',
+            'warmup': 'Warm',
+            'cooldown': 'Cool'
+        };
+        workoutLabel = labelMap[workout.type] || workout.type;
 
-    // Add text mode class if enabled
-    if (storage.calendarTextMode) {
-        dayDiv.classList.add('text-mode');
-        if (workout) {
+        if (!storage.calendarTextMode) {
+            dayDiv.classList.add(workout.type);
+        } else {
+            dayDiv.classList.add('text-mode');
             dayDiv.classList.add(workout.type);
         }
     }
+}
 
     dayDiv.onclick = () => {
         if (storage.activeCalendarDay) storage.activeCalendarDay.classList.remove('active');
