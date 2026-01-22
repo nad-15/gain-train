@@ -645,50 +645,60 @@ function renderExercises() {
                     <span style="font-size: 0.85rem; color: #e67700; font-weight: 700;">${exercisePB.sets}×${exercisePB.reps}@${exercisePB.weight}${exercisePB.weight === 'BW' ? '' : 'kg'}</span>
                 </div>` : '';
 
-            div.innerHTML = `
-                <div class="exercise-swipe-container" style="position: relative; overflow: hidden; border-radius: 8px;">
-                    <div class="exercise-swipe-actions" style="position: absolute; right: 0; top: 0; height: 100%; display: flex;">
-                        <button onclick="event.stopPropagation(); toggleEdit(${idx})" style="color: white; background: #4c6ef5; border: none; width: 75px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
-                            <span class="material-icons" style="font-size: 22px;">edit</span>
-                            <span style="font-size: 10px; font-weight: 700;">EDIT</span>
-                        </button>
-                        <button onclick="event.stopPropagation(); deleteExercise(${idx})" style="color: white; background: #ff6b6b; border: none; width: 75px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
-                            <span class="material-icons" style="font-size: 22px;">delete</span>
-                            <span style="font-size: 10px; font-weight: 700;">DEL</span>
-                        </button>
+
+                // Prepare the Rest HTML for the header row
+                const restHeaderHTML = ex.rest ? `
+                    <div style="display: flex; align-items: center; gap: 4px; color: #087f5b; background: #e6fcf5; padding: 2px 6px; border-radius: 12px; margin-left: 8px;">
+                        <span class="material-icons" style="font-size: 12px;">schedule</span>
+                        <span style="font-size: 0.7rem; font-weight: 700; white-space: nowrap;">${ex.rest}</span>
                     </div>
-                    <div class="exercise-swipe-content" style="background: white; position: relative; z-index: 1; transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); padding: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                            <span style="font-weight: 700; font-size: 0.95rem; color: #212529;">${ex.name}</span>
-                            <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')">
-                                ${generateMiniGraph(ex.name, storage.currentWorkout.type)}
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: ${statusColor}12; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid ${statusColor};">
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <span style="font-size: 0.6rem; color: ${statusColor}; font-weight: 800; text-transform: uppercase;">Now</span>
-                                <span style="font-size: 1rem; font-weight: 800; color: ${statusColor};">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
-                            </div>
-                            <span style="font-size: 0.65rem; background: ${statusColor}; color: white; padding: 2px 6px; border-radius: 3px; font-weight: 800;">VOL ${currentVol.toLocaleString()}kg</span>
-                        </div>
+                ` : '';
 
-                        <div style="display: flex; gap: 6px;">
-                            ${lastRowHTML}
-                            ${pbRowHTML}
+                div.innerHTML = `
+                    <div class="exercise-swipe-container" style="position: relative; overflow: hidden; border-radius: 8px;">
+                        <div class="exercise-swipe-actions" style="position: absolute; right: 0; top: 0; height: 100%; display: flex;">
+                            <button onclick="event.stopPropagation(); toggleEdit(${idx})" style="color: white; background: #4c6ef5; border: none; width: 75px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
+                                <span class="material-icons" style="font-size: 22px;">edit</span>
+                                <span style="font-size: 10px; font-weight: 700;">EDIT</span>
+                            </button>
+                            <button onclick="event.stopPropagation(); deleteExercise(${idx})" style="color: white; background: #ff6b6b; border: none; width: 75px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
+                                <span class="material-icons" style="font-size: 22px;">delete</span>
+                                <span style="font-size: 10px; font-weight: 700;">DEL</span>
+                            </button>
                         </div>
-
-
-                        ${ex.notes || ex.rest ? `
-                            <div style="display: flex; gap: 6px; margin-top: 6px;">
-                                ${ex.notes ? `<div style="flex: 3; font-size: 0.7rem; color: #495057; background: #f8f9fa; padding: 6px 8px; border-left: 2px solid #dee2e6; border-radius: 4px; font-style: italic;">${ex.notes}</div>` : ''}
-                                
-                                ${ex.rest ? `<div style="flex: 1; font-size: 0.7rem; color: #087f5b; background: #e6fcf5; padding: 6px 8px; border-left: 2px solid #20c997; border-radius: 4px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rest: ${ex.rest}</div>` : ''}
+                        <div class="exercise-swipe-content" style="background: white; position: relative; z-index: 1; transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); padding: 10px;">
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; flex: 1; min-width: 0;">
+                                    <span style="font-weight: 700; font-size: 0.95rem; color: #212529; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ex.name}</span>
+                                    ${restHeaderHTML}
+                                </div>
+                                <div onclick="event.stopPropagation(); openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" style="flex-shrink: 0; margin-left: 8px;">
+                                    ${generateMiniGraph(ex.name, storage.currentWorkout.type)}
+                                </div>
                             </div>
-                        ` : ''}
+                            
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: ${statusColor}12; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid ${statusColor};">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 0.6rem; color: ${statusColor}; font-weight: 800; text-transform: uppercase;">Now</span>
+                                    <span style="font-size: 1rem; font-weight: 800; color: ${statusColor};">${ex.sets}×${ex.reps}@${ex.weight}${ex.weight === 'BW' ? '' : 'kg'}</span>
+                                </div>
+                                <span style="font-size: 0.65rem; background: ${statusColor}; color: white; padding: 2px 6px; border-radius: 3px; font-weight: 800;">VOL ${currentVol.toLocaleString()}kg</span>
+                            </div>
+
+                            <div style="display: flex; gap: 6px;">
+                                ${lastRowHTML}
+                                ${pbRowHTML}
+                            </div>
+
+                            ${ex.notes ? `
+                                <div style="margin-top: 6px;">
+                                    <div style="font-size: 0.7rem; color: #495057; background: #f8f9fa; padding: 6px 8px; border-left: 2px solid #dee2e6; border-radius: 4px; font-style: italic;">${ex.notes}</div>
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
             // RE-ATTACH SWIPE LOGIC
             const swipeContent = div.querySelector('.exercise-swipe-content');
