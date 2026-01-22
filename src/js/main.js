@@ -176,7 +176,9 @@ function startWorkout(type, date = null, templateData = null) {
                 sets: 3,
                 reps: 10,
                 weight: 0,
-                notes: ''
+                notes: '',
+                rest: ''  // ADD THIS LINE
+
             }));
         } else {
             // No template found - start with empty exercises
@@ -611,8 +613,13 @@ function renderExercises() {
                         </div>
                     </div>
 
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1" style="flex: 3; font-size: 0.75rem; border: 1px solid #f1f3f5; border-radius: 4px; padding: 6px; box-sizing: border-box; background: #fafafa; outline: none;">${ex.notes || ''}</textarea>
 
-                    <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1" style="font-size: 0.75rem; border: 1px solid #f1f3f5; border-radius: 4px; padding: 6px; width: 100%; box-sizing: border-box; background: #fafafa; outline: none;">${ex.notes || ''}</textarea>
+                        <input type="text" class="notes-input" placeholder="Rest (e.g., 2min)" oninput="updateRest(${idx}, this.value)" value="${ex.rest || ''}" style="flex: 1; font-size: 0.75rem; border: 1px solid #c3fae8; border-radius: 4px; padding: 6px; box-sizing: border-box; background: #f1fff9; outline: none; border-color: #63e6be;">
+                    </div>
+
+
                 </div>
             `;
         } else {
@@ -670,7 +677,15 @@ function renderExercises() {
                             ${lastRowHTML}
                             ${pbRowHTML}
                         </div>
-                        ${ex.notes ? `<div style="font-size: 0.7rem; color: #495057; background: #f8f9fa; padding: 6px 8px; border-left: 2px solid #dee2e6; border-radius: 4px; font-style: italic; margin-top: 6px;">${ex.notes}</div>` : ''}
+
+
+                        ${ex.notes || ex.rest ? `
+                            <div style="display: flex; gap: 6px; margin-top: 6px;">
+                                ${ex.notes ? `<div style="flex: 3; font-size: 0.7rem; color: #495057; background: #f8f9fa; padding: 6px 8px; border-left: 2px solid #dee2e6; border-radius: 4px; font-style: italic;">${ex.notes}</div>` : ''}
+                                
+                                ${ex.rest ? `<div style="flex: 1; font-size: 0.7rem; color: #087f5b; background: #e6fcf5; padding: 6px 8px; border-left: 2px solid #20c997; border-radius: 4px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rest: ${ex.rest}</div>` : ''}
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -686,6 +701,10 @@ function renderExercises() {
         }
         container.appendChild(div);
     });
+}
+
+function updateRest(exIdx, rest) {
+    storage.currentWorkout.exercises[exIdx].rest = rest;
 }
 
 function toggleExerciseDropdownInEdit(idx) {
@@ -1105,7 +1124,8 @@ function openAddExercise() {
         sets: 3,
         reps: 10,
         weight: 0,
-        notes: ''
+        notes: '',
+        rest: ''  // ADD THIS LINE - empty by default
     };
 
     // Add to current workout
@@ -1416,51 +1436,51 @@ function createCalendarDay(day, date, isOtherMonth) {
     if (hasWeight) {
         dayDiv.classList.add('has-weight');
     }
-// Get workout label
-let workoutLabel = '';
-if (workout) {
-    const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
-    if (customType) {
-        workoutLabel = customType.name;
-        
-        // Apply custom workout styling
-        if (!storage.calendarTextMode) {
-            // Normal mode - gradient background
-            dayDiv.style.background = `linear-gradient(135deg, ${customType.color}33 0%, ${customType.color}14 100%)`;
-            dayDiv.style.borderColor = `${customType.color}4D`; // 30% opacity
-            dayDiv.style.boxShadow = `inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 8px ${customType.color}26`;
-            dayDiv.style.color = customType.color;
-            dayDiv.style.fontWeight = '700';
-        } else {
-            // Text mode - add custom class for pill styling
-            dayDiv.classList.add('text-mode');
-            dayDiv.classList.add('custom-workout');
-            dayDiv.dataset.customColor = customType.color;
-             dayDiv.style.setProperty('--custom-color', customType.color);
-        }
-    } else {
-        // Map workout types to short labels
-        const labelMap = {
-            'push': 'Push',
-            'pull': 'Pull',
-            'legs': 'Legs',
-            'upper': 'UB',
-            'lower': 'LB',
-            'whole': 'FB',
-            'rest': 'Rest',
-            'warmup': 'Warm',
-            'cooldown': 'Cool'
-        };
-        workoutLabel = labelMap[workout.type] || workout.type;
+    // Get workout label
+    let workoutLabel = '';
+    if (workout) {
+        const customType = storage.customWorkoutTypes.find(t => t.id === workout.type);
+        if (customType) {
+            workoutLabel = customType.name;
 
-        if (!storage.calendarTextMode) {
-            dayDiv.classList.add(workout.type);
+            // Apply custom workout styling
+            if (!storage.calendarTextMode) {
+                // Normal mode - gradient background
+                dayDiv.style.background = `linear-gradient(135deg, ${customType.color}33 0%, ${customType.color}14 100%)`;
+                dayDiv.style.borderColor = `${customType.color}4D`; // 30% opacity
+                dayDiv.style.boxShadow = `inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 8px ${customType.color}26`;
+                dayDiv.style.color = customType.color;
+                dayDiv.style.fontWeight = '700';
+            } else {
+                // Text mode - add custom class for pill styling
+                dayDiv.classList.add('text-mode');
+                dayDiv.classList.add('custom-workout');
+                dayDiv.dataset.customColor = customType.color;
+                dayDiv.style.setProperty('--custom-color', customType.color);
+            }
         } else {
-            dayDiv.classList.add('text-mode');
-            dayDiv.classList.add(workout.type);
+            // Map workout types to short labels
+            const labelMap = {
+                'push': 'Push',
+                'pull': 'Pull',
+                'legs': 'Legs',
+                'upper': 'UB',
+                'lower': 'LB',
+                'whole': 'FB',
+                'rest': 'Rest',
+                'warmup': 'Warm',
+                'cooldown': 'Cool'
+            };
+            workoutLabel = labelMap[workout.type] || workout.type;
+
+            if (!storage.calendarTextMode) {
+                dayDiv.classList.add(workout.type);
+            } else {
+                dayDiv.classList.add('text-mode');
+                dayDiv.classList.add(workout.type);
+            }
         }
     }
-}
 
     dayDiv.onclick = () => {
         if (storage.activeCalendarDay) storage.activeCalendarDay.classList.remove('active');
@@ -2119,7 +2139,7 @@ function openAllExercisesView() {
 
         exercises.forEach(ex => {
             const miniGraph = generateMiniGraph(ex.name, ex.workoutType);
-            
+
             // USE THE HELPER FUNCTION HERE
             const pbInfo = getExercisePB(ex.name);
 
@@ -2177,7 +2197,7 @@ function openAllExercisesView() {
 
 function getExercisePB(exerciseName) {
     if (!exerciseName || exerciseName === 'Exercise Name') return null;
-    
+
     let bestWeight = null;
     let bestReps = 0;
     let bestSets = 0;
@@ -2209,7 +2229,7 @@ function getExercisePB(exerciseName) {
                                 isNewBest = true;
                             }
                         }
-                    } 
+                    }
                     // CASE 2: Weighted Comparison
                     else {
                         if (bestWeight === 'BW' || bestWeight === null) {
@@ -3748,7 +3768,7 @@ function logWeightFromCalendar() {
 function calculatePersonalBest(exerciseIdx) {
     const currentExercise = storage.currentWorkout.exercises[exerciseIdx];
     const exerciseName = currentExercise.name.trim();
-    
+
     // Safety check
     if (!exerciseName || exerciseName === 'Exercise Name') {
         storage.currentPB = null;
