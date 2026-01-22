@@ -512,6 +512,23 @@ function autoSave() {
     storage.saveWorkouts();
 }
 
+                     function adjustRestValue(idx, delta) {
+    const input = document.getElementById(`restInput-${idx}`);
+    if (!input) return;
+
+    // Calculate new value
+    let currentValue = parseFloat(input.value) || 0;
+    let newValue = Math.max(0, currentValue + delta);
+
+    // 1. Update the UI immediately
+    input.value = newValue;
+
+    // 2. Update the data in storage
+    if (storage.currentWorkout && storage.currentWorkout.exercises[idx]) {
+        storage.currentWorkout.exercises[idx].rest = newValue;
+    }
+}      
+
 function renderExercises() {
     const container = document.getElementById('exerciseList');
     container.innerHTML = '';
@@ -550,6 +567,8 @@ function renderExercises() {
         div.style.position = 'relative';
 
         const isEditing = storage.editingExerciseIndex === idx;
+
+
 
         if (isEditing) {
             // --- EDIT MODE ---
@@ -614,14 +633,27 @@ function renderExercises() {
                     </div>
 
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1" style="flex: 3; font-size: 0.75rem; border: 1px solid #f1f3f5; border-radius: 4px; padding: 6px; box-sizing: border-box; background: #fafafa; outline: none;">${ex.notes || ''}</textarea>
+                        <textarea class="notes-input" placeholder="Notes (optional)" oninput="autoResizeTextarea(this); updateNotes(${idx}, this.value)" rows="1" style="flex: 2; font-size: 0.75rem; border: 1px solid #f1f3f5; border-radius: 4px; padding: 6px; box-sizing: border-box; background: #fafafa; outline: none;">${ex.notes || ''}</textarea>
 
-                        <input type="text" class="notes-input" placeholder="Rest (e.g., 2min)" oninput="updateRest(${idx}, this.value)" value="${ex.rest || ''}" style="flex: 1; font-size: 0.75rem; border: 1px solid #c3fae8; border-radius: 4px; padding: 6px; box-sizing: border-box; background: #f1fff9; outline: none; border-color: #63e6be;">
+                        <div style="flex: 1.2; background: #f1fff9; padding: 4px; border-radius: 6px; text-align: center; border: 1px solid #63e6be;">
+                            <div style="font-size: 0.55rem; font-weight: 800; color: #087f5b; margin-bottom: 2px;">REST (MIN)</div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+                                <button type="button" onclick="adjustRestValue(${idx}, -0.5)" style="border: none; background: #c3fae8; color: #087f5b; border-radius: 3px; width: 22px; height: 22px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">−</button>
+                                
+                                <input type="number" id="restInput-${idx}" step="0.5" value="${ex.rest || 0}" 
+                                    onchange="updateValue(${idx}, 'rest', this.value)" 
+                                    style="width: 32px; border: none; background: transparent; text-align: center; font-weight: 700; font-size: 0.85rem; color: #087f5b; outline: none; -moz-appearance: textfield;">
+                                
+                                <button type="button" onclick="adjustRestValue(${idx}, 0.5)" style="border: none; background: #c3fae8; color: #087f5b; border-radius: 3px; width: 22px; height: 22px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">+</button>
+                            </div>
+                        </div>
                     </div>
 
 
                 </div>
             `;
+     
+
         } else {
             // --- VIEW MODE ---
             let lastRowHTML = last ? `
