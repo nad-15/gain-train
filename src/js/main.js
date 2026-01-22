@@ -650,7 +650,9 @@ function renderExercises() {
                 const restHeaderHTML = ex.rest ? `
                     <div style="display: flex; align-items: center; gap: 4px; color: #087f5b; background: #e6fcf5; padding: 2px 6px; border-radius: 12px; margin-left: 8px;">
                         <span class="material-icons" style="font-size: 12px;">schedule</span>
-                        <span style="font-size: 0.7rem; font-weight: 700; white-space: nowrap;">${ex.rest}</span>
+                    <span style="font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                        ${ex.rest + (parseFloat(ex.rest) > 1 ? ' mins' : ' min')}
+                    </span>
                     </div>
                 ` : '';
 
