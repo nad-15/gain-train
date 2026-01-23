@@ -178,7 +178,14 @@
                             style="font-size: 0.7em; color: #6c757d; margin-left: 8px; align-self: center; font-style: italic;"></span>
                     </div>
 
+
+
                     <div class="workout-details-tools">
+                        <button class="detail-tool-btn" id="rescheduleBtn" style="display: none;"
+                            onclick="event.stopPropagation(); openRescheduleModal()">
+                            <span class="material-symbols-outlined">event_repeat</span>
+                        </button>
+
                         <button class="detail-tool-btn" id="logWeightBtn" style="display: none;"
                             onclick="event.stopPropagation(); logWeightFromCalendar()">
                             <span class="material-symbols-outlined">weight</span>
@@ -441,7 +448,7 @@
                 <label>Template Name (optional)</label>
                 <input type="text" id="templateName" placeholder="e.g., Heavy Push, Volume Pull">
             </div>
-            <div class="form-group">
+            <div class="form-group"> // Stores current Personal Best info for display
                 <label>Category</label>
                 <select id="templateCategory">
                     <option value="warmup">Warm-up</option>
@@ -556,7 +563,7 @@
                     style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center;">
                     <span class="material-symbols-outlined" style="font-size: 24px; color: #6c757d;">close</span>
                 </button>
-            </div>
+            </div> // Stores current Personal Best info for display
 
             <!-- Timeline Filter Buttons -->
             <div style="display: flex; gap: 6px; margin-bottom: 16px; justify-content: center;">
@@ -571,7 +578,7 @@
                 <button class="timeline-filter-btn" data-timeline="monthly" onclick="switchTimeline('monthly')"
                     style="padding: 6px 14px; border: 1px solid #e9ecef; border-radius: 6px; background: white; color: #6c757d; cursor: pointer; font-size: 0.75em; font-weight: 600; transition: all 0.2s;">
                     Monthly
-                </button>
+                </button> // Stores current Personal Best info for display
             </div>
 
             <div style="overflow-x: auto; overflow-y: hidden;">
@@ -614,8 +621,33 @@
         </div>
     </div>
 
+    <!-- Reschedule Workout Modal -->
+    <div id="rescheduleModal" class="modal">
+        <div class="modal-content">
+            <h2>Reschedule Workout</h2>
+            <p style="color: #6c757d; font-size: 0.875rem; margin-bottom: 16px;">
+                Moving workout from: <strong id="rescheduleCurrentDate"></strong>
+            </p>
+            <div class="form-group">
+                <label>Select New Date</label>
+                <input type="date" id="rescheduleDateInput"
+                    style="width: 100%; padding: 11px 14px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 0.9375rem; font-weight: 500;">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeRescheduleModal()">Cancel</button>
+                <button class="modal-btn save" onclick="confirmReschedule()">Reschedule</button>
+            </div>
+        </div>
+    </div>
 
     <script src="./src/js/main.js"></script>
+
+</body>
+
+</html>
+
+
+<script src="./src/js/main.js"></script>
 
 </body>
 

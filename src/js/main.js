@@ -118,7 +118,9 @@ const storage = {
     isCreatingNewTemplate: false,
     editingExerciseIndex: null,
     originalExerciseSnapshot: null,
-    currentPB: null // Stores current Personal Best info for display
+    currentPB: null,
+    rescheduleWorkoutId: null,      // ADD THIS
+    rescheduleFromDate: null,       // ADD THIS
 };
 // Default exercise templates
 const defaultTemplates = {
@@ -1585,6 +1587,25 @@ function showWorkoutDetails(date, workout) {
 
     const deleteBtn = document.getElementById("deleteWorkoutBtn");
     const changeBtn = document.getElementById("changeWorkoutBtn");
+
+    const rescheduleBtn = document.getElementById("rescheduleBtn");
+
+    if (workout) {
+        deleteBtn.innerHTML = `<span class="material-symbols-outlined">delete</span>`;
+        deleteBtn.onclick = (e) => { e.stopPropagation(); deleteWorkoutFromCalendar(workout.id); };
+        deleteBtn.style.display = 'flex';
+
+        changeBtn.innerHTML = `<span class="material-symbols-outlined">sync_alt</span>`;
+        changeBtn.onclick = (e) => { e.stopPropagation(); changeWorkoutForDate(date, workout.id); };
+        changeBtn.style.display = 'flex';
+
+        // Show reschedule button
+        rescheduleBtn.style.display = 'flex';
+    } else {
+        deleteBtn.style.display = 'none';
+        changeBtn.style.display = 'none';
+        rescheduleBtn.style.display = 'none';
+    }
 
     if (workout) {
         deleteBtn.innerHTML = `<span class="material-symbols-outlined">delete</span>`;
@@ -4693,7 +4714,7 @@ function closeExerciseHistory() {
     if (storage.currentWorkout) {
         renderExercises();
     }
-    
+
     // Refresh calendar to show any changes
     if (isDetailsExpanded) {
         renderWeekView();
@@ -4733,7 +4754,7 @@ function toggleHistoryEdit(idx) {
             // 3. RE-FETCH sessions with updated data
             sessions = getExerciseSessions(exerciseName);
         }
-        
+
         // 4. Exit edit mode
         currentHistoryEditingIdx = null;
     } else {
@@ -5004,4 +5025,116 @@ function saveHistoryEdit(idx) {
 
     storage.editingHistoryIndex = null;
     renderExerciseHistory(sessions);
+}
+
+
+function openRescheduleModal() {
+    if (!selectedCalendarDate) return;
+    
+    const workout = storage.workouts.find(w =>
+        new Date(w.date).toDateString() === selectedCalendarDate.toDateString()
+    );
+    
+    if (!workout) return;
+    
+    // Store the workout ID for the modal
+    storage.rescheduleWorkoutId = workout.id;
+    storage.rescheduleFromDate = selectedCalendarDate;
+    
+    // Set current date as default
+    const currentDateInput = selectedCalendarDate.toISOString().split('T')[0];
+    document.getElementById('rescheduleDateInput').value = currentDateInput;
+    
+    const currentDateStr = selectedCalendarDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+    });
+    document.getElementById('rescheduleCurrentDate').textContent = currentDateStr;
+    
+    // Show modal
+    document.getElementById('rescheduleModal').classList.add('active');
+}
+
+function closeRescheduleModal() {
+    document.getElementById('rescheduleModal').classList.remove('active');
+    storage.rescheduleWorkoutId = null;
+    storage.rescheduleFromDate = null;
+}
+
+function confirmReschedule() {
+    const newDateStr = document.getElementById('rescheduleDateInput').value;
+    
+    if (!newDateStr) {
+        alert('Please select a date!');
+        return;
+    }
+    
+    const newDate = new Date(newDateStr);
+    newDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+    
+    // Check if moving to the same date
+    if (newDate.toDateString() === storage.rescheduleFromDate.toDateString()) {
+        alert('The workout is already on this date!');
+        return;
+    }
+    
+    // Find the workout to reschedule
+    const workout = storage.workouts.find(w => w.id === storage.rescheduleWorkoutId);
+    if (!workout) {
+        alert('Workout not found!');
+        closeRescheduleModal();
+        return;
+    }
+    
+    // Check if target date already has a workout
+    const existingWorkout = storage.workouts.find(w =>
+        w.id !== storage.rescheduleWorkoutId &&
+        new Date(w.date).toDateString() === newDate.toDateString()
+    );
+    
+    if (existingWorkout) {
+        const overwrite = confirm(
+            `There is already a workout logged on ${newDate.toLocaleDateString('en-US', { 
+                weekday: 'long',
+                month: 'long', 
+                day: 'numeric',
+                year: 'numeric'
+            })}.\n\nDo you want to OVERWRITE it with this workout?`
+        );
+        
+        if (!overwrite) {
+            return; // User cancelled
+        }
+        
+        // Delete the existing workout
+        const existingIdx = storage.workouts.findIndex(w => w.id === existingWorkout.id);
+        if (existingIdx >= 0) {
+            storage.workouts.splice(existingIdx, 1);
+        }
+    }
+    
+    // Update the workout date
+    workout.date = newDate.toISOString();
+    storage.saveWorkouts();
+    
+    closeRescheduleModal();
+    
+    alert(`Workout rescheduled to ${newDate.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        month: 'long', 
+        day: 'numeric'
+    })}! 📅`);
+    
+    // Update calendar view
+    storage.currentMonth = newDate.getMonth();
+    storage.currentYear = newDate.getFullYear();
+    selectedCalendarDate = newDate;
+    
+    if (isDetailsExpanded) {
+        renderWeekView();
+    } else {
+        renderCalendar();
+    }
 }
