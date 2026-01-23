@@ -122,6 +122,44 @@ const storage = {
     rescheduleWorkoutId: null,      // ADD THIS
     rescheduleFromDate: null,       // ADD THIS
 };
+
+
+// ===== SINGLE SOURCE OF TRUTH FOR EXERCISE DATA =====
+function getAllExerciseData(exerciseName) {
+    if (!exerciseName || exerciseName === 'Exercise Name') return [];
+    
+    const allData = [];
+    
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach((ex, exIdx) => {
+                if (ex.name && ex.name.trim() === exerciseName.trim()) {
+                    allData.push({
+                        workoutId: w.id,
+                        workoutType: w.type,
+                        exerciseIdx: exIdx,
+                        date: new Date(w.date),
+                        name: ex.name,
+                        sets: ex.sets,
+                        reps: ex.reps,
+                        weight: ex.weight,
+                        notes: ex.notes || '',
+                        rest: ex.rest || 0
+                    });
+                }
+            });
+        }
+    });
+    
+    // Sort by date descending (most recent first)
+    return allData.sort((a, b) => b.date - a.date);
+}
+
+function getLastExerciseData(exerciseName) {
+    const allData = getAllExerciseData(exerciseName);
+    return allData.length > 0 ? allData[0] : null;
+}
+
 // Default exercise templates
 const defaultTemplates = {
     push: ['Bench Press', 'Overhead Press', 'Incline Dumbbell Press', 'Tricep Dips'],
@@ -752,6 +790,39 @@ function renderExercises() {
     });
 }
 
+function handleExerciseSelectionInEdit(idx) {
+    const select = document.getElementById(`exerciseSelect-${idx}`);
+    const exerciseName = select.value;
+
+    if (!exerciseName) return;
+
+    // Update the exercise name input
+    const nameInput = document.getElementById(`exerciseName-${idx}`);
+    nameInput.value = exerciseName;
+
+    // Update the exercise name in storage
+    storage.currentWorkout.exercises[idx].name = exerciseName;
+
+    // AUTOFILL WITH LAST LOGGED DATA
+    const lastData = getLastExerciseData(exerciseName);
+    if (lastData) {
+        storage.currentWorkout.exercises[idx].sets = lastData.sets || 3;
+        storage.currentWorkout.exercises[idx].reps = lastData.reps || 10;
+        storage.currentWorkout.exercises[idx].weight = lastData.weight || 0;
+        storage.currentWorkout.exercises[idx].rest = lastData.rest || 0;
+        if (lastData.notes) {
+            storage.currentWorkout.exercises[idx].notes = lastData.notes;
+        }
+    }
+
+    // Hide the dropdown container
+    document.getElementById(`exerciseDropdownContainer-${idx}`).style.display = 'none';
+
+    // Re-render to show updated values
+    renderExercises();
+    autoSave();
+}
+
 function updateRest(exIdx, rest) {
     storage.currentWorkout.exercises[exIdx].rest = rest;
 }
@@ -831,34 +902,26 @@ function loadExercisesForTypeInEdit(idx, type) {
     }
 }
 
-function handleExerciseSelectionInEdit(idx) {
-
-
-
-
-
-
-    const select = document.getElementById(`exerciseSelect-${idx}`);
+function handleExerciseSelection() {
+    const select = document.getElementById('exerciseSelect');
     const exerciseName = select.value;
 
     if (!exerciseName) return;
 
     // Update the exercise name input
-    const nameInput = document.getElementById(`exerciseName-${idx}`);
+    const nameInput = document.getElementById('exerciseName');
     nameInput.value = exerciseName;
 
-    // Update the exercise name in storage
-    storage.currentWorkout.exercises[idx].name = exerciseName;
-
-    // Prefill data from history
-    prefillExerciseDataInEdit(idx, exerciseName);
+    // AUTOFILL WITH LAST LOGGED DATA
+    const lastData = getLastExerciseData(exerciseName);
+    if (lastData) {
+        document.getElementById('exerciseSets').value = lastData.sets || 3;
+        document.getElementById('exerciseReps').value = lastData.reps || 10;
+        document.getElementById('exerciseWeight').value = lastData.weight === 'BW' ? 0 : (lastData.weight || 0);
+    }
 
     // Hide the dropdown container
-    document.getElementById(`exerciseDropdownContainer-${idx}`).style.display = 'none';
-
-    // Re-render to show updated values
-    renderExercises();
-    autoSave();
+    document.getElementById('exerciseDropdownContainer').style.display = 'none';
 }
 
 function prefillExerciseDataInEdit(idx, exerciseName) {
@@ -3886,27 +3949,21 @@ function getLastSession(exerciseName, currentWorkoutDate) {
 }
 
 
-
 function generateMiniGraph(exerciseName, workoutType) {
-    // Collect exercise data
-    const data = [];
-    storage.workouts.forEach(w => {
-        if (w.exercises) {
-            w.exercises.forEach(ex => {
-                if (ex.name === exerciseName) {
-                    const weight = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
-                    const volume = weight * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
-                    data.push({
-                        date: new Date(w.date),
-                        volume: volume
-                    });
-                }
-            });
-        }
+    // USE SINGLE SOURCE OF TRUTH - get ALL data regardless of workout type
+    const allData = getAllExerciseData(exerciseName);
+    
+    const data = allData.map(ex => {
+        const weight = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
+        const volume = weight * (parseInt(ex.reps) || 0) * (parseInt(ex.sets) || 0);
+        return {
+            date: ex.date,
+            volume: volume
+        };
     });
 
-    // Sort by date and take last 10
-    data.sort((a, b) => a.date - b.date);
+    // Reverse to get chronological order, then take last 10
+    data.reverse();
     const recentData = data.slice(-10);
 
     if (recentData.length < 2) {
@@ -3952,7 +4009,6 @@ function generateMiniGraph(exerciseName, workoutType) {
         </svg>
     `;
 }
-
 function toggleSimplifiedView() {
     storage.isSimplifiedView = !storage.isSimplifiedView;
 
@@ -4177,6 +4233,7 @@ function renderExerciseVolumeChart() {
         }
     });
 }
+
 function openExerciseVolumeModal(exerciseName, workoutType) {
     currentExerciseData = { name: exerciseName, type: workoutType, timeline: 'daily' };
     document.getElementById('exerciseVolumeModalTitle').textContent = exerciseName;
@@ -4230,32 +4287,26 @@ function renderModalExerciseChart() {
     const canvas = document.getElementById('modalExerciseVolumeChart');
     if (!canvas) return;
 
-    const { name: exerciseName, type: workoutType, timeline } = currentExerciseData;
+    const { name: exerciseName, timeline } = currentExerciseData;
 
-    // Collect all instances of this exercise from this workout type
-    const rawData = [];
-    storage.workouts.forEach(w => {
-        if (w.exercises) {
-            w.exercises.forEach(ex => {
-                if (ex.name === exerciseName) {
-                    const weight = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
-                    const reps = parseInt(ex.reps) || 0;
-                    const sets = parseInt(ex.sets) || 0;
-                    const volume = weight * reps * sets;
+    // USE SINGLE SOURCE OF TRUTH - get ALL data regardless of workout type
+    const rawData = getAllExerciseData(exerciseName).map(ex => {
+        const weight = ex.weight === 'BW' ? 1 : (parseFloat(ex.weight) || 0);
+        const reps = parseInt(ex.reps) || 0;
+        const sets = parseInt(ex.sets) || 0;
+        const volume = weight * reps * sets;
 
-                    rawData.push({
-                        date: new Date(w.date),
-                        volume: volume,
-                        weight: ex.weight,
-                        reps: reps,
-                        sets: sets
-                    });
-                }
-            });
-        }
+        return {
+            date: ex.date,
+            volume: volume,
+            weight: ex.weight,
+            reps: reps,
+            sets: sets
+        };
     });
 
-    rawData.sort((a, b) => a.date - b.date);
+    // Already sorted by date descending, reverse for chronological order
+    rawData.reverse();
 
     if (rawData.length === 0) {
         const ctx = canvas.getContext('2d');
@@ -4336,13 +4387,12 @@ function renderModalExerciseChart() {
         modalExerciseVolumeChart.destroy();
     }
 
-    // Dynamic width calculation - try to fit first, then allow scroll
+    // Dynamic width calculation
     const wrapper = document.getElementById('modalExerciseChartWrapper');
     const containerWidth = wrapper.parentElement.offsetWidth;
-    const minPointWidth = 30; // minimum width per data point
+    const minPointWidth = 30;
     const calculatedWidth = aggregatedData.length * minPointWidth;
 
-    // Only enable scroll if calculated width exceeds container
     if (calculatedWidth > containerWidth) {
         wrapper.style.width = calculatedWidth + 'px';
     } else {
@@ -4664,28 +4714,10 @@ function attachWorkoutScreenSwipe() {
 
 // ===== EXERCISE HISTORY FUNCTIONS =====
 function openExerciseHistory(exerciseName, workoutType) {
-
     document.getElementById('historyExerciseName').textContent = `${exerciseName} History`;
 
-    // Collect all sessions for this exercise
-    const sessions = [];
-    storage.workouts.forEach(w => {
-        if (w.exercises) {
-            w.exercises.forEach((ex, exIdx) => {
-                if (ex.name === exerciseName) {
-                    sessions.push({
-                        workoutId: w.id,
-                        exerciseIdx: exIdx,
-                        date: new Date(w.date),
-                        ...ex
-                    });
-                }
-            });
-        }
-    });
-
-    // Sort by date descending (most recent first)
-    sessions.sort((a, b) => b.date - a.date);
+    // USE SINGLE SOURCE OF TRUTH
+    const sessions = getAllExerciseData(exerciseName);
 
     // Render history cards
     renderExerciseHistory(sessions);
@@ -4693,7 +4725,6 @@ function openExerciseHistory(exerciseName, workoutType) {
     // Show modal
     document.getElementById('exerciseHistoryModal').classList.add('active');
 }
-
 function closeExerciseHistory() {
     const modal = document.getElementById('exerciseHistoryModal');
     modal.classList.remove('active');
@@ -4914,24 +4945,8 @@ function deleteHistorySession(idx) {
 
 // Helper to keep logic clean
 function getExerciseSessions(exerciseName) {
-    const sessions = [];
-    storage.workouts.forEach(w => {
-        if (w.exercises) {
-            w.exercises.forEach((ex, exIdx) => {
-                if (ex.name === exerciseName) {
-                    sessions.push({
-                        workoutId: w.id,
-                        exerciseIdx: exIdx,
-                        date: w.date,
-                        ...ex
-                    });
-                }
-            });
-        }
-    });
-    return sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return getAllExerciseData(exerciseName);
 }
-
 
 function editHistory(idx) {
     storage.editingHistoryIndex = idx;
