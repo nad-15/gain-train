@@ -2270,49 +2270,45 @@ function openAllExercisesView() {
             // USE THE HELPER FUNCTION HERE
             const pbInfo = getExercisePB(ex.name);
 
-            html += `
-                <div style="background: white; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                <button onclick="event.stopPropagation(); openSameAsModal('${ex.name.replace(/'/g, "\\'")}')" 
-                                        style="background: #e7f5ff; border: 1px solid #d0ebff; border-radius: 6px; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;"
-                                        onmouseover="this.style.background='#d0ebff';"
-                                        onmouseout="this.style.background='#e7f5ff';">
-                                    <span class="material-symbols-outlined" style="font-size: 16px !important; color: #228be6;">merge</span>
-                                </button>
-                                <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
-                                     style="font-weight: 700; font-size: 0.95rem; color: #212529; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
-                                    ${ex.name}
-                                </div>
-                            </div>
-                            
-                            <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" style="cursor: pointer;">
-                                <div style="font-size: 0.7rem; color: #868e96; margin-bottom: 4px;">
-                                    Last: ${ex.lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </div>
-                                ${pbInfo ? `
-                                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.7rem;">
-                                        <span style="color: #f59f00; font-weight: 700;">★ PB:</span>
-                                        <span style="color: #e67700; font-weight: 600;">
-                                            ${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight === 'BW' ? '' : 'kg'}
-                                        </span>
-                                        <span style="color: #adb5bd;">
-                                            (${pbInfo.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
-                                        </span>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-
-                        <div style="flex-shrink: 0;">
-                            <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" style="cursor: pointer;">
-                                ${miniGraph}
-                            </div>
-                        </div>
+            // ... inside your loop ...
+html += `
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 10px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+            <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <button onclick="event.stopPropagation(); openSameAsModal('${ex.name.replace(/'/g, "\\'")}')" ...>
+                        <span class="material-symbols-outlined" style="font-size: 16px !important; color: #228be6;">merge</span>
+                    </button>
+                    
+                    <div onclick="openExerciseHistory('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" 
+                         style="font-weight: 700; font-size: 0.95rem; color: #212529; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                        ${ex.name}
                     </div>
                 </div>
-            `;
+                
+                <div onclick="openExerciseHistory('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" style="cursor: pointer;">
+                    <div style="font-size: 0.7rem; color: #868e96; margin-bottom: 4px;">
+                        Last: ${ex.lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </div>
+                    ${pbInfo ? `
+                        <div style="display: flex; align-items: center; gap: 4px; font-size: 0.7rem;">
+                            <span style="color: #f59f00; font-weight: 700;">★ PB:</span>
+                            <span style="color: #e67700; font-weight: 600;">
+                                ${pbInfo.sets}×${pbInfo.reps}@${pbInfo.weight}${pbInfo.weight === 'BW' ? '' : 'kg'}
+                            </span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <div style="flex-shrink: 0;">
+                <div onclick="openExerciseVolumeModal('${ex.name.replace(/'/g, "\\'")}', '${ex.workoutType}')" style="cursor: pointer;">
+                    ${miniGraph}
+                </div>
+            </div>
+        </div>
+    </div>
+`;
         });
 
         html += '</div>';
