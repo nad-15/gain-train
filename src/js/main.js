@@ -512,7 +512,7 @@ function autoSave() {
     storage.saveWorkouts();
 }
 
-                     function adjustRestValue(idx, delta) {
+function adjustRestValue(idx, delta) {
     const input = document.getElementById(`restInput-${idx}`);
     if (!input) return;
 
@@ -527,7 +527,7 @@ function autoSave() {
     if (storage.currentWorkout && storage.currentWorkout.exercises[idx]) {
         storage.currentWorkout.exercises[idx].rest = newValue;
     }
-}      
+}
 
 function renderExercises() {
     const container = document.getElementById('exerciseList');
@@ -652,12 +652,15 @@ function renderExercises() {
 
                 </div>
             `;
-     
+
 
         } else {
             // --- VIEW MODE ---
             let lastRowHTML = last ? `
-                <div style="flex: 1; display: flex; flex-direction: column; padding: 6px 8px; background: #eef2ff; border-radius: 4px; border-left: 2px solid #4c6ef5;">
+                    <div onclick="event.stopPropagation(); openExerciseHistory('${ex.name.replace(/'/g, "\\'")}', '${storage.currentWorkout.type}')" 
+                        style="flex: 1; display: flex; flex-direction: column; padding: 6px 8px; background: #eef2ff; border-radius: 4px; border-left: 2px solid #4c6ef5; cursor: pointer;">
+
+
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 0.6rem; color: #4c6ef5; font-weight: 800; text-transform: uppercase;">Last</span>
                         <span style="font-size: 0.6rem; color: #4c6ef5; font-weight: 700;">VOL ${lastVol.toLocaleString()}kg</span>
@@ -678,8 +681,8 @@ function renderExercises() {
                 </div>` : '';
 
 
-                // Prepare the Rest HTML for the header row
-                const restHeaderHTML = ex.rest ? `
+            // Prepare the Rest HTML for the header row
+            const restHeaderHTML = ex.rest ? `
                     <div style="display: flex; align-items: center; gap: 4px; color: #087f5b; background: #e6fcf5; padding: 2px 6px; border-radius: 12px; margin-left: 8px;">
                         <span class="material-icons" style="font-size: 12px;">schedule</span>
                     <span style="font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
@@ -688,7 +691,7 @@ function renderExercises() {
                     </div>
                 ` : '';
 
-                div.innerHTML = `
+            div.innerHTML = `
                     <div class="exercise-swipe-container" style="position: relative; overflow: hidden; border-radius: 8px;">
                         <div class="exercise-swipe-actions" style="position: absolute; right: 0; top: 0; height: 100%; display: flex;">
                             <button onclick="event.stopPropagation(); toggleEdit(${idx})" style="color: white; background: #4c6ef5; border: none; width: 75px; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; cursor: pointer;">
@@ -4635,4 +4638,370 @@ function attachWorkoutScreenSwipe() {
     }, { passive: true });
 
     workoutSwipeAttached = true;
+}
+
+
+// ===== EXERCISE HISTORY FUNCTIONS =====
+function openExerciseHistory(exerciseName, workoutType) {
+
+    document.getElementById('historyExerciseName').textContent = `${exerciseName} History`;
+
+    // Collect all sessions for this exercise
+    const sessions = [];
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach((ex, exIdx) => {
+                if (ex.name === exerciseName) {
+                    sessions.push({
+                        workoutId: w.id,
+                        exerciseIdx: exIdx,
+                        date: new Date(w.date),
+                        ...ex
+                    });
+                }
+            });
+        }
+    });
+
+    // Sort by date descending (most recent first)
+    sessions.sort((a, b) => b.date - a.date);
+
+    // Render history cards
+    renderExerciseHistory(sessions);
+
+    // Show modal
+    document.getElementById('exerciseHistoryModal').classList.add('active');
+}
+
+function closeExerciseHistory() {
+    const modal = document.getElementById('exerciseHistoryModal');
+    modal.classList.remove('active');
+
+    // Reset editing index
+    currentHistoryEditingIdx = null;
+
+    // CRITICAL: Force reload the current workout from storage
+    if (storage.currentWorkout && storage.currentWorkout.id) {
+        const freshWorkout = storage.workouts.find(w => w.id === storage.currentWorkout.id);
+        if (freshWorkout) {
+            // Replace current workout with fresh data from localStorage
+            storage.currentWorkout = JSON.parse(JSON.stringify(freshWorkout));
+        }
+    }
+
+    // REDRAW the main workout list IF we're viewing a workout
+    if (storage.currentWorkout) {
+        renderExercises();
+    }
+    
+    // Refresh calendar to show any changes
+    if (isDetailsExpanded) {
+        renderWeekView();
+    } else {
+        renderCalendar();
+    }
+
+    // HIDE the workout details section when going back to exercise list
+    const workoutDetailsSection = document.getElementById('workoutDetailsSection');
+    if (workoutDetailsSection) {
+        workoutDetailsSection.style.display = 'none';
+    }
+}
+
+function toggleHistoryEdit(idx) {
+    const exerciseName = document.getElementById('historyExerciseName').textContent.replace(' History', '');
+    let sessions = getExerciseSessions(exerciseName); // Use 'let' not 'const'
+
+    if (currentHistoryEditingIdx === idx) {
+        // SAVING MODE - User clicked the checkmark
+        const session = sessions[idx];
+        const workout = storage.workouts.find(w => w.id === session.workoutId);
+
+        if (workout && workout.exercises[session.exerciseIdx]) {
+            const ex = workout.exercises[session.exerciseIdx];
+
+            // 1. Update the values
+            ex.sets = parseInt(document.getElementById(`histSets-${idx}`).value) || 0;
+            ex.reps = parseInt(document.getElementById(`histReps-${idx}`).value) || 0;
+            ex.weight = document.getElementById(`histWeight-${idx}`).value;
+            ex.rest = parseFloat(document.getElementById(`histRest-${idx}`).value) || 0;
+            ex.notes = document.getElementById(`histNotes-${idx}`).value;
+
+            // 2. FORCE SAVE TO LOCALSTORAGE
+            storage.saveWorkouts();
+
+            // 3. RE-FETCH sessions with updated data
+            sessions = getExerciseSessions(exerciseName);
+        }
+        
+        // 4. Exit edit mode
+        currentHistoryEditingIdx = null;
+    } else {
+        // ENTERING EDIT MODE - User clicked the pencil
+        currentHistoryEditingIdx = idx;
+    }
+
+    // 5. Re-render history modal with fresh data
+    renderExerciseHistory(sessions);
+}
+function saveHistoryChanges(idx) {
+    const exerciseName = document.getElementById('historyExerciseName').textContent.replace(' History', '');
+    const sessions = getExerciseSessions(exerciseName);
+    const session = sessions[idx];
+
+    const workout = storage.workouts.find(w => w.id === session.workoutId);
+    if (workout && workout.exercises[session.exerciseIdx]) {
+        const ex = workout.exercises[session.exerciseIdx];
+
+        // Grab values from the inputs
+        ex.sets = parseInt(document.getElementById(`histSets-${idx}`).value) || 0;
+        ex.reps = parseInt(document.getElementById(`histReps-${idx}`).value) || 0;
+        ex.weight = document.getElementById(`histWeight-${idx}`).value;
+        ex.rest = parseFloat(document.getElementById(`histRest-${idx}`).value) || 0;
+        ex.notes = document.getElementById(`histNotes-${idx}`).value;
+
+        storage.workouts = [...storage.workouts]; // Save to localStorage
+        console.log("Changes saved successfully!");
+    }
+}
+let currentHistoryEditingIdx = null;
+
+function renderExerciseHistory(sessions) {
+    const container = document.getElementById('exerciseHistoryContent');
+    container.innerHTML = '';
+
+    if (sessions.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#6c757d;">No history found.</div>';
+        return;
+    }
+
+    sessions.forEach((session, idx) => {
+        const isEditing = currentHistoryEditingIdx === idx;
+        const div = document.createElement('div');
+        div.className = 'exercise-item';
+        div.style.marginBottom = '15px';
+
+        const dateStr = new Date(session.date).toLocaleDateString(undefined, {
+            month: 'short', day: 'numeric', year: 'numeric'
+        });
+
+        div.innerHTML = `
+            <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-weight: 700; color: #495057;">${dateStr}</span>
+                        <div style="display: flex; align-items: center; background: #edf2ff; padding: 2px 6px; border-radius: 4px; gap: 2px;">
+                            ${isEditing
+                ? `<span style="font-size: 0.7rem; color: #4c6ef5; font-weight: 700;">Rest:</span>
+                                   <input type="number" id="histRest-${idx}" value="${session.rest || 0}" 
+                                          style="width: 35px; border: none; background: transparent; color: #4c6ef5; font-weight: 700; font-size: 0.75rem; outline: none; padding: 0;">
+                                   <span style="font-size: 0.7rem; color: #4c6ef5; font-weight: 700;"> mins</span>`
+                : `<span style="font-size: 0.75rem; color: #4c6ef5; font-weight: 600;">Rest: ${session.rest || 0}mins</span>`
+            }
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <span class="material-symbols-outlined" style="color: ${isEditing ? '#4c6ef5' : '#868e96'};" 
+                              onclick="toggleHistoryEdit(${idx})">
+                              ${isEditing ? 'check_circle' : 'edit'}
+                        </span>
+                        <span class="material-symbols-outlined" style="color: #fa5252;" 
+                              onclick="deleteHistorySession(${idx})">delete</span>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                    ${renderHistoryField('Sets', session.sets, `histSets-${idx}`, isEditing)}
+                    ${renderHistoryField('Reps', session.reps, `histReps-${idx}`, isEditing)}
+                    ${renderHistoryField('Weight', session.weight, `histWeight-${idx}`, isEditing)}
+                </div>
+
+                <div class="input-group" style="background: #f8f9fa; padding: 8px; border-radius: 6px;">
+                    <label style="display: block; font-size: 0.65rem; color: #868e96; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Notes</label>
+                    ${isEditing
+                ? `<textarea id="histNotes-${idx}" style="width: 100%; border: none; border-bottom: 1px solid #4c6ef5; background: transparent; font-size: 0.85rem; color: #495057; outline: none; resize: none; min-height: 50px; overflow-y: auto; font-family: inherit;">${session.notes || ''}</textarea>`
+                : `<div style="font-size: 0.85rem; color: #495057; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 1.2rem;">${session.notes || '-'}</div>`
+            }
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// Helper to switch between input and static text
+function renderHistoryField(label, value, id, isEditing) {
+    return `
+        <div class="input-group" style="background: #f8f9fa; padding: 8px; border-radius: 6px;">
+            <label style="display: block; font-size: 0.65rem; color: #868e96; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">${label}</label>
+            ${isEditing
+            ? `<input type="text" id="${id}" value="${value}" style="width: 100%; border: none; border-bottom: 1px solid #4c6ef5; background: transparent; font-weight: 700; font-size: 1rem; color: #212529; outline: none;">`
+            : `<div style="font-weight: 700; font-size: 1rem; color: #212529;">${value || '-'}</div>`
+        }
+        </div>
+    `;
+}
+// Automatically saves changes when you change an input
+function updateHistoryValue(idx) {
+    const exerciseName = document.getElementById('historyExerciseName').textContent.replace(' History', '');
+    const sessions = getExerciseSessions(exerciseName); // Helper to get the same session list
+    const session = sessions[idx];
+
+    const workout = storage.workouts.find(w => w.id === session.workoutId);
+    if (workout && workout.exercises[session.exerciseIdx]) {
+        const ex = workout.exercises[session.exerciseIdx];
+        ex.sets = parseInt(document.getElementById(`histSets-${idx}`).value) || 0;
+        ex.reps = parseInt(document.getElementById(`histReps-${idx}`).value) || 0;
+        ex.weight = document.getElementById(`histWeight-${idx}`).value;
+        ex.rest = parseFloat(document.getElementById(`histRest-${idx}`).value) || 0;
+        ex.notes = document.getElementById(`histNotes-${idx}`).value;
+
+        storage.workouts = [...storage.workouts]; // Trigger setter/localStorage save
+        console.log("History updated and saved!");
+    }
+}
+
+function deleteHistorySession(idx) {
+    if (!confirm("Delete this session?")) return;
+
+    const exerciseName = document.getElementById('historyExerciseName').textContent.replace(' History', '');
+    const sessions = getExerciseSessions(exerciseName);
+    const sessionToKill = sessions[idx];
+
+    const workoutIndex = storage.workouts.findIndex(w => w.id === sessionToKill.workoutId);
+    if (workoutIndex !== -1) {
+        // Remove the exercise from that workout
+        storage.workouts[workoutIndex].exercises.splice(sessionToKill.exerciseIdx, 1);
+
+        // If workout is empty, remove the whole day
+        if (storage.workouts[workoutIndex].exercises.length === 0) {
+            storage.workouts.splice(workoutIndex, 1);
+        }
+
+        // 1. FORCE THE SAVE
+        storage.workouts = [...storage.workouts];
+
+        // 2. RE-RENDER EVERYTHING IN BACKGROUND
+        renderExercises();
+        if (typeof renderCalendar === 'function') renderCalendar();
+
+        // 3. Refresh modal
+        const updatedSessions = getExerciseSessions(exerciseName);
+        renderExerciseHistory(updatedSessions);
+    }
+}
+
+// Helper to keep logic clean
+function getExerciseSessions(exerciseName) {
+    const sessions = [];
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach((ex, exIdx) => {
+                if (ex.name === exerciseName) {
+                    sessions.push({
+                        workoutId: w.id,
+                        exerciseIdx: exIdx,
+                        date: w.date,
+                        ...ex
+                    });
+                }
+            });
+        }
+    });
+    return sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+
+function editHistory(idx) {
+    storage.editingHistoryIndex = idx;
+
+    // Collect sessions again to get current data
+    const sessions = [];
+    const exerciseName = document.getElementById('historyExerciseName').textContent.replace(' History', '');
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach((ex, exIdx) => {
+                if (ex.name === exerciseName) {
+                    sessions.push({
+                        workoutId: w.id,
+                        exerciseIdx: exIdx,
+                        date: new Date(w.date),
+                        ...ex
+                    });
+                }
+            });
+        }
+    });
+    sessions.sort((a, b) => b.date - a.date);
+
+    renderExerciseHistory(sessions);
+}
+
+function cancelHistoryEdit() {
+    storage.editingHistoryIndex = null;
+
+    // Re-render
+    const exerciseName = document.getElementById('historyExerciseName').textContent.replace(' History', '');
+    const sessions = [];
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach((ex, exIdx) => {
+                if (ex.name === exerciseName) {
+                    sessions.push({
+                        workoutId: w.id,
+                        exerciseIdx: exIdx,
+                        date: new Date(w.date),
+                        ...ex
+                    });
+                }
+            });
+        }
+    });
+    sessions.sort((a, b) => b.date - a.date);
+    renderExerciseHistory(sessions);
+}
+
+function saveHistoryEdit(idx) {
+    // Get updated values
+    const sets = parseInt(document.getElementById(`histSets-${idx}`).value) || 1;
+    const reps = parseInt(document.getElementById(`histReps-${idx}`).value) || 1;
+    const weight = document.getElementById(`histWeight-${idx}`).value;
+    const notes = document.getElementById(`histNotes-${idx}`).value;
+    const rest = parseFloat(document.getElementById(`histRest-${idx}`).value) || 0;
+
+    // Find the actual workout and exercise
+    const exerciseName = document.getElementById('historyExerciseName').textContent.replace(' History', '');
+    const sessions = [];
+    storage.workouts.forEach(w => {
+        if (w.exercises) {
+            w.exercises.forEach((ex, exIdx) => {
+                if (ex.name === exerciseName) {
+                    sessions.push({
+                        workoutId: w.id,
+                        exerciseIdx: exIdx,
+                        date: new Date(w.date),
+                        ...ex
+                    });
+                }
+            });
+        }
+    });
+    sessions.sort((a, b) => b.date - a.date);
+
+    const session = sessions[idx];
+    const workout = storage.workouts.find(w => w.id === session.workoutId);
+
+    if (workout) {
+        workout.exercises[session.exerciseIdx].sets = sets;
+        workout.exercises[session.exerciseIdx].reps = reps;
+        workout.exercises[session.exerciseIdx].weight = weight;
+        workout.exercises[session.exerciseIdx].notes = notes;
+        workout.exercises[session.exerciseIdx].rest = rest;
+
+        storage.saveWorkouts();
+        alert('Updated! 💾');
+    }
+
+    storage.editingHistoryIndex = null;
+    renderExerciseHistory(sessions);
 }

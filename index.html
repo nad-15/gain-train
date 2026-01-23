@@ -383,7 +383,7 @@
                 <button class="workout-btn upper" onclick="startWorkoutForDate('upper')">Upper</button>
                 <button class="workout-btn lower" onclick="startWorkoutForDate('lower')">Lower</button>
                 <button class="workout-btn whole" onclick="startWorkoutForDate('whole')">Whole Body</button>
-                
+
             </div>
 
             <div id="customWorkoutsModalSection" style="display: none;">
@@ -597,6 +597,20 @@
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeSameAsModal()">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Exercise History Modal -->
+    <div id="exerciseHistoryModal">
+        <div class="exercise-history-header">
+            <h2 style="margin: 0; font-size: 1.25rem; color: #1a1d1f;" id="historyExerciseName"></h2>
+            <button onclick="closeExerciseHistory()"
+                style="background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center;">
+                <span class="material-symbols-outlined" style="font-size: 28px; color: #6c757d;">close</span>
+            </button>
+        </div>
+        <div class="exercise-history-content" id="exerciseHistoryContent">
+            <!-- History cards will be rendered here -->
         </div>
     </div>
 
