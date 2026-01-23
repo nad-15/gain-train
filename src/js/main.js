@@ -2276,7 +2276,10 @@ html += `
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
             <div style="flex: 1; min-width: 0;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                    <button onclick="event.stopPropagation(); openSameAsModal('${ex.name.replace(/'/g, "\\'")}')" ...>
+                    <button onclick="event.stopPropagation(); openSameAsModal('${ex.name.replace(/'/g, "\\'")}')"                                         style="background: #e7f5ff; border: 1px solid #d0ebff; border-radius: 6px; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;"
+
+                                        onmouseover="this.style.background='#d0ebff';"
+                                        onmouseout="this.style.background='#e7f5ff';">
                         <span class="material-symbols-outlined" style="font-size: 16px !important; color: #228be6;">merge</span>
                     </button>
                     
