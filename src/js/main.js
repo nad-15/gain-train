@@ -1,7 +1,3 @@
-
-
-
-// localStorage implementation
 const storage = {
     _workouts: null,
     _templates: null,
@@ -119,8 +115,8 @@ const storage = {
     editingExerciseIndex: null,
     originalExerciseSnapshot: null,
     currentPB: null,
-    rescheduleWorkoutId: null,      // ADD THIS
-    rescheduleFromDate: null,       // ADD THIS
+    rescheduleWorkoutId: null,      
+    rescheduleFromDate: null       
 };
 
 
