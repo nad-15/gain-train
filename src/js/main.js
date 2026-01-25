@@ -213,8 +213,7 @@ function startWorkout(type, date = null, templateData = null) {
                 reps: 10,
                 weight: 0,
                 notes: '',
-                rest: ''  // ADD THIS LINE
-
+                rest: ''  
             }));
         } else {
             // No template found - start with empty exercises
@@ -278,17 +277,6 @@ function showTemplateSelector(type) {
         `Select ${displayName} Template`;
     // Wire the HEADER ➕ button
     const addBtn = document.getElementById('addTemplateBtn');
-    // addBtn.onclick = () => {
-    //     closeTemplateSelector();
-    //     if (storage.isFromCalendar) {
-    //         startWorkout(type, storage.selectedDate.toISOString(), null);
-    //         storage.isFromCalendar = false;
-    //     } else {
-    //         // Mark that we're creating a NEW template (not editing)
-    //         storage.isCreatingNewTemplate = true;  // ADD THIS LINE
-    //         // showWorkoutTypePreview(type, null);
-    //     }
-    // };
 
     addBtn.onclick = () => {
         closeTemplateSelector();
@@ -355,22 +343,6 @@ function showTemplateSelector(type) {
         </div>
     `;
 
-            // prevBtn.onclick = () => {
-            //     closeTemplateSelector();
-            //     storage.isCreatingNewTemplate = false;
-            //     const previousTemplate = {
-            //         name: 'Previous',
-            //         exercises: JSON.parse(JSON.stringify(lastWorkout.exercises))
-            //     };
-
-            //     if (storage.isFromCalendar) {
-            //         startWorkout(type, storage.selectedDate.toISOString(), previousTemplate);
-            //         storage.isFromCalendar = false;
-            //     } else {
-            //         // showWorkoutTypePreview(type, previousTemplate);
-            //     }
-            // };
-
             prevBtn.onclick = () => {
                 closeTemplateSelector();
                 storage.isCreatingNewTemplate = false;
@@ -414,16 +386,6 @@ function showTemplateSelector(type) {
             </div>
         `;
 
-        // btn.onclick = () => {
-        //     closeTemplateSelector();
-        //     storage.isCreatingNewTemplate = false;
-        //     if (storage.isFromCalendar) {
-        //         startWorkout(type, storage.selectedDate.toISOString(), template);
-        //         storage.isFromCalendar = false;
-        //     } else {
-        //         // showWorkoutTypePreview(type, template);
-        //     }
-        // };
 
         btn.onclick = () => {
             closeTemplateSelector();
@@ -3518,20 +3480,7 @@ function switchGraphType(type) {
         }
     });
 
-    // Show/hide weight logging section
-    // const weightSection = document.getElementById('weightLoggingSection');
-    // if (type === 'weight') {
-    //     weightSection.style.display = 'block';
-
-    //     // Set today's date as default
-    //     const today = new Date();
-    //     document.getElementById('weightDateInput').valueAsDate = today;
-
-    //     renderWeightHistory();
-    // } else {
-    //     weightSection.style.display = 'none';
-    // }
-
+    
     // Update chart title
     document.getElementById('chartTitle').textContent =
         type === 'workouts' ? 'Weekly Progress' : 'Weight Progress';
